@@ -35,9 +35,6 @@ func (m *Migration{{.ID}}{{.PascalMigrationName}}) Down(tx *gorm.DB) error {
     return tx.Migrator().DropTable(m.table())
 }
 
-// write your code below
-// do not touch upstairs
-// table define migratie table
 func (m *Migration{{.ID}}{{.PascalMigrationName}}) table() interface{} {
 	type TableName struct {
 		FieldName string
