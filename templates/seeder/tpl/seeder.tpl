@@ -3,10 +3,12 @@ package seeders
 import (
 	"atom/container"
 	"atom/contracts"
+	"atom/database/models"
 	"log"
 
 	"go.uber.org/dig"
 	"gorm.io/gorm"
+	"github.com/brianvoe/gofakeit/v6"
 )
 
 func init() {
@@ -22,10 +24,10 @@ func New{{.PascalSeederName}}Seeder() contracts.Seeder {
 	return &{{.PascalSeederName}}Seeder{}
 }
 
-func (s *{{.PascalSeederName}}Seeder) Run(db *gorm.DB) {
+func (s *{{.PascalSeederName}}Seeder) Run(faker *gofakeit.Faker, db *gorm.DB) {
 	times := 10
 	for i := 0; i < times; i++ {
-		data := s.Generate(i)
+		data := s.Generate(faker, i)
 		if i == 0 {
 			stmt := &gorm.Statement{DB: db}
 			_ = stmt.Parse(&data)
@@ -35,7 +37,7 @@ func (s *{{.PascalSeederName}}Seeder) Run(db *gorm.DB) {
 	}
 }
 
-func (s *{{.PascalSeederName}}Seeder) Generate(idx int) models.{{.PascalSeederName}} {
+func (s *{{.PascalSeederName}}Seeder) Generate(faker *gofakeit.Faker,idx int) models.{{.PascalSeederName}} {
 	return models.{{.PascalSeederName}}{
         // fill model fields
 	}
