@@ -3,14 +3,14 @@ package migrations
 import (
 	"atom/container"
 	"atom/contracts"
-	"atom/providers/logger"
+	"atom/providers/log"
 	"go.uber.org/dig"
 	"gorm.io/gorm"
 )
 
 func init() {
 	if err := container.Container.Provide(New{{.ID}}{{.PascalMigrationName}}Migration, dig.Group("migrations")); err != nil {
-		logger.Fatal(err)
+		log.Fatal(err)
 	}
 }
 
