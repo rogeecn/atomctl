@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"atomctl/templates/dao"
+	"atomctl/templates/module"
 	"atomctl/utils"
 	"bytes"
 	"fmt"
@@ -9,42 +9,37 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/iancoleman/strcase"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
-var addDao = &DaoGenerator{}
+var addModule = &ModuleGenerator{}
 
-// daoCmd represents the dao command
-var daoCmd = &cobra.Command{
-	Use:     "dao",
-	Short:   "create dao in target module path",
-	Long:    `new dao file. support chain module moduleA.moduleB.moduleC`,
-	Example: "atomctl new dao [module] [name]",
+// moduleCmd represents the module command
+var moduleCmd = &cobra.Command{
+	Use:     "module",
+	Short:   "create module in target module path",
+	Long:    `new module file. support chain module moduleA.moduleB.moduleC`,
+	Example: "atomctl new module [module] [name]",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		if len(args) != 2 {
+		if len(args) != 1 {
 			return errors.New("invalid params")
 		}
-		// a => modules/a/dao
-		// a.b => modules/a/modules/b/daos
+		// a => modules/a
+		// a.b => modules/a/modules/b
 
-		file := fmt.Sprintf("modules/%s/dao", strings.ReplaceAll(args[0], ".", "/modules/"))
-		if !utils.IsDir(file) {
-			return errors.New("module not exists")
+		file := fmt.Sprintf("modules/%s", strings.ReplaceAll(args[0], ".", "/modules/"))
+		if utils.IsDir(file) {
+			return errors.New("module already exists")
 		}
+		addModule.Path = file
 
-		addDao.Path = file
-		addDao.Name = args[1]
-		addDao.PascalName = strcase.ToCamel(addDao.Name)
-		addDao.CamelName = strcase.ToLowerCamel(addDao.Name)
-
-		generateFiles, err := addDao.prepareFiles(dao.Files)
+		generateFiles, err := addModule.prepareFiles(module.Files)
 		if err != nil {
 			return err
 		}
 
-		if err := utils.Generate(generateFiles, dao.Templates, addDao); err != nil {
+		if err := utils.Generate(generateFiles, module.Templates, addModule); err != nil {
 			return err
 		}
 
@@ -53,19 +48,17 @@ var daoCmd = &cobra.Command{
 }
 
 func init() {
-	newCmd.AddCommand(daoCmd)
+	newCmd.AddCommand(moduleCmd)
 }
 
-type DaoGenerator struct {
-	Name       string
-	Path       string
-	PascalName string
-	CamelName  string
+type ModuleGenerator struct {
+	Name string
+	Path string
 
 	PkgName string
 }
 
-func (m *DaoGenerator) prepareFiles(files map[string]string) (map[string]string, error) {
+func (m *ModuleGenerator) prepareFiles(files map[string]string) (map[string]string, error) {
 	result := make(map[string]string)
 	for tpl, target := range files {
 		// get target file name

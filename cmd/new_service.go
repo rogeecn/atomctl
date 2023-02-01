@@ -88,7 +88,8 @@ func (m *ServiceGenerator) prepareFiles(files map[string]string) (map[string]str
 		}
 		tplFilePath := "tpl/" + tpl
 
-		result[tplFilePath] = filepath.Join(m.Path, target)
+		target = filepath.Join(m.Path, target)
+		result[tplFilePath] = target
 		if utils.IsFile(target) {
 			return nil, errors.New(target + " file exists")
 		}
