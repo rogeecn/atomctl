@@ -1,9 +1,10 @@
 package cmd
 
 import (
-	"atomctl/templates/suite"
+	"atomctl/templates/controller"
 	"atomctl/utils"
 	"bytes"
+	"fmt"
 	"path/filepath"
 	"strings"
 	"text/template"
@@ -13,39 +14,35 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var addSuite = &SuiteGenerator{}
+var addController = &ControllerGenerator{}
 
-// suiteCmd represents the suite command
-var suiteCmd = &cobra.Command{
-	Use:   "suite",
-	Short: "create testing suit file for target",
-	Long:  `new suite file.`,
+// controllerCmd represents the controller command
+var controllerCmd = &cobra.Command{
+	Use:   "controller",
+	Short: "create controller in target module path",
+	Long:  `new controller file.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		if len(args) == 0 {
+		if len(args) != 2 {
 			return errors.New("invalid params")
 		}
+		// a => modules/a/controller
+		// a.b => modules/a/modules/b/controllers
 
-		file := args[0]
-		if !utils.IsFile(file) {
-			return errors.New("target is not a valid file")
+		file := fmt.Sprintf("modules/%s/controller", strings.ReplaceAll(args[0], ".", "/modules/"))
+		if !utils.IsDir(file) {
+			return errors.New("module not exists")
 		}
 
-		if filepath.Ext(file) != ".go" {
-			return errors.New("target is not a valid go file ")
-		}
+		addController.Path = file
+		addController.Name = args[1]
+		addController.PascalName = strcase.ToCamel(addController.Name)
 
-		addSuite.Path = filepath.Dir(file)
-		addSuite.Name = strings.ReplaceAll(filepath.Base(file), ".go", "")
-		addSuite.PascalName = strcase.ToCamel(addSuite.Name)
-
-		addSuite.PkgName = filepath.Base(addSuite.Path)
-
-		generateFiles, err := addSuite.prepareFiles(suite.Files)
+		generateFiles, err := addController.prepareFiles(controller.Files)
 		if err != nil {
 			return err
 		}
 
-		if err := utils.Generate(generateFiles, suite.Templates, addSuite); err != nil {
+		if err := utils.Generate(generateFiles, controller.Templates, addController); err != nil {
 			return err
 		}
 
@@ -54,10 +51,10 @@ var suiteCmd = &cobra.Command{
 }
 
 func init() {
-	newCmd.AddCommand(suiteCmd)
+	newCmd.AddCommand(controllerCmd)
 }
 
-type SuiteGenerator struct {
+type ControllerGenerator struct {
 	Name       string
 	Path       string
 	PascalName string
@@ -65,7 +62,7 @@ type SuiteGenerator struct {
 	PkgName string
 }
 
-func (m *SuiteGenerator) prepareFiles(files map[string]string) (map[string]string, error) {
+func (m *ControllerGenerator) prepareFiles(files map[string]string) (map[string]string, error) {
 	result := make(map[string]string)
 	for tpl, target := range files {
 		// get target file name

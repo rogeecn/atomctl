@@ -3,6 +3,7 @@ package utils
 import (
 	"bytes"
 	"embed"
+	"log"
 	"os"
 	"path/filepath"
 	"text/template"
@@ -41,6 +42,7 @@ func Generate(files map[string]string, fs embed.FS, m any) error {
 			return errors.Wrapf(err, "open go file(%s) failed", target)
 		}
 		defer fd.Close()
+		log.Println("generate: ", target)
 
 		if err := t.Execute(fd, m); err != nil {
 			return errors.Wrapf(err, "generate file failed, target: %s", target)
