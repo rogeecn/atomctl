@@ -18,9 +18,10 @@ var addController = &ControllerGenerator{}
 
 // controllerCmd represents the controller command
 var controllerCmd = &cobra.Command{
-	Use:   "controller",
-	Short: "create controller in target module path",
-	Long:  `new controller file.`,
+	Use:     "controller",
+	Short:   "create controller in target module path",
+	Long:    `new controller file. support chain module moduleA.moduleB.moduleC`,
+	Example: "atomctl new controller [module] [name]",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) != 2 {
 			return errors.New("invalid params")
