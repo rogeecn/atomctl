@@ -10,14 +10,14 @@ type {{.PascalName}}Controller interface {
 	GetName(*gin.Context) (string, error)
 }
 
-type {{.PascalName}}ControllerImpl struct {
+type {{.CamelName}}ControllerImpl struct {
 	conf *config.Config
 }
 
-func New{{.PascalName}}Controller(Conf *config.Config) {{.PascalName}}Controller {
-	return &{{.PascalName}}ControllerImpl{conf: Conf}
+func New{{.PascalName}}Controller(conf *config.Config) {{.PascalName}}Controller {
+	return &{{.CamelName}}ControllerImpl{conf: conf}
 }
 
-func (c *{{.PascalName}}ControllerImpl) GetName(ctx *gin.Context) (string, error) {
+func (c *{{.CamelName}}ControllerImpl) GetName(ctx *gin.Context) (string, error) {
 	return "{{.PascalName}}",nil
 }

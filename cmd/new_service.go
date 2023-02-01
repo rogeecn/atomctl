@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"atomctl/templates/controller"
+	"atomctl/templates/service"
 	"atomctl/utils"
 	"bytes"
 	"fmt"
@@ -14,37 +14,37 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var addController = &ControllerGenerator{}
+var addService = &ServiceGenerator{}
 
-// controllerCmd represents the controller command
-var controllerCmd = &cobra.Command{
-	Use:     "controller",
-	Short:   "create controller in target module path",
-	Long:    `new controller file. support chain module moduleA.moduleB.moduleC`,
-	Example: "atomctl new controller [module] [name]",
+// serviceCmd represents the service command
+var serviceCmd = &cobra.Command{
+	Use:     "service",
+	Short:   "create service in target module path",
+	Long:    `new service file. support chain module moduleA.moduleB.moduleC`,
+	Example: "atomctl new service [module] [name]",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) != 2 {
 			return errors.New("invalid params")
 		}
-		// a => modules/a/controller
-		// a.b => modules/a/modules/b/controllers
+		// a => modules/a/service
+		// a.b => modules/a/modules/b/services
 
-		file := fmt.Sprintf("modules/%s/controller", strings.ReplaceAll(args[0], ".", "/modules/"))
+		file := fmt.Sprintf("modules/%s/service", strings.ReplaceAll(args[0], ".", "/modules/"))
 		if !utils.IsDir(file) {
 			return errors.New("module not exists")
 		}
 
-		addController.Path = file
-		addController.Name = args[1]
-		addController.PascalName = strcase.ToCamel(addController.Name)
-		addController.CamelName = strcase.ToLowerCamel(addController.Name)
+		addService.Path = file
+		addService.Name = args[1]
+		addService.PascalName = strcase.ToCamel(addService.Name)
+		addService.CamelName = strcase.ToLowerCamel(addService.Name)
 
-		generateFiles, err := addController.prepareFiles(controller.Files)
+		generateFiles, err := addService.prepareFiles(service.Files)
 		if err != nil {
 			return err
 		}
 
-		if err := utils.Generate(generateFiles, controller.Templates, addController); err != nil {
+		if err := utils.Generate(generateFiles, service.Templates, addService); err != nil {
 			return err
 		}
 
@@ -53,10 +53,10 @@ var controllerCmd = &cobra.Command{
 }
 
 func init() {
-	newCmd.AddCommand(controllerCmd)
+	newCmd.AddCommand(serviceCmd)
 }
 
-type ControllerGenerator struct {
+type ServiceGenerator struct {
 	Name       string
 	Path       string
 	PascalName string
@@ -65,7 +65,7 @@ type ControllerGenerator struct {
 	PkgName string
 }
 
-func (m *ControllerGenerator) prepareFiles(files map[string]string) (map[string]string, error) {
+func (m *ServiceGenerator) prepareFiles(files map[string]string) (map[string]string, error) {
 	result := make(map[string]string)
 	for tpl, target := range files {
 		// get target file name
