@@ -1,25 +1,23 @@
 package dao
 
 import (
-	"atom/providers/config"
+	"atom/database/query"
 	"context"
 	"errors"
-
-	"gorm.io/gorm"
 )
 
 type {{.PascalName}}Dao interface {
-	Release(context.Context, int, string) error
+	GetByID(context.Context, uint64) error
 }
 
 type {{.CamelName}}DaoImpl struct {
-	db   *gorm.DB
+	query *query.Query
 }
 
-func New{{.PascalName}}Dao(db *gorm.DB) {{.PascalName}}Dao {
-	return &{{.CamelName}}DaoImpl{db: db}
+func New{{.PascalName}}Dao(query *query.Query) {{.PascalName}}Dao {
+	return &{{.CamelName}}DaoImpl{query:query}
 }
 
-func (c *{{.CamelName}}DaoImpl) Release(ctx context.Context, a int, b string) error {
+func (dao *{{.CamelName}}DaoImpl) GetByID(ctx context.Context, id int) error {
 	return nil
 }
