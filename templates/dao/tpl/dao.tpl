@@ -3,7 +3,6 @@ package dao
 import (
 	"atom/database/query"
 	"context"
-	"errors"
 )
 
 type {{.PascalName}}Dao struct {
