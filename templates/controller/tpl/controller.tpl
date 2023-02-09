@@ -6,18 +6,15 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type {{.PascalName}}Controller interface {
-	GetName(*gin.Context) (string, error)
-}
 
-type {{.CamelName}}ControllerImpl struct {
+type {{.PascalName}}Controller struct {
 	conf *config.Config
 }
 
-func New{{.PascalName}}Controller(conf *config.Config) {{.PascalName}}Controller {
-	return &{{.CamelName}}ControllerImpl{conf: conf}
+func New{{.PascalName}}Controller(conf *config.Config) *{{.PascalName}}Controller {
+	return &{{.PascalName}}ControllerImpl{conf: conf}
 }
 
-func (c *{{.CamelName}}ControllerImpl) GetName(ctx *gin.Context) (string, error) {
+func (c *{{.PascalName}}Controller) GetName(ctx *gin.Context) (string, error) {
 	return "{{.PascalName}}",nil
 }
