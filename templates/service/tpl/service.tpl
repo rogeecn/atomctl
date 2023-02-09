@@ -4,17 +4,13 @@ import (
 	"context"
 )
 
-type {{.PascalName}}Service interface {
-	GetName(ctx context.Context) (string, error)
+type {{.PascalName}}Service struct {
 }
 
-type {{.CamelName}}Service struct {
+func New{{.PascalName}}Service() *{{.PascalName}}Service {
+	return &{{.PascalName}}Service{}
 }
 
-func New{{.PascalName}}Service() {{.PascalName}}Service {
-	return &{{.CamelName}}Service{}
-}
-
-func (svc *{{.CamelName}}Service) GetName(ctx context.Context) (string, error) {
-	return "{{.CamelName}}.GetName", nil
+func (svc *{{.PascalName}}Service) GetName(ctx context.Context) (string, error) {
+	return "{{.PascalName}}.GetName", nil
 }
