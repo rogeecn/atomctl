@@ -1,6 +1,8 @@
 package container
 
 import (
+	"{{.Package}}/{{.Path}}/controller"
+	"{{.Package}}/{{.Path}}/service"
 	"{{.Package}}/{{.Path}}/routes"
 
 	"github.com/rogeecn/atom/container"
@@ -8,8 +10,8 @@ import (
 
 func Providers() container.Providers {
 	return container.Providers{
-		{
-			Provider: routes.Provide,
-		},
+		{ Provider: controller.Provide },
+		{ Provider: service.Provide },
+		{ Provider: routes.Provide },
 	}
 }
