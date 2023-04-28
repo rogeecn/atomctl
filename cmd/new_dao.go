@@ -1,13 +1,14 @@
 package cmd
 
 import (
-	"atomctl/templates/dao"
-	"atomctl/utils"
 	"bytes"
 	"fmt"
 	"path/filepath"
 	"strings"
 	"text/template"
+
+	"github.com/rogeecn/atomctl/templates/dao"
+	"github.com/rogeecn/atomctl/utils"
 
 	"github.com/iancoleman/strcase"
 	"github.com/pkg/errors"
@@ -35,6 +36,7 @@ var daoCmd = &cobra.Command{
 		}
 
 		addDao.Path = file
+		addDao.Package = ModPath
 		addDao.Name = args[1]
 		addDao.PascalName = strcase.ToCamel(addDao.Name)
 		addDao.CamelName = strcase.ToLowerCamel(addDao.Name)
@@ -57,6 +59,7 @@ func init() {
 }
 
 type DaoGenerator struct {
+	Package    string
 	Name       string
 	Path       string
 	PascalName string

@@ -1,17 +1,12 @@
 package migrations
 
 import (
-	"atom/container"
-	"atom/contracts"
-	"atom/providers/log"
-	"go.uber.org/dig"
+	"github.com/rogeecn/atom/contracts"
 	"gorm.io/gorm"
 )
 
 func init() {
-	if err := container.Container.Provide(New{{.ID}}{{.PascalMigrationName}}Migration, dig.Group("migrations")); err != nil {
-		log.Fatal(err)
-	}
+	Migrations = append(Migrations, New{{.ID}}{{.PascalMigrationName}}Migration)
 }
 
 type Migration{{.ID}}{{.PascalMigrationName}} struct {

@@ -1,13 +1,14 @@
 package cmd
 
 import (
-	"atomctl/templates/controller"
-	"atomctl/utils"
 	"bytes"
 	"fmt"
 	"path/filepath"
 	"strings"
 	"text/template"
+
+	"github.com/rogeecn/atomctl/templates/controller"
+	"github.com/rogeecn/atomctl/utils"
 
 	"github.com/iancoleman/strcase"
 	"github.com/pkg/errors"
@@ -35,6 +36,7 @@ var controllerCmd = &cobra.Command{
 		}
 
 		addController.Path = file
+		addController.Package = ModPath
 		addController.Name = args[1]
 		addController.PascalName = strcase.ToCamel(addController.Name)
 		addController.CamelName = strcase.ToLowerCamel(addController.Name)
@@ -57,6 +59,7 @@ func init() {
 }
 
 type ControllerGenerator struct {
+	Package    string
 	Name       string
 	Path       string
 	PascalName string

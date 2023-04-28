@@ -1,7 +1,7 @@
 package controller
 
 import (
-	"atom/providers/config"
+	"github.com/rogeecn/atom/providers/config"
 
 	"github.com/gin-gonic/gin"
 )

@@ -1,8 +1,8 @@
 package routes
 
 import (
-	"atom/contracts"
-	"atom/providers/http"
+	"github.com/rogeecn/atom/contracts"
+	"github.com/rogeecn/atom/providers/http"
 )
 
 type Route struct {

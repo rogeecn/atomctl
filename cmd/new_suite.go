@@ -1,12 +1,13 @@
 package cmd
 
 import (
-	"atomctl/templates/suite"
-	"atomctl/utils"
 	"bytes"
 	"path/filepath"
 	"strings"
 	"text/template"
+
+	"github.com/rogeecn/atomctl/templates/suite"
+	"github.com/rogeecn/atomctl/utils"
 
 	"github.com/iancoleman/strcase"
 	"github.com/pkg/errors"
@@ -37,6 +38,7 @@ var suiteCmd = &cobra.Command{
 		addSuite.Path = filepath.Dir(file)
 		addSuite.Name = strings.ReplaceAll(filepath.Base(file), ".go", "")
 		addSuite.PascalName = strcase.ToCamel(addSuite.Name)
+		addSuite.Package = ModPath
 
 		addSuite.PkgName = filepath.Base(addSuite.Path)
 
@@ -59,6 +61,7 @@ func init() {
 
 type SuiteGenerator struct {
 	Name       string
+	Package    string
 	Path       string
 	PascalName string
 

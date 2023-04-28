@@ -1,13 +1,14 @@
 package cmd
 
 import (
-	"atomctl/templates/module"
-	"atomctl/utils"
 	"bytes"
 	"fmt"
 	"path/filepath"
 	"strings"
 	"text/template"
+
+	"github.com/rogeecn/atomctl/templates/module"
+	"github.com/rogeecn/atomctl/utils"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -33,6 +34,7 @@ var moduleCmd = &cobra.Command{
 			return errors.New("module already exists")
 		}
 		addModule.Path = file
+		addModule.Package = ModPath
 
 		generateFiles, err := addModule.prepareFiles(module.Files)
 		if err != nil {
@@ -52,8 +54,9 @@ func init() {
 }
 
 type ModuleGenerator struct {
-	Name string
-	Path string
+	Package string
+	Name    string
+	Path    string
 
 	PkgName string
 }

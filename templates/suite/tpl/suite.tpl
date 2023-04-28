@@ -7,7 +7,7 @@ import (
 	"testing"
 
  	// 这里的依赖需要被导入，否则会报错
-	_ "atom/providers"
+	_ "github.com/rogeecn/atom/providers"
 
 
 	"github.com/stretchr/testify/assert"

@@ -1,7 +1,7 @@
 package dao
 
 import (
-	"atom/database/query"
+	"github.com/rogeecn/atom/database/query"
 	"context"
 )
 

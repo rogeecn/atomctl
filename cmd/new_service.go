@@ -1,13 +1,14 @@
 package cmd
 
 import (
-	"atomctl/templates/service"
-	"atomctl/utils"
 	"bytes"
 	"fmt"
 	"path/filepath"
 	"strings"
 	"text/template"
+
+	"github.com/rogeecn/atomctl/templates/service"
+	"github.com/rogeecn/atomctl/utils"
 
 	"github.com/iancoleman/strcase"
 	"github.com/pkg/errors"
@@ -35,6 +36,7 @@ var serviceCmd = &cobra.Command{
 		}
 
 		addService.Path = file
+		addService.Package = ModPath
 		addService.Name = args[1]
 		addService.PascalName = strcase.ToCamel(addService.Name)
 		addService.CamelName = strcase.ToLowerCamel(addService.Name)
@@ -58,6 +60,7 @@ func init() {
 
 type ServiceGenerator struct {
 	Name       string
+	Package    string
 	Path       string
 	PascalName string
 	CamelName  string

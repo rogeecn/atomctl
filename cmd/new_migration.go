@@ -1,8 +1,6 @@
 package cmd
 
 import (
-	"atomctl/templates/migration"
-	"atomctl/utils"
 	"bytes"
 	"log"
 	"os"
@@ -10,6 +8,9 @@ import (
 	"strings"
 	"text/template"
 	"time"
+
+	"github.com/rogeecn/atomctl/templates/migration"
+	"github.com/rogeecn/atomctl/utils"
 
 	"github.com/iancoleman/strcase"
 	"github.com/pkg/errors"
@@ -29,6 +30,7 @@ var newMigrationCmd = &cobra.Command{
 
 		addMigration.ID = time.Now().Format("20060102_150405")
 
+		addMigration.Package = ModPath
 		addMigration.MigrationName = strings.TrimSpace(args[0])
 		addMigration.SnakeMigrationName = strcase.ToSnake(addMigration.MigrationName)
 		addMigration.PascalMigrationName = strcase.ToCamel(addMigration.MigrationName)
@@ -56,6 +58,7 @@ func init() {
 
 type MigrationGenerator struct {
 	ID                  string
+	Package             string
 	MigrationName       string
 	SnakeMigrationName  string
 	PascalMigrationName string

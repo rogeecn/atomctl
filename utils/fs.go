@@ -12,7 +12,6 @@ func IsDir(dir string) bool {
 	}
 
 	return fs.IsDir()
-
 }
 
 func IsFile(path string) bool {

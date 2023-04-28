@@ -1,21 +1,14 @@
 package seeders
 
 import (
-	"atom/container"
-	"atom/contracts"
-	"atom/database/models"
 	"log"
 
-	"go.uber.org/dig"
+	"{{.Package}}/database/models"
+
 	"gorm.io/gorm"
+	"github.com/rogeecn/atom/contracts"
 	"github.com/brianvoe/gofakeit/v6"
 )
-
-func init() {
-	if err := container.Container.Provide(New{{.PascalSeederName}}Seeder, dig.Group("seeders")); err != nil {
-		log.Fatal(err)
-	}
-}
 
 type {{.PascalSeederName}}Seeder struct {
 }

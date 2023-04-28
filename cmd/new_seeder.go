@@ -1,14 +1,15 @@
 package cmd
 
 import (
-	"atomctl/templates/seeder"
-	"atomctl/utils"
 	"bytes"
 	"log"
 	"os"
 	"path/filepath"
 	"strings"
 	"text/template"
+
+	"github.com/rogeecn/atomctl/templates/seeder"
+	"github.com/rogeecn/atomctl/utils"
 
 	"github.com/iancoleman/strcase"
 	"github.com/pkg/errors"
@@ -26,6 +27,7 @@ var newSeederCmd = &cobra.Command{
 			log.Fatal("need Seeder name")
 		}
 
+		addSeeder.Package = ModPath
 		addSeeder.SeederName = strings.TrimSpace(args[0])
 		addSeeder.SnakeSeederName = strcase.ToSnake(addSeeder.SeederName)
 		addSeeder.PascalSeederName = strcase.ToCamel(addSeeder.SeederName)
@@ -52,6 +54,7 @@ func init() {
 }
 
 type SeederGenerator struct {
+	Package          string
 	SeederName       string
 	SnakeSeederName  string
 	PascalSeederName string

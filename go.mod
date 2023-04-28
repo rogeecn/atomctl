@@ -1,4 +1,4 @@
-module atomctl
+module github.com/rogeecn/atomctl
 
 go 1.19
 
@@ -6,6 +6,7 @@ require (
 	github.com/iancoleman/strcase v0.2.0
 	github.com/pkg/errors v0.8.1
 	github.com/spf13/cobra v1.6.1
+	golang.org/x/mod v0.10.0
 )
 
 require (

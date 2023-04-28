@@ -1,8 +1,8 @@
 package container
 
 import (
-	"atom/container"
-	"atom/{{.Path}}/routes"
+	"github.com/rogeecn/atom/container"
+	"{{.Package}}/{{.Path}}/routes"
 	"log"
 
 	"go.uber.org/dig"
