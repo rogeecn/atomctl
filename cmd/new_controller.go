@@ -36,7 +36,7 @@ var controllerCmd = &cobra.Command{
 		}
 
 		addController.Path = file
-		addController.Package = ModPath
+		addController.Package = getPackage()
 		addController.Name = args[1]
 		addController.PascalName = strcase.ToCamel(addController.Name)
 		addController.CamelName = strcase.ToLowerCamel(addController.Name)

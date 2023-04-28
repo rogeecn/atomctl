@@ -2,46 +2,41 @@ package cmd
 
 import (
 	"bytes"
-	"fmt"
 	"path/filepath"
-	"strings"
 	"text/template"
 
-	"github.com/rogeecn/atomctl/templates/module"
+	"github.com/rogeecn/atomctl/templates/http"
 	"github.com/rogeecn/atomctl/utils"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
-var addModule = &ModuleGenerator{}
+var addHttp = &HttpGenerator{}
 
 // moduleCmd represents the module command
-var moduleCmd = &cobra.Command{
-	Use:     "module",
-	Short:   "create module in target module path",
-	Long:    `new module file. support chain module moduleA.moduleB.moduleC`,
-	Example: "atomctl new module [module] [name]",
+var httpCmd = &cobra.Command{
+	Use:     "http",
+	Short:   "create http project",
+	Example: "atomctl new http [pkg] [name]",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		if len(args) != 1 {
+		if len(args) != 2 {
 			return errors.New("invalid params")
 		}
-		// a => modules/a
-		// a.b => modules/a/modules/b
 
-		file := fmt.Sprintf("modules/%s", strings.ReplaceAll(args[0], ".", "/modules/"))
+		file := args[1]
 		if utils.IsDir(file) {
-			return errors.New("module already exists")
+			return errors.New("project already exists")
 		}
-		addModule.Path = file
-		addModule.Package = getPackage()
+		addHttp.Path = file
+		addHttp.Package = args[0]
 
-		generateFiles, err := addModule.prepareFiles(module.Files)
+		generateFiles, err := addHttp.prepareFiles(http.Files)
 		if err != nil {
 			return err
 		}
 
-		if err := utils.Generate(generateFiles, module.Templates, addModule); err != nil {
+		if err := utils.Generate(generateFiles, http.Templates, addHttp); err != nil {
 			return err
 		}
 
@@ -50,10 +45,10 @@ var moduleCmd = &cobra.Command{
 }
 
 func init() {
-	newCmd.AddCommand(moduleCmd)
+	newCmd.AddCommand(httpCmd)
 }
 
-type ModuleGenerator struct {
+type HttpGenerator struct {
 	Package string
 	Name    string
 	Path    string
@@ -61,7 +56,7 @@ type ModuleGenerator struct {
 	PkgName string
 }
 
-func (m *ModuleGenerator) prepareFiles(files map[string]string) (map[string]string, error) {
+func (m *HttpGenerator) prepareFiles(files map[string]string) (map[string]string, error) {
 	result := make(map[string]string)
 	for tpl, target := range files {
 		// get target file name

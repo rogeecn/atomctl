@@ -30,7 +30,7 @@ var newMigrationCmd = &cobra.Command{
 
 		addMigration.ID = time.Now().Format("20060102_150405")
 
-		addMigration.Package = ModPath
+		addMigration.Package = getPackage()
 		addMigration.MigrationName = strings.TrimSpace(args[0])
 		addMigration.SnakeMigrationName = strcase.ToSnake(addMigration.MigrationName)
 		addMigration.PascalMigrationName = strcase.ToCamel(addMigration.MigrationName)

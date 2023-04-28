@@ -36,7 +36,7 @@ var serviceCmd = &cobra.Command{
 		}
 
 		addService.Path = file
-		addService.Package = ModPath
+		addService.Package = getPackage()
 		addService.Name = args[1]
 		addService.PascalName = strcase.ToCamel(addService.Name)
 		addService.CamelName = strcase.ToLowerCamel(addService.Name)

@@ -36,7 +36,7 @@ var daoCmd = &cobra.Command{
 		}
 
 		addDao.Path = file
-		addDao.Package = ModPath
+		addDao.Package = getPackage()
 		addDao.Name = args[1]
 		addDao.PascalName = strcase.ToCamel(addDao.Name)
 		addDao.CamelName = strcase.ToLowerCamel(addDao.Name)

@@ -38,7 +38,7 @@ var suiteCmd = &cobra.Command{
 		addSuite.Path = filepath.Dir(file)
 		addSuite.Name = strings.ReplaceAll(filepath.Base(file), ".go", "")
 		addSuite.PascalName = strcase.ToCamel(addSuite.Name)
-		addSuite.Package = ModPath
+		addSuite.Package = getPackage()
 
 		addSuite.PkgName = filepath.Base(addSuite.Path)
 

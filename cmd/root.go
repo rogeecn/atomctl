@@ -5,13 +5,27 @@ package cmd
 
 import (
 	"io/ioutil"
+	"log"
 	"os"
 
 	"github.com/spf13/cobra"
 	"golang.org/x/mod/modfile"
 )
 
-var ModPath = ""
+func getPackage() string {
+	content, err := ioutil.ReadFile("go.mod")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Parse the go.mod file
+	f, err := modfile.Parse("go.mod", content, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return f.Module.Mod.Path
+}
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -26,22 +40,6 @@ to quickly create a Cobra application.`,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	// Run: func(cmd *cobra.Command, args []string) { },
-	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-		content, err := ioutil.ReadFile("go.mod")
-		if err != nil {
-			return err
-		}
-
-		// Parse the go.mod file
-		f, err := modfile.Parse("go.mod", content, nil)
-		if err != nil {
-			return err
-		}
-
-		// Print the module name
-		ModPath = f.Module.Mod.Path
-		return nil
-	},
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.

@@ -27,7 +27,7 @@ var newSeederCmd = &cobra.Command{
 			log.Fatal("need Seeder name")
 		}
 
-		addSeeder.Package = ModPath
+		addSeeder.Package = getPackage()
 		addSeeder.SeederName = strings.TrimSpace(args[0])
 		addSeeder.SnakeSeederName = strcase.ToSnake(addSeeder.SeederName)
 		addSeeder.PascalSeederName = strcase.ToCamel(addSeeder.SeederName)

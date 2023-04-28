@@ -1,18 +1,28 @@
 package routes
 
 import (
-	"github.com/rogeecn/atom/contracts"
+	"github.com/gin-gonic/gin"
+	"github.com/rogeecn/atom"
+	"github.com/rogeecn/atom/container"
 	"github.com/rogeecn/atom/providers/http"
+	"github.com/rogeecn/atom/utils/opt"
+	"github.com/rogeecn/gen"
 )
 
-type Route struct {
-	svc *http.Service
+func Provide(opts ...opt.Option) error {
+	return container.Container.Provide(NewRoute, atom.GroupRoutes)
 }
 
-func NewRoute(svc *http.Service) contracts.Route {
-	return &Route{svc: svc}
+
+type Route struct {
+	engine  *gin.Engine
+}
+
+func NewRoute(svc http.Service) http.Route {
+	engine := svc.GetEngine().(*gin.Engine)
+	return &Route{engine: engine}
 }
 
 func (r *Route) Register() {
-	// r.svc.Engine.GET("/", gen.DataFunc(r.captcha.GetName))
+	// r.engine.GET("/", gen.DataFunc(r.controller.Show))
 }
