@@ -6,6 +6,6 @@ import (
 )
 
 func Provide(opts ...opt.Option) error {
-	// return container.Container.Provide(NewSystemService)
+	// return container.Container.Provide(New{{.Name}}Service)
 	return nil
 }

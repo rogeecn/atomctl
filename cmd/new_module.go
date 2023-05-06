@@ -21,7 +21,7 @@ var moduleCmd = &cobra.Command{
 	Use:     "module",
 	Short:   "create module in target module path",
 	Long:    `new module file. support chain module moduleA.moduleB.moduleC`,
-	Example: "atomctl new module [module] [name]",
+	Example: "atomctl new module [name]",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) != 1 {
 			return errors.New("invalid params")
@@ -33,6 +33,7 @@ var moduleCmd = &cobra.Command{
 		if utils.IsDir(file) {
 			return errors.New("module already exists")
 		}
+		addModule.Name = args[0]
 		addModule.Path = file
 		addModule.Package = getPackage()
 
