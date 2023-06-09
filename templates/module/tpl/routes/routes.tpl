@@ -10,19 +10,10 @@ import (
 )
 
 func Provide(opts ...opt.Option) error {
-	return container.Container.Provide(NewRoute, atom.GroupRoutes)
-}
-
-
-type Route struct {
-	engine  *gin.Engine
-}
-
-func NewRoute(svc http.Service) http.Route {
-	engine := svc.GetEngine().(*gin.Engine)
-	return &Route{engine: engine}
-}
-
-func (r *Route) Register() {
-	// r.engine.GET("/", gen.DataFunc(r.controller.Show))
+	newRoute := func (svc http.Service) http.Route {
+		engine := svc.GetEngine().(*gin.Engine)
+		// engine.GET("/", gen.DataFunc(controller.Show))
+		return nil
+	}
+	return container.Container.Provide(newRoute, atom.GroupRoutes)
 }
