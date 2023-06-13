@@ -6,10 +6,6 @@ import (
 	"net/http/httptest"
 	"testing"
 
- 	// 这里的依赖需要被导入，否则会报错
-	_ "github.com/rogeecn/atom/providers"
-
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"go.uber.org/dig"

@@ -1,8 +1,6 @@
 package controller
 
 import (
-	"github.com/rogeecn/atom/providers/config"
-
 	"github.com/gin-gonic/gin"
 )
 
@@ -11,8 +9,8 @@ type {{.PascalName}}Controller struct {
 	conf *config.Config
 }
 
-func New{{.PascalName}}Controller(conf *config.Config) *{{.PascalName}}Controller {
-	return &{{.PascalName}}ControllerImpl{conf: conf}
+func New{{.PascalName}}Controller() *{{.PascalName}}Controller {
+	return &{{.PascalName}}Controller{}
 }
 
 func (c *{{.PascalName}}Controller) GetName(ctx *gin.Context) (string, error) {
