@@ -109,7 +109,7 @@ func genRoutes(cmd *cobra.Command, args []string) error {
 
 		for _, action := range route.Actions {
 			_, _ = f.WriteString("\t")
-			_, _ = f.WriteString(fmt.Sprintf(`engine.%s(%q, `, action.Method, action.Route))
+			_, _ = f.WriteString(fmt.Sprintf(`engine.%s(%q, `, action.Method, formatRoute(action.Route)))
 
 			if action.HasData {
 				_, _ = f.WriteString("Data")
@@ -329,4 +329,12 @@ func getPackageRoute(mod, path string) string {
 			return ""
 		}
 	}
+}
+
+func formatRoute(route string) string {
+	pattern := regexp.MustCompile(`(?mi)\{(.*?)\}`)
+	if !pattern.MatchString(route) {
+		return route
+	}
+	return pattern.ReplaceAllString(route, ":$1")
 }
