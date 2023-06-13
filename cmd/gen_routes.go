@@ -28,6 +28,7 @@ var genRoutesCmd = &cobra.Command{
 func init() {
 	genCmd.AddCommand(genRoutesCmd)
 }
+
 func genRoutes(cmd *cobra.Command, args []string) error {
 	var err error
 	var path string
@@ -87,7 +88,7 @@ func genRoutes(cmd *cobra.Command, args []string) error {
 		}
 
 		// 生成路由文件
-		f, err := os.OpenFile(routePath, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0644)
+		f, err := os.OpenFile(routePath, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0o644)
 		if err != nil {
 			continue
 		}

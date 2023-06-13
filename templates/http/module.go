@@ -13,6 +13,7 @@ var Files = map[string]string{
 	"database/models/model.go.tpl":         "database/models/models.go",
 	"database/query/query.go.tpl":          "database/query/query.go",
 	"modules/modules.go.tpl":               "modules/modules.go",
+	"docs/ember.go.tpl":                    "docs/ember.go",
 	"config.toml":                          "config.toml",
 	"main.go.tpl":                          "main.go",
 	"Makefile":                             "Makefile",
