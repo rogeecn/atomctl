@@ -142,6 +142,10 @@ func parseModelInfo(file *ast.File) ModelInfo {
 			modelInfo.CamelName = strcase.ToLowerCamel(modelInfo.Name)
 
 			for _, field := range spec.Type.(*ast.StructType).Fields.List {
+				if field.Names[0].Name == "DeletedAt" {
+					continue
+				}
+
 				tag := ""
 				if field.Tag != nil {
 					tag = field.Tag.Value
@@ -158,6 +162,7 @@ func parseModelInfo(file *ast.File) ModelInfo {
 				case *ast.SelectorExpr:
 					typ = fmt.Sprintf("%s.%s", field.Type.(*ast.SelectorExpr).X.(*ast.Ident).Name, field.Type.(*ast.SelectorExpr).Sel.Name)
 				}
+
 				fields = append(fields, ModelField{
 					Name: field.Names[0].Name,
 					Type: "*" + typ,
@@ -173,8 +178,11 @@ func parseModelInfo(file *ast.File) ModelInfo {
 
 func processModelTag(tag string) string {
 	pattern := regexp.MustCompile(`gorm:".*?"\s+`)
-	if pattern.MatchString(tag) {
-		return pattern.ReplaceAllString(tag, "")
+	if !pattern.MatchString(tag) {
+		return tag
 	}
-	return tag
+	tag = pattern.ReplaceAllString(tag, "")
+
+	patternJson := regexp.MustCompile(`json:"(.*?)"`)
+	return patternJson.ReplaceAllString(tag, `json:"$1,omitempty"`)
 }

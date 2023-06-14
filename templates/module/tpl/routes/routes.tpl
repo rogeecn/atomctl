@@ -4,7 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/rogeecn/atom"
 	"github.com/rogeecn/atom/container"
-	"github.com/rogeecn/atom/providers-addon/http"
+	"github.com/rogeecn/atom-addons/providers/http"
 	"github.com/rogeecn/atom/utils/opt"
 	"github.com/rogeecn/gen"
 )
