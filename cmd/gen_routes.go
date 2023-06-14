@@ -264,10 +264,10 @@ func astParseRoutes(source string) []RoueDefinition {
 				continue
 			}
 
-			if strings.HasSuffix(typ, string(PositionQuery)) {
+			if strings.HasSuffix(typ, string(PositionQuery)) || strings.HasSuffix(typ, "QueryFilter") {
 				position = PositionQuery
 			}
-			if strings.HasSuffix(typ, string(PositionBody)) {
+			if strings.HasSuffix(typ, string(PositionBody)) || strings.HasSuffix(typ, "Form") {
 				position = PositionBody
 			}
 			if strings.HasSuffix(typ, string(PositionHeader)) {
