@@ -10,7 +10,7 @@ func (m *Migration{{.ID}}{{.PascalMigrationName}}) table() interface{} {
 		FieldName string
 	}
 
-	return TableName{}
+	return &TableName{}
 }
 
 func (m *Migration{{.ID}}{{.PascalMigrationName}}) Up(tx *gorm.DB) error {
