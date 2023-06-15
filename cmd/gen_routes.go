@@ -84,6 +84,8 @@ func genRoutes(cmd *cobra.Command, args []string) error {
 		filename := "route_" + strcase.ToSnake(route.Name) + ".go"
 		routePath := filepath.Join(filepath.Dir(filepath.Dir(route.Path)), "routes", filename)
 
+		log.Printf("generate route: %s @ route%s(group, %s)\n", routePath, route.Name, strcase.ToLowerCamel(route.Name))
+
 		if len(route.Actions) == 0 {
 			continue
 		}
@@ -187,6 +189,10 @@ const (
 )
 
 func astParseRoutes(source string) []RoueDefinition {
+	if strings.HasSuffix(source, "/provider.go") {
+		return []RoueDefinition{}
+	}
+
 	fset := token.NewFileSet()
 	node, err := parser.ParseFile(fset, source, nil, parser.ParseComments)
 	if err != nil {

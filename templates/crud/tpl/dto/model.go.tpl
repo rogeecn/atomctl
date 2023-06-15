@@ -2,7 +2,6 @@ package dto
 
 import (
 	"time"
-	"gorm.io/gorm"
 )
 
 type {{ .Model.Name }}Form struct {

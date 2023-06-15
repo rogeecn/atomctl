@@ -41,12 +41,18 @@ func (c *{{ .Model.Name }}Controller) Show(ctx *gin.Context, id int32) (*dto.{{ 
 //	@Tags			TODO_ADD_TAGNAME
 //	@Accept			json
 //	@Produce		json
-//	@Param			pageFilter	query		common.PageQueryFilter	true	"QueryFilter"
-//	@Param			queryFilter	query		dto.{{ .Model.Name }}ListQueryFilter	true	"QueryFilter"
+//	@Param			queryFilter	query		dto.{{ .Model.Name }}ListQueryFilter	true	"{{ .Model.Name }}ListQueryFilter"
+//	@Param			pageFilter	query		common.PageQueryFilter	true	"PageQueryFilter"
+//	@Param			sortFilter	query		common.SortQueryFilter	true	"SortQueryFilter"
 //	@Success		200			{object}	common.PageDataResponse
 //	@Router			/{{ .Model.RouteName }} [get]
-func (c *{{ .Model.Name }}Controller) List(ctx *gin.Context, pageFilter *common.PageQueryFilter, queryFilter *dto.{{ .Model.Name }}ListQueryFilter) (*common.PageDataResponse, error) {
-	items, total, err := c.{{ .Model.CamelName }}Svc.PageByQueryFilter(ctx, pageFilter, queryFilter)
+func (c *{{ .Model.Name }}Controller) List(
+	ctx *gin.Context, 
+	queryFilter *dto.{{ .Model.Name }}ListQueryFilter,
+	pageFilter *common.PageQueryFilter, 
+	sortFilter *common.SortQueryFilter,
+) (*common.PageDataResponse, error) {
+	items, total, err := c.{{ .Model.CamelName }}Svc.PageByQueryFilter(ctx, queryFilter, pageFilter, sortFilter)
 	if err != nil {
 		return nil, err
 	}

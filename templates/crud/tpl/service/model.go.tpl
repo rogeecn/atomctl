@@ -10,6 +10,7 @@ import (
 
 	"github.com/jinzhu/copier"
 	"github.com/pkg/errors"
+	"gorm.io/gen/field"
 )
 
 type {{ .Model.Name }}Service struct {
@@ -36,8 +37,13 @@ func (svc *{{ .Model.Name }}Service) GetByID(ctx context.Context, id int32) (*dt
 	return resp, nil
 }
 
-func (svc *{{ .Model.Name }}Service) PageByQueryFilter(ctx context.Context, pageFilter *common.PageQueryFilter, queryFilter *dto.{{ .Model.Name }}ListQueryFilter) ([]*dto.{{ .Model.Name }}Item, int64, error) {
-	models, total, err := svc.{{ .Model.CamelName }}Dao.PageByQueryFilter(ctx, pageFilter.Format(), queryFilter)
+func (svc *{{ .Model.Name }}Service) PageByQueryFilter(
+	ctx context.Context, 
+	queryFilter *dto.{{ .Model.Name }}ListQueryFilter,
+	pageFilter *common.PageQueryFilter, 
+	sortFilter *common.SortQueryFilter,
+) ([]*dto.{{ .Model.Name }}Item, int64, error) {
+	models, total, err := svc.{{ .Model.CamelName }}Dao.PageByQueryFilter(ctx, queryFilter, pageFilter.Format(), sortFilter)
 	if err != nil {
 		return nil, 0, err
 	}

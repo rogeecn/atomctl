@@ -47,7 +47,12 @@ func (dao *{{ .Model.Name }}Dao) GetByID(ctx context.Context, id int32) (*models
 	return query.WithContext(ctx).Where(query.ID.Eq(id)).First()
 }
 
-func (dao *{{ .Model.Name }}Dao) PageByQueryFilter(ctx context.Context, pageFilter *common.PageQueryFilter, queryFilter *dto.UserListQueryFilter) ([]*models.{{ .Model.Name }}, int64, error) {
+func (dao *{{ .Model.Name }}Dao) PageByQueryFilter(
+	ctx context.Context, 
+	queryFilter *dto.{{ .Model.Name }}ListQueryFilter,
+	pageFilter *common.PageQueryFilter, 
+	sortFilter *common.SortQueryFilter,
+) ([]*models.{{ .Model.Name }}, int64, error) {
 	query := dao.query.{{ .Model.Name }}
 	{{ .Model.CamelName }}Query := query.WithContext(ctx)
 	if queryFilter != nil {
@@ -58,5 +63,54 @@ func (dao *{{ .Model.Name }}Dao) PageByQueryFilter(ctx context.Context, pageFilt
 	{{- end }}
 	}
 
+	if sortFilter != nil {
+		orderExprs := []field.Expr{}
+		for _, v := range sortFilter.Asc {
+			if expr, ok := query.GetFieldByName(v); ok {
+				orderExprs = append(orderExprs, expr)
+			}
+		}
+		for _, v := range sortFilter.Desc {
+			if expr, ok := query.GetFieldByName(v); ok {
+				orderExprs = append(orderExprs, expr.Desc())
+			}
+		}
+		{{ .Model.CamelName }}Query = {{ .Model.CamelName }}Query.Order(orderExprs...)
+	}
+
 	return {{ .Model.CamelName }}Query.FindByPage(pageFilter.Offset(), pageFilter.Limit)
+}
+
+
+func (dao *{{ .Model.Name }}Dao) FindByQueryFilter(
+	ctx context.Context, 
+	queryFilter *dto.{{ .Model.Name }}ListQueryFilter,
+	sortFilter *common.SortQueryFilter,
+) ([]*models.{{ .Model.Name }}, error) {
+	query := dao.query.{{ .Model.Name }}
+	{{ .Model.CamelName }}Query := query.WithContext(ctx)
+	if queryFilter != nil {
+	{{- range $index, $item := .Model.Fields }}
+		if queryFilter.{{ $item.Name }} != nil {
+			{{ $.Model.CamelName }}Query = {{ $.Model.CamelName }}Query.Where(query.{{ $item.Name }}.Eq(*queryFilter.{{ $item.Name }}))
+		}
+	{{- end }}
+	}
+
+	if sortFilter != nil {
+		orderExprs := []field.Expr{}
+		for _, v := range sortFilter.Asc {
+			if expr, ok := query.GetFieldByName(v); ok {
+				orderExprs = append(orderExprs, expr)
+			}
+		}
+		for _, v := range sortFilter.Desc {
+			if expr, ok := query.GetFieldByName(v); ok {
+				orderExprs = append(orderExprs, expr.Desc())
+			}
+		}
+		{{ .Model.CamelName }}Query = {{ .Model.CamelName }}Query.Order(orderExprs...)
+	}
+
+	return {{ .Model.CamelName }}Query.Find()
 }
