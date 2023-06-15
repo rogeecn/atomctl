@@ -1,8 +1,22 @@
 package common
 
 type SortQueryFilter struct {
-	Asc  string `json:"asc"`
-	Desc string `json:"desc"`
+	Asc  *string `json:"asc"`
+	Desc *string `json:"desc"`
+}
+
+func (s *SortQueryFilter) AscFields() []string {
+	if s.Asc == nil {
+		return nil
+	}
+	return strings.Split(*s.Asc, ",")
+}
+
+func (s *SortQueryFilter) DescFields() []string {
+	if s.Desc == nil {
+		return nil
+	}
+	return strings.Split(*s.Desc, ",")
 }
 
 type PageDataResponse struct {

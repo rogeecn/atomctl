@@ -4,7 +4,6 @@
 package main
 
 import (
-	"os"
 	"log"
 
 	"{{.Package}}/database/migrations"

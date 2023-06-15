@@ -65,12 +65,12 @@ func (dao *{{ .Model.Name }}Dao) PageByQueryFilter(
 
 	if sortFilter != nil {
 		orderExprs := []field.Expr{}
-		for _, v := range sortFilter.Asc {
+		for _, v := range sortFilter.AscField() {
 			if expr, ok := query.GetFieldByName(v); ok {
 				orderExprs = append(orderExprs, expr)
 			}
 		}
-		for _, v := range sortFilter.Desc {
+		for _, v := range sortFilter.DescField() {
 			if expr, ok := query.GetFieldByName(v); ok {
 				orderExprs = append(orderExprs, expr.Desc())
 			}
@@ -99,12 +99,12 @@ func (dao *{{ .Model.Name }}Dao) FindByQueryFilter(
 
 	if sortFilter != nil {
 		orderExprs := []field.Expr{}
-		for _, v := range sortFilter.Asc {
+		for _, v := range sortFilter.AscField() {
 			if expr, ok := query.GetFieldByName(v); ok {
 				orderExprs = append(orderExprs, expr)
 			}
 		}
-		for _, v := range sortFilter.Desc {
+		for _, v := range sortFilter.DescField() {
 			if expr, ok := query.GetFieldByName(v); ok {
 				orderExprs = append(orderExprs, expr.Desc())
 			}
