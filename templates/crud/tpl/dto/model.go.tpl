@@ -15,6 +15,6 @@ type {{ .Model.Name }}ListQueryFilter struct {
 
 type {{ .Model.Name }}Item struct {
 	{{- range .Model.Fields }}
-	{{ .Name }} {{ .Type }} {{ .Tag }}
+	{{ .Name }} {{ .Type }} {{ .Tag }} // {{ .Comment }}
 	{{- end }}
 }

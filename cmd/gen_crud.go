@@ -123,9 +123,10 @@ type ModelInfo struct {
 }
 
 type ModelField struct {
-	Name string
-	Type string
-	Tag  string
+	Name    string
+	Type    string
+	Tag     string
+	Comment string
 }
 
 func parseModelInfo(file *ast.File) ModelInfo {
@@ -163,10 +164,12 @@ func parseModelInfo(file *ast.File) ModelInfo {
 					typ = fmt.Sprintf("%s.%s", field.Type.(*ast.SelectorExpr).X.(*ast.Ident).Name, field.Type.(*ast.SelectorExpr).Sel.Name)
 				}
 
+				tag, comment := processModelTag(tag)
 				fields = append(fields, ModelField{
-					Name: field.Names[0].Name,
-					Type: "*" + typ,
-					Tag:  processModelTag(tag),
+					Name:    field.Names[0].Name,
+					Type:    "*" + typ,
+					Tag:     tag,
+					Comment: comment,
 				})
 			}
 			modelInfo.Fields = fields
@@ -176,13 +179,22 @@ func parseModelInfo(file *ast.File) ModelInfo {
 	return modelInfo
 }
 
-func processModelTag(tag string) string {
-	pattern := regexp.MustCompile(`gorm:".*?"\s+`)
-	if !pattern.MatchString(tag) {
-		return tag
+// get field tag comment
+func processModelTag(tag string) (string, string) {
+	comment := ""
+	patternComment := regexp.MustCompile(`gorm:".*?;comment:'(.*?)'.*?"\s+`)
+	if patternComment.MatchString(tag) {
+		comment = patternComment.FindStringSubmatch(tag)[1]
 	}
-	tag = pattern.ReplaceAllString(tag, "")
+
+	patternTag := regexp.MustCompile(`gorm:".*?"\s+`)
+	if !patternTag.MatchString(tag) {
+		return tag, ""
+	}
+	tag = patternTag.ReplaceAllString(tag, "")
 
 	patternJson := regexp.MustCompile(`json:"(.*?)"`)
-	return patternJson.ReplaceAllString(tag, `json:"$1,omitempty"`)
+	tag = patternJson.ReplaceAllString(tag, `json:"$1,omitempty"`)
+
+	return tag, comment
 }
