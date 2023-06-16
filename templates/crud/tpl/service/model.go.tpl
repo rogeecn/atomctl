@@ -10,7 +10,6 @@ import (
 
 	"github.com/jinzhu/copier"
 	"github.com/pkg/errors"
-	"gorm.io/gen/field"
 )
 
 type {{ .Model.Name }}Service struct {

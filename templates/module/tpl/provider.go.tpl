@@ -1,8 +1,9 @@
 package {{.Name}}
 
 import (
-	"{{.Package}}/{{.Path}}/controller"
+	"{{.Package}}/{{.Path}}/dao"
 	"{{.Package}}/{{.Path}}/service"
+	"{{.Package}}/{{.Path}}/controller"
 	"{{.Package}}/{{.Path}}/routes"
 
 	"github.com/rogeecn/atom/container"
@@ -10,8 +11,9 @@ import (
 
 func Providers() container.Providers {
 	return container.Providers{
-		{ Provider: controller.Provide },
+		{ Provider: dao.Provide },
 		{ Provider: service.Provide },
+		{ Provider: controller.Provide },
 		{ Provider: routes.Provide },
 	}
 }
