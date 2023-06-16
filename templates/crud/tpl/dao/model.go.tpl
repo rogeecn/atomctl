@@ -9,6 +9,7 @@ import (
 	"{{ .PkgName }}/{{ .Module }}/dto"
 
 	"github.com/jinzhu/copier"
+	"gorm.io/gen/field"
 )
 
 type {{ .Model.Name }}Dao struct {
