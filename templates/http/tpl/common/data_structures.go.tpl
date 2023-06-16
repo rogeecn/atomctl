@@ -1,8 +1,24 @@
 package common
 
+import "strings"
+
 type SortQueryFilter struct {
-	Asc  []string `json:"asc"`
-	Desc []string `json:"desc"`
+	Asc  *string `json:"asc" form:"asc"`
+	Desc *string `json:"desc" form:"desc"`
+}
+
+func (s *SortQueryFilter) AscFields() []string {
+	if s.Asc == nil {
+		return nil
+	}
+	return strings.Split(*s.Asc, ",")
+}
+
+func (s *SortQueryFilter) DescFields() []string {
+	if s.Desc == nil {
+		return nil
+	}
+	return strings.Split(*s.Desc, ",")
 }
 
 type PageDataResponse struct {
@@ -12,8 +28,8 @@ type PageDataResponse struct {
 }
 
 type PageQueryFilter struct {
-	Page  int `json:"page"`
-	Limit int `json:"limit"`
+	Page  int `json:"page" form:"page"`
+	Limit int `json:"limit" form:"limit"`
 }
 
 func (filter *PageQueryFilter) Offset() int {

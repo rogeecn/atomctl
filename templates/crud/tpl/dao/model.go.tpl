@@ -20,6 +20,39 @@ func New{{ .Model.Name }}Dao(query *q.Query) *{{ .Model.Name }}Dao {
 	return &{{ .Model.Name }}Dao{query: query}
 }
 
+func (dao *{{ .Model.Name }}Dao) decorateSortQueryFilter(query q.I{{ .Model.Name }}Do, sortFilter *common.SortQueryFilter) q.I{{ .Model.Name }}Do {
+	if sortFilter == nil {
+		return query
+	}
+
+	orderExprs := []field.Expr{}
+	for _, v := range sortFilter.AscFields() {
+		if expr, ok := dao.query.{{ .Model.Name }}.GetFieldByName(v); ok {
+			orderExprs = append(orderExprs, expr)
+		}
+	}
+	for _, v := range sortFilter.DescFields() {
+		if expr, ok := dao.query.{{ .Model.Name }}.GetFieldByName(v); ok {
+			orderExprs = append(orderExprs, expr.Desc())
+		}
+	}
+	return query.Order(orderExprs...)
+}
+
+func (dao *{{ .Model.Name }}Dao) decorateQueryFilter(query q.I{{ .Model.Name }}Do, queryFilter *dto.{{ .Model.Name }}ListQueryFilter) q.I{{ .Model.Name }}Do {
+	if queryFilter == nil {
+		return query
+	}
+
+	{{- range $index, $item := .Model.Fields }}
+	if queryFilter.{{ $item.Name }} != nil {
+		query = query.Where(dao.query.{{ $.Model.Name }}.{{ $item.Name }}.Eq(*queryFilter.{{ $item.Name }}))
+	}
+	{{- end }}
+
+	return query
+}
+
 func (dao *{{ .Model.Name }}Dao) Update(ctx context.Context, id int32, model *models.{{ .Model.Name }}) error {
 	oldModel, err := dao.GetByID(ctx, id)
 	if err != nil {
@@ -56,29 +89,8 @@ func (dao *{{ .Model.Name }}Dao) PageByQueryFilter(
 ) ([]*models.{{ .Model.Name }}, int64, error) {
 	query := dao.query.{{ .Model.Name }}
 	{{ .Model.CamelName }}Query := query.WithContext(ctx)
-	if queryFilter != nil {
-	{{- range $index, $item := .Model.Fields }}
-		if queryFilter.{{ $item.Name }} != nil {
-			{{ $.Model.CamelName }}Query = {{ $.Model.CamelName }}Query.Where(query.{{ $item.Name }}.Eq(*queryFilter.{{ $item.Name }}))
-		}
-	{{- end }}
-	}
-
-	if sortFilter != nil {
-		orderExprs := []field.Expr{}
-		for _, v := range sortFilter.Asc {
-			if expr, ok := query.GetFieldByName(v); ok {
-				orderExprs = append(orderExprs, expr)
-			}
-		}
-		for _, v := range sortFilter.Desc {
-			if expr, ok := query.GetFieldByName(v); ok {
-				orderExprs = append(orderExprs, expr.Desc())
-			}
-		}
-		{{ .Model.CamelName }}Query = {{ .Model.CamelName }}Query.Order(orderExprs...)
-	}
-
+	{{ .Model.CamelName }}Query = dao.decorateQueryFilter({{ .Model.CamelName }}Query, queryFilter)
+	{{ .Model.CamelName }}Query = dao.decorateSortQueryFilter({{ .Model.CamelName }}Query, sortFilter)
 	return {{ .Model.CamelName }}Query.FindByPage(pageFilter.Offset(), pageFilter.Limit)
 }
 
@@ -90,28 +102,7 @@ func (dao *{{ .Model.Name }}Dao) FindByQueryFilter(
 ) ([]*models.{{ .Model.Name }}, error) {
 	query := dao.query.{{ .Model.Name }}
 	{{ .Model.CamelName }}Query := query.WithContext(ctx)
-	if queryFilter != nil {
-	{{- range $index, $item := .Model.Fields }}
-		if queryFilter.{{ $item.Name }} != nil {
-			{{ $.Model.CamelName }}Query = {{ $.Model.CamelName }}Query.Where(query.{{ $item.Name }}.Eq(*queryFilter.{{ $item.Name }}))
-		}
-	{{- end }}
-	}
-
-	if sortFilter != nil {
-		orderExprs := []field.Expr{}
-		for _, v := range sortFilter.Asc {
-			if expr, ok := query.GetFieldByName(v); ok {
-				orderExprs = append(orderExprs, expr)
-			}
-		}
-		for _, v := range sortFilter.Desc {
-			if expr, ok := query.GetFieldByName(v); ok {
-				orderExprs = append(orderExprs, expr.Desc())
-			}
-		}
-		{{ .Model.CamelName }}Query = {{ .Model.CamelName }}Query.Order(orderExprs...)
-	}
-
+	{{ .Model.CamelName }}Query = dao.decorateQueryFilter({{ .Model.CamelName }}Query, queryFilter)
+	{{ .Model.CamelName }}Query = dao.decorateSortQueryFilter({{ .Model.CamelName }}Query, sortFilter)
 	return {{ .Model.CamelName }}Query.Find()
 }
