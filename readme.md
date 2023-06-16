@@ -1,5 +1,5 @@
 # atomctl
 
 ```go
-go install https://github.com/rogeecn/atomctl@latest
+go install github.com/rogeecn/atomctl@latest
 ```
