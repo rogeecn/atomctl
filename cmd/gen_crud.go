@@ -10,6 +10,7 @@ import (
 	"go/parser"
 	"go/token"
 	"log"
+	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -57,6 +58,43 @@ var genCrudCmd = &cobra.Command{
 
 		log.Println("generate crud success")
 		log.Println("REMEMBER TO ADD NEW PROVIDERS")
+
+		for _, file := range generateFiles {
+			dirname := filepath.Base(filepath.Dir(file))
+			if dirname == "dto" {
+				continue
+			}
+
+			providerFile := filepath.Join(filepath.Dir(file), "provider.go")
+			if !utils.IsFile(providerFile) {
+				log.Println("[Warn] " + providerFile + " not exists, please add new provider manually")
+				continue
+			}
+
+			providerContent, err := os.ReadFile(providerFile)
+			if err != nil {
+				log.Println("[Warn] read " + providerFile + " failed, please add new provider manually")
+				continue
+			}
+
+			suffix := strcase.ToCamel(dirname)
+
+			providerFunc := fmt.Sprintf("New%s%s", modelInfo.Name, suffix)
+
+			content := string(providerContent)
+			if !strings.Contains(content, providerFunc) {
+				provider := fmt.Sprintf("_ = container.Container.Provide(%s)\n\treturn nil", providerFunc)
+				content = strings.Replace(content, "return nil", provider, 1)
+			}
+
+			containerPackage := `"github.com/rogeecn/atom/container"`
+			if !strings.Contains(content, containerPackage) {
+				content = strings.Replace(content, "import (", "import (\n\t"+containerPackage, 1)
+			}
+			log.Printf("[Info] add new provider: %s for %s", providerFunc, providerFile)
+			_ = os.WriteFile(providerFile, []byte(content), os.ModePerm)
+		}
+
 		return nil
 	},
 }
