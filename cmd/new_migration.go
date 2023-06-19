@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"bytes"
-	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -58,7 +57,6 @@ func guessTableName(migrationName string) string {
 	pattern := regexp.MustCompile(`\w+_(.*?)$`)
 	if pattern.Match([]byte(migrationName)) {
 		matches := pattern.FindStringSubmatch(migrationName)
-		fmt.Println(migrationName, matches)
 		return matches[1]
 	}
 	return migrationName
