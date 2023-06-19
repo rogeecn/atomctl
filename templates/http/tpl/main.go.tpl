@@ -24,8 +24,9 @@ func main() {
 			return http.Serve()
 			// return services.ServeGrpc()
 		}),
-		atom.Seeders(seeders.Seeders...),
-		atom.Migrations(migrations.Migrations...),
+		atom.CmdSeeders(seeders.Seeders...),
+		atom.CmdMigrations(migrations.Migrations...),
+		atom.CmdModel(),
 	}
 
 	if err := atom.Serve(providers, opts...); err != nil {
