@@ -24,7 +24,7 @@ func New{{ .Model.Name }}Service(
 	}
 }
 
-func (svc *{{ .Model.Name }}Service) GetByID(ctx context.Context, id int32) (*dto.{{ .Model.Name }}Item, error) {
+func (svc *{{ .Model.Name }}Service) GetByID(ctx context.Context, id {{ .Model.IntType }}) (*dto.{{ .Model.Name }}Item, error) {
 	model, err := svc.{{ .Model.CamelName }}Dao.GetByID(ctx, id)
 	if err != nil {
 		return nil, errors.Wrap(err, "get by id failed")
@@ -65,7 +65,7 @@ func (svc *{{ .Model.Name }}Service) Create(ctx context.Context, body *dto.{{ .M
 }
 
 // Update
-func (svc *{{ .Model.Name }}Service) Update(ctx context.Context, id int32, body *dto.{{ .Model.Name }}Form) error {
+func (svc *{{ .Model.Name }}Service) Update(ctx context.Context, id {{ .Model.IntType }}, body *dto.{{ .Model.Name }}Form) error {
 	model := &models.{{ .Model.Name }}{}
 	_ = copier.Copy(model, body)
 	model.ID = id
@@ -73,6 +73,6 @@ func (svc *{{ .Model.Name }}Service) Update(ctx context.Context, id int32, body 
 }
 
 // Delete
-func (svc *{{ .Model.Name }}Service) Delete(ctx context.Context, id int32) error {
+func (svc *{{ .Model.Name }}Service) Delete(ctx context.Context, id {{ .Model.IntType }}) error {
 	return svc.{{ .Model.CamelName }}Dao.Delete(ctx, id)
 }

@@ -53,7 +53,7 @@ func (dao *{{ .Model.Name }}Dao) decorateQueryFilter(query q.I{{ .Model.Name }}D
 	return query
 }
 
-func (dao *{{ .Model.Name }}Dao) Update(ctx context.Context, id int32, model *models.{{ .Model.Name }}) error {
+func (dao *{{ .Model.Name }}Dao) Update(ctx context.Context, id {{ .Model.IntType }}, model *models.{{ .Model.Name }}) error {
 	oldModel, err := dao.GetByID(ctx, id)
 	if err != nil {
 		return err
@@ -66,7 +66,7 @@ func (dao *{{ .Model.Name }}Dao) Update(ctx context.Context, id int32, model *mo
 	return err
 }
 
-func (dao *{{ .Model.Name }}Dao) Delete(ctx context.Context, id int32) error {
+func (dao *{{ .Model.Name }}Dao) Delete(ctx context.Context, id {{ .Model.IntType }}) error {
 	query := dao.query.{{ .Model.Name }}
 	_, err := query.WithContext(ctx).Where(query.ID.Eq(id)).Delete()
 	return err
@@ -76,7 +76,7 @@ func (dao *{{ .Model.Name }}Dao) Create(ctx context.Context, model *models.{{ .M
 	return dao.query.{{ .Model.Name }}.WithContext(ctx).Create(model)
 }
 
-func (dao *{{ .Model.Name }}Dao) GetByID(ctx context.Context, id int32) (*models.{{ .Model.Name }}, error) {
+func (dao *{{ .Model.Name }}Dao) GetByID(ctx context.Context, id {{ .Model.IntType }}) (*models.{{ .Model.Name }}, error) {
 	query := dao.query.{{ .Model.Name }}
 	return query.WithContext(ctx).Where(query.ID.Eq(id)).First()
 }

@@ -2,14 +2,13 @@ package cmd
 
 import (
 	"bytes"
-	"fmt"
 	"path/filepath"
-	"strings"
 	"text/template"
 
 	"github.com/rogeecn/atomctl/templates/module"
 	"github.com/rogeecn/atomctl/utils"
 
+	pluralize "github.com/gertd/go-pluralize"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -29,11 +28,12 @@ var moduleCmd = &cobra.Command{
 		// a => modules/a
 		// a.b => modules/a/modules/b
 
-		file := fmt.Sprintf("modules/%s", strings.ReplaceAll(args[0], ".", "/modules/"))
+		file, moduleName := dotToModule(args[0])
 		if utils.IsDir(file) {
 			return errors.New("module already exists")
 		}
-		addModule.Name = args[0]
+		addModule.Name = moduleName
+		addModule.NamePlural = pluralize.NewClient().Plural(moduleName)
 		addModule.Path = file
 		addModule.Package = getPackage()
 
@@ -55,9 +55,10 @@ func init() {
 }
 
 type ModuleGenerator struct {
-	Package string
-	Name    string
-	Path    string
+	Package    string
+	Name       string
+	NamePlural string
+	Path       string
 
 	PkgName string
 }

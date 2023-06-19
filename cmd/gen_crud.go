@@ -32,14 +32,15 @@ var genCrudCmd = &cobra.Command{
 			return errors.New("args invalid, please check")
 		}
 		pkgName := getPackage()
-		modulePath := strings.Join(append([]string{""}, strings.Split(args[1], ".")...), "modules/")
+		modulePath, _ := dotToModule(args[1])
 		modelFile := fmt.Sprintf("database/models/%s.gen.go", args[0])
 
 		modelInfo, err := genCrud(pkgName, modelFile, modulePath)
 		if err != nil {
 			return err
 		}
-		modelInfo.RouteName = args[0]
+		modelInfo.RouteName = strcase.ToSnake(args[0])
+		modelInfo.GuessIntType()
 
 		render := CrudRenderParams{
 			PkgName: pkgName,
@@ -103,21 +104,21 @@ func init() {
 	genCmd.AddCommand(genCrudCmd)
 }
 
-func genCrud(pkgName, modelFile, moduleName string) (ModelInfo, error) {
+func genCrud(pkgName, modelFile, moduleName string) (*ModelInfo, error) {
 	fset := token.NewFileSet()
 	node, err := parser.ParseFile(fset, modelFile, nil, parser.ParseComments)
 	if err != nil {
-		return ModelInfo{}, err
+		return nil, err
 	}
 
 	modelInfo := parseModelInfo(node)
-	return modelInfo, nil
+	return &modelInfo, nil
 }
 
 type CrudRenderParams struct {
 	PkgName string
 	Module  string
-	Model   ModelInfo
+	Model   *ModelInfo
 }
 
 func (m *CrudRenderParams) prepareFiles(files map[string]string, filename string) (map[string]string, error) {
@@ -157,7 +158,18 @@ type ModelInfo struct {
 	Name      string
 	CamelName string
 	RouteName string
+	IntType   string
 	Fields    []ModelField
+}
+
+func (m *ModelInfo) GuessIntType() {
+	m.IntType = "int"
+	for _, f := range m.Fields {
+		if f.Name == "ID" {
+			m.IntType = strings.TrimLeft(f.Type, "*")
+			return
+		}
+	}
 }
 
 type ModelField struct {

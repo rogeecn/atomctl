@@ -3,6 +3,7 @@ module github.com/rogeecn/atomctl
 go 1.19
 
 require (
+	github.com/gertd/go-pluralize v0.2.1
 	github.com/iancoleman/strcase v0.2.0
 	github.com/pkg/errors v0.8.1
 	github.com/samber/lo v1.38.1

@@ -30,7 +30,7 @@ func New{{ .Model.Name }}Controller(
 //	@Param			id	path		int	true	"{{ .Model.Name }}ID"
 //	@Success		200	{object}	dto.{{ .Model.Name }}Item
 //	@Router			/{{ .Model.RouteName }}/{id} [get]
-func (c *{{ .Model.Name }}Controller) Show(ctx *gin.Context, id int32) (*dto.{{ .Model.Name }}Item, error) {
+func (c *{{ .Model.Name }}Controller) Show(ctx *gin.Context, id {{ .Model.IntType }}) (*dto.{{ .Model.Name }}Item, error) {
 	return c.{{ .Model.CamelName }}Svc.GetByID(ctx, id)
 }
 
@@ -90,7 +90,7 @@ func (c *{{ .Model.Name }}Controller) Create(ctx *gin.Context, body *dto.{{ .Mod
 //	@Success		200		{string}	{{ .Model.Name }}ID
 //	@Failure		500		{string}	{{ .Model.Name }}ID
 //	@Router			/{{ .Model.RouteName }}/{id} [put]
-func (c *{{ .Model.Name }}Controller) Update(ctx *gin.Context, id int32, body *dto.{{ .Model.Name }}Form) error {
+func (c *{{ .Model.Name }}Controller) Update(ctx *gin.Context, id {{ .Model.IntType }}, body *dto.{{ .Model.Name }}Form) error {
 	return c.{{ .Model.CamelName }}Svc.Update(ctx, id, body)
 }
 
@@ -105,6 +105,6 @@ func (c *{{ .Model.Name }}Controller) Update(ctx *gin.Context, id int32, body *d
 //	@Success		200	{string}	{{ .Model.Name }}ID
 //	@Failure		500	{string}	{{ .Model.Name }}ID
 //	@Router			/{{ .Model.RouteName }}/{id} [delete]
-func (c *{{ .Model.Name }}Controller) Delete(ctx *gin.Context, id int32) error {
+func (c *{{ .Model.Name }}Controller) Delete(ctx *gin.Context, id {{ .Model.IntType }}) error {
 	return c.{{ .Model.CamelName }}Svc.Delete(ctx, id)
 }

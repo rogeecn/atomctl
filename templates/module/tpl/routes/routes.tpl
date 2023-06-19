@@ -15,7 +15,7 @@ func Provide(opts ...opt.Option) error {
 
 func newRoute (svc http.Service) http.Route {
 	engine := svc.GetEngine().(*gin.Engine)
-	group := engine.Group("users")
+	group := engine.Group("{{.NamePlural}}")
 	log.Info("register route group: %s", group)
 
 	return nil
