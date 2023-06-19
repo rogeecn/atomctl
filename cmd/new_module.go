@@ -33,7 +33,13 @@ var moduleCmd = &cobra.Command{
 			return errors.New("module already exists")
 		}
 		addModule.Name = moduleName
-		addModule.NamePlural = pluralize.NewClient().Plural(moduleName)
+		addModule.NamePlural = moduleName
+
+		pcli := pluralize.NewClient()
+		if pcli.IsPlural(moduleName) {
+			addModule.NamePlural = pcli.Plural(moduleName)
+		}
+
 		addModule.Path = file
 		addModule.Package = getPackage()
 
