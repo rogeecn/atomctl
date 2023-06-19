@@ -54,7 +54,7 @@ var newMigrationCmd = &cobra.Command{
 }
 
 func guessTableName(migrationName string) string {
-	pattern := regexp.MustCompile(`\w+_(.*?)$`)
+	pattern := regexp.MustCompile(`[a-z]+_(.*?)$`)
 	if pattern.Match([]byte(migrationName)) {
 		matches := pattern.FindStringSubmatch(migrationName)
 		return matches[1]
