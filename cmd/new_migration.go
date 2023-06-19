@@ -2,9 +2,11 @@ package cmd
 
 import (
 	"bytes"
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"text/template"
 	"time"
@@ -32,6 +34,7 @@ var newMigrationCmd = &cobra.Command{
 
 		addMigration.Package = getPackage()
 		addMigration.MigrationName = strings.TrimSpace(args[0])
+		addMigration.TableName = strcase.ToCamel(guessTableName(addMigration.MigrationName))
 		addMigration.SnakeMigrationName = strcase.ToSnake(addMigration.MigrationName)
 		addMigration.PascalMigrationName = strcase.ToCamel(addMigration.MigrationName)
 
@@ -50,6 +53,17 @@ var newMigrationCmd = &cobra.Command{
 		return nil
 	},
 }
+
+func guessTableName(migrationName string) string {
+	pattern := regexp.MustCompile(`\w+_(.*?)$`)
+	if pattern.Match([]byte(migrationName)) {
+		matches := pattern.FindStringSubmatch(migrationName)
+		fmt.Println(migrationName, matches)
+		return matches[1]
+	}
+	return migrationName
+}
+
 var addMigration = &MigrationGenerator{}
 
 func init() {
@@ -60,6 +74,7 @@ type MigrationGenerator struct {
 	ID                  string
 	Package             string
 	MigrationName       string
+	TableName           string
 	SnakeMigrationName  string
 	PascalMigrationName string
 }
