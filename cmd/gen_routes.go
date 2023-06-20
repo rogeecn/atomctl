@@ -94,8 +94,7 @@ func genRoutes(cmd *cobra.Command, args []string) error {
 
 		routeFilePath := filepath.Join(filepath.Dir(filepath.Dir(route.Path)), "routes/routes.go")
 		controllerPkg := fmt.Sprintf(`"%s/controller"`, getPackageRoute(getPackage(), route.Path))
-		controllerPkgForRoute := fmt.Sprintf(`%s "%s/controller"`, strcase.ToLowerCamel(route.Name), getPackageRoute(getPackage(), route.Path))
-		controllerParam := fmt.Sprintf(`%s *%s.%s`, strcase.ToLowerCamel(route.Name), strcase.ToLowerCamel(route.Name), route.Name)
+		controllerParam := fmt.Sprintf(`%s *controller.%s`, strcase.ToLowerCamel(route.Name), route.Name)
 
 		// 生成路由方法
 		routeContent, err := os.ReadFile(routeFilePath)
@@ -114,7 +113,7 @@ func genRoutes(cmd *cobra.Command, args []string) error {
 		}
 		// 注入包
 		if !strings.Contains(content, controllerPkg) {
-			content = strings.Replace(content, "import (", fmt.Sprintf("import (\t\t%s", controllerPkgForRoute), 1)
+			content = strings.Replace(content, "import (", fmt.Sprintf("import (\t\t%s", controllerPkg), 1)
 		}
 		if err := os.WriteFile(routeFilePath, []byte(content), os.ModePerm); err != nil {
 			log.Printf("[Warn] write route provider failed, %s", routeFilePath)

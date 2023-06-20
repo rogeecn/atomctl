@@ -40,6 +40,12 @@ var genCrudCmd = &cobra.Command{
 			return err
 		}
 		modelInfo.RouteName = strcase.ToSnake(args[0])
+		if cmd.Flag("route").Value.String() != "" {
+			modelInfo.RouteName = strings.Trim(cmd.Flag("route").Value.String(), "/")
+		}
+		if strings.Contains(modelInfo.RouteName, "{id}") {
+			return errors.New("Invalid route, route should not contains {id}")
+		}
 		modelInfo.GuessIntType()
 
 		render := CrudRenderParams{
@@ -102,6 +108,7 @@ var genCrudCmd = &cobra.Command{
 
 func init() {
 	genCmd.AddCommand(genCrudCmd)
+	genCrudCmd.Flags().String("route", "", "manually define route path")
 }
 
 func genCrud(pkgName, modelFile, moduleName string) (*ModelInfo, error) {

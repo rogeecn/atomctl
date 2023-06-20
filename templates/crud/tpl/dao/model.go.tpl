@@ -46,7 +46,11 @@ func (dao *{{ .Model.Name }}Dao) decorateQueryFilter(query q.I{{ .Model.Name }}D
 
 	{{- range $index, $item := .Model.Fields }}
 	if queryFilter.{{ $item.Name }} != nil {
+		{{- if eq $item.Type "*bool" }}
+		query = query.Where(dao.query.{{ $.Model.Name }}.{{ $item.Name }}.Is(*queryFilter.{{ $item.Name }}))
+		{{- else }}
 		query = query.Where(dao.query.{{ $.Model.Name }}.{{ $item.Name }}.Eq(*queryFilter.{{ $item.Name }}))
+		{{- end }}
 	}
 	{{- end }}
 
