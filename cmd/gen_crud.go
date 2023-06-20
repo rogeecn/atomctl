@@ -239,7 +239,7 @@ func parseModelInfo(file *ast.File) ModelInfo {
 // get field tag comment
 func processModelTag(tag string) (string, string) {
 	comment := ""
-	patternComment := regexp.MustCompile(`gorm:".*?;comment:'(.*?)'.*?"\s+`)
+	patternComment := regexp.MustCompile(`gorm:".*?;comment:(.*?);?"\s+`)
 	if patternComment.MatchString(tag) {
 		comment = patternComment.FindStringSubmatch(tag)[1]
 	}
