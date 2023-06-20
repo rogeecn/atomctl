@@ -1,7 +1,7 @@
 package routes
 
 import (
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
 	"github.com/rogeecn/atom"
 	"github.com/rogeecn/atom/container"
 	"github.com/rogeecn/atom-addons/providers/http"
@@ -14,9 +14,9 @@ func Provide(opts ...opt.Option) error {
 }
 
 func newRoute (svc http.Service) http.Route {
-	engine := svc.GetEngine().(*gin.Engine)
+	engine := svc.GetEngine().(*fiber.App)
 	group := engine.Group("{{.NamePlural}}")
-	log.Info("register route group: %s", group)
+	log.Infof("register route group: %s", group.(*fiber.Group).Prefix)
 
 	return nil
 }

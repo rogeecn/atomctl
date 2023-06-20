@@ -137,16 +137,17 @@ func genRoutes(cmd *cobra.Command, args []string) error {
 			_, _ = f.WriteString(fmt.Sprintf("\t%s\n", im))
 		}
 		_, _ = f.WriteString("\n")
-		_, _ = f.WriteString("\t. \"github.com/rogeecn/gen\"\n")
-		_, _ = f.WriteString("\t\"github.com/gin-gonic/gin\"\n")
+		_, _ = f.WriteString("\t\"github.com/gofiber/fiber/v2\"\n")
+		_, _ = f.WriteString("\t. \"github.com/rogeecn/fen\"\n")
 		_, _ = f.WriteString(")\n\n")
 
-		_, _ = f.WriteString("func route" + route.Name + "(engine *gin.RouterGroup, controller *controller." + route.Name + ") {\n")
+		//
+		_, _ = f.WriteString("func route" + route.Name + "(engine fiber.Router, controller *controller." + route.Name + ") {\n")
 
-		_, _ = f.WriteString("\tbasePath := engine.BasePath()\n")
+		_, _ = f.WriteString("\tbasePath := \"/\"+engine.(*fiber.Group).Prefix\n")
 		for _, action := range route.Actions {
 			_, _ = f.WriteString("\t")
-			_, _ = f.WriteString(fmt.Sprintf(`engine.%s(strings.TrimPrefix(%q, basePath), `, action.Method, formatRoute(action.Route)))
+			_, _ = f.WriteString(fmt.Sprintf(`engine.%s(strings.TrimPrefix(%q, basePath), `, strcase.ToCamel(strings.ToLower(action.Method)), formatRoute(action.Route)))
 
 			if action.HasData {
 				_, _ = f.WriteString("Data")
@@ -302,13 +303,18 @@ func astParseRoutes(source string) []RoueDefinition {
 				typ = param.Type.(*ast.Ident).Name
 			case *ast.StarExpr:
 				paramsType := param.Type.(*ast.StarExpr)
-				X := paramsType.X.(*ast.SelectorExpr)
-				typ = fmt.Sprintf("*%s.%s", X.X.(*ast.Ident).Name, X.Sel.Name)
+				switch paramsType.X.(type) {
+				case *ast.SelectorExpr:
+					X := paramsType.X.(*ast.SelectorExpr)
+					typ = fmt.Sprintf("*%s.%s", X.X.(*ast.Ident).Name, X.Sel.Name)
+				default:
+					typ = fmt.Sprintf("*%s", paramsType.X.(*ast.Ident).Name)
+				}
 			case *ast.SelectorExpr:
 				typ = fmt.Sprintf("%s.%s", param.Type.(*ast.SelectorExpr).X.(*ast.Ident).Name, param.Type.(*ast.SelectorExpr).Sel.Name)
 			}
 
-			if strings.HasSuffix(typ, "Context") {
+			if strings.HasSuffix(typ, "Context") || strings.HasSuffix(typ, "Ctx") {
 				continue
 			}
 			pkgName := strings.Split(strings.Trim(typ, "*"), ".")
