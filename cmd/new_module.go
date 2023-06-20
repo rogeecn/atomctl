@@ -36,7 +36,7 @@ var moduleCmd = &cobra.Command{
 		addModule.NamePlural = moduleName
 
 		pcli := pluralize.NewClient()
-		if pcli.IsPlural(moduleName) {
+		if !pcli.IsPlural(moduleName) {
 			addModule.NamePlural = pcli.Plural(moduleName)
 		}
 
