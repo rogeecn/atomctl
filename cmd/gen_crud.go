@@ -23,6 +23,12 @@ import (
 	"github.com/spf13/cobra"
 )
 
+func init() {
+	genCmd.AddCommand(genCrudCmd)
+	genCrudCmd.Flags().String("route", "", "manually define route path")
+	genCrudCmd.Flags().String("tag", "DEFAULT_TAG_NAME", "define swagger tag")
+}
+
 var genCrudCmd = &cobra.Command{
 	Use:     "crud",
 	Short:   "generate crud for model",
@@ -39,6 +45,7 @@ var genCrudCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
+		modelInfo.TagName = cmd.Flag("tag").Value.String()
 		modelInfo.RouteName = strcase.ToSnake(args[0])
 		if cmd.Flag("route").Value.String() != "" {
 			modelInfo.RouteName = strings.Trim(cmd.Flag("route").Value.String(), "/")
@@ -107,11 +114,6 @@ var genCrudCmd = &cobra.Command{
 	},
 }
 
-func init() {
-	genCmd.AddCommand(genCrudCmd)
-	genCrudCmd.Flags().String("route", "", "manually define route path")
-}
-
 func genCrud(pkgName, modelFile, moduleName string) (*ModelInfo, error) {
 	fset := token.NewFileSet()
 	node, err := parser.ParseFile(fset, modelFile, nil, parser.ParseComments)
@@ -166,6 +168,7 @@ type ModelInfo struct {
 	Name       string
 	CamelName  string
 	RouteName  string
+	TagName    string
 	IntType    string
 	Fields     []ModelField
 	PathFields []ModelField

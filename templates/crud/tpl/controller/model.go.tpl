@@ -24,7 +24,7 @@ func New{{ .Model.Name }}Controller(
 //
 //	@Summary		get by id
 //	@Description	get info by id
-//	@Tags			TODO_ADD_TAGNAME
+//	@Tags			{{ .Model.TagName }}
 //	@Accept			json
 //	@Produce		json
 {{- range $i, $field := .Model.PathFields }}
@@ -41,7 +41,7 @@ func (c *{{ .Model.Name }}Controller) Show(ctx *Ctx,{{ range $i, $field := .Mode
 //
 //	@Summary		list by query filter
 //	@Description	list by query filter
-//	@Tags			TODO_ADD_TAGNAME
+//	@Tags			{{ .Model.TagName }}
 //	@Accept			json
 //	@Produce		json
 {{- range $i, $field := .Model.PathFields }}
@@ -77,7 +77,7 @@ func (c *{{ .Model.Name }}Controller) List(
 //
 //	@Summary		create new item
 //	@Description	create new item
-//	@Tags			TODO_ADD_TAGNAME
+//	@Tags			{{ .Model.TagName }}
 //	@Accept			json
 //	@Produce		json
 {{- range $i, $field := .Model.PathFields }}
@@ -94,7 +94,7 @@ func (c *{{ .Model.Name }}Controller) Create(ctx *Ctx,{{ range $i, $field := .Mo
 //
 //	@Summary		update by id
 //	@Description	update by id
-//	@Tags			TODO_ADD_TAGNAME
+//	@Tags			{{ .Model.TagName }}
 //	@Accept			json
 //	@Produce		json
 {{- range $i, $field := .Model.PathFields }}
@@ -113,7 +113,7 @@ func (c *{{ .Model.Name }}Controller) Update(ctx *Ctx,{{ range $i, $field := .Mo
 //
 //	@Summary		delete by id
 //	@Description	delete by id
-//	@Tags			TODO_ADD_TAGNAME
+//	@Tags			{{ .Model.TagName }}
 //	@Accept			json
 //	@Produce		json
 {{- range $i, $field := .Model.PathFields }}
