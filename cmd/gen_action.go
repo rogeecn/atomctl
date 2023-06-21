@@ -27,8 +27,14 @@ func init() {
 // action:[Method] "Description" [json|text] [method] [route] [tag]
 
 var genActionCmd = &cobra.Command{
-	Use:     "action",
-	Short:   "generate actions for controller",
+	Use:   "action",
+	Short: "generate actions for controller",
+	Long: `
+	Generate actions for controller by directive in comments blow
+
+	// action:[Method] "Description" [json|text] [method] [route] [tag]
+
+	`,
 	Example: "atomctl gen action [filename]",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) != 1 {
