@@ -3,7 +3,12 @@ Copyright © 2023 NAME HERE <EMAIL ADDRESS>
 */
 package cmd
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/rogeecn/fabfile"
+	. "github.com/smartystreets/goconvey/convey"
+)
 
 func Test_processModelTag(t *testing.T) {
 	type args struct {
@@ -33,4 +38,15 @@ func Test_processModelTag(t *testing.T) {
 			}
 		})
 	}
+}
+
+func Test_genCrud(t *testing.T) {
+	Convey("gen crud", t, func() {
+		path, err := fabfile.Find("tests/crud.go")
+		So(err, ShouldBeNil)
+
+		_, err = genCrud("hello", path, "world")
+		So(err, ShouldBeNil)
+
+	})
 }

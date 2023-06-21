@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 
-	"{{ .PkgName }}/common"
+	"{{ .PkgName }}/pkg/common"
 	"{{ .PkgName }}/database/models"
 	"{{ .PkgName }}/{{ .Module }}/dao"
 	"{{ .PkgName }}/{{ .Module }}/dto"
@@ -24,7 +24,7 @@ func New{{ .Model.Name }}Service(
 	}
 }
 
-func (svc *{{ .Model.Name }}Service) GetByID(ctx context.Context, id {{ .Model.IntType }}) (*dto.{{ .Model.Name }}Item, error) {
+func (svc *{{ .Model.Name }}Service) GetByID(ctx context.Context,{{ range $i, $field := .Model.PathFields }} {{ $field.Name}} {{ $field.Type }}, {{end}} id {{ .Model.IntType }}) (*dto.{{ .Model.Name }}Item, error) {
 	model, err := svc.{{ .Model.CamelName }}Dao.GetByID(ctx, id)
 	if err != nil {
 		return nil, errors.Wrap(err, "get by id failed")
@@ -38,6 +38,9 @@ func (svc *{{ .Model.Name }}Service) GetByID(ctx context.Context, id {{ .Model.I
 
 func (svc *{{ .Model.Name }}Service) PageByQueryFilter(
 	ctx context.Context, 
+{{- range $i, $field := .Model.PathFields }} 
+	{{ $field.Name}} {{ $field.Type }}, 
+{{- end}}
 	queryFilter *dto.{{ .Model.Name }}ListQueryFilter,
 	pageFilter *common.PageQueryFilter, 
 	sortFilter *common.SortQueryFilter,
@@ -58,14 +61,14 @@ func (svc *{{ .Model.Name }}Service) PageByQueryFilter(
 }
 
 // Create
-func (svc *{{ .Model.Name }}Service) Create(ctx context.Context, body *dto.{{ .Model.Name }}Form) error {
+func (svc *{{ .Model.Name }}Service) Create(ctx context.Context,{{ range $i, $field := .Model.PathFields }} {{ $field.Name}} {{ $field.Type }}, {{end}} body *dto.{{ .Model.Name }}Form) error {
 	model := &models.{{ .Model.Name }}{}
 	_ = copier.Copy(model, body)
 	return svc.{{ .Model.CamelName }}Dao.Create(ctx, model)
 }
 
 // Update
-func (svc *{{ .Model.Name }}Service) Update(ctx context.Context, id {{ .Model.IntType }}, body *dto.{{ .Model.Name }}Form) error {
+func (svc *{{ .Model.Name }}Service) Update(ctx context.Context,{{ range $i, $field := .Model.PathFields }} {{ $field.Name}} {{ $field.Type }}, {{end}} id {{ .Model.IntType }}, body *dto.{{ .Model.Name }}Form) error {
 	model := &models.{{ .Model.Name }}{}
 	_ = copier.Copy(model, body)
 	model.ID = id
@@ -73,6 +76,6 @@ func (svc *{{ .Model.Name }}Service) Update(ctx context.Context, id {{ .Model.In
 }
 
 // Delete
-func (svc *{{ .Model.Name }}Service) Delete(ctx context.Context, id {{ .Model.IntType }}) error {
+func (svc *{{ .Model.Name }}Service) Delete(ctx context.Context,{{ range $i, $field := .Model.PathFields }} {{ $field.Name}} {{ $field.Type }}, {{end}} id {{ .Model.IntType }}) error {
 	return svc.{{ .Model.CamelName }}Dao.Delete(ctx, id)
 }

@@ -47,6 +47,7 @@ var genCrudCmd = &cobra.Command{
 			return errors.New("Invalid route, route should not contains {id}")
 		}
 		modelInfo.GuessIntType()
+		modelInfo.parsePathFields()
 
 		render := CrudRenderParams{
 			PkgName: pkgName,
@@ -162,11 +163,12 @@ func (m *CrudRenderParams) prepareFiles(files map[string]string, filename string
 }
 
 type ModelInfo struct {
-	Name      string
-	CamelName string
-	RouteName string
-	IntType   string
-	Fields    []ModelField
+	Name       string
+	CamelName  string
+	RouteName  string
+	IntType    string
+	Fields     []ModelField
+	PathFields []ModelField
 }
 
 func (m *ModelInfo) GuessIntType() {
@@ -176,6 +178,24 @@ func (m *ModelInfo) GuessIntType() {
 			m.IntType = strings.TrimLeft(f.Type, "*")
 			return
 		}
+	}
+}
+
+func (m *ModelInfo) parsePathFields() {
+	pattern := regexp.MustCompile(`\{(.*?)\}`)
+	fields := pattern.FindAllStringSubmatch(m.RouteName, -1)
+
+	for _, field := range fields {
+		fieldName := field[1]
+		typ := "int"
+		if !strings.HasSuffix(strings.ToLower(fieldName), "id") {
+			typ = "string"
+		}
+		m.PathFields = append(m.PathFields, ModelField{
+			Name:    strcase.ToLowerCamel(field[1]),
+			Type:    typ,
+			Comment: strcase.ToCamel(fieldName),
+		})
 	}
 }
 

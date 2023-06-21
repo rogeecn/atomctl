@@ -337,11 +337,13 @@ func astParseRoutes(source string) []RoueDefinition {
 				typ = strings.Replace(typ, "*", "&", 1) + "{}"
 			}
 
-			params = append(params, ParamDefinition{
-				Name:     param.Names[0].Name,
-				Type:     typ,
-				Position: position,
-			})
+			for _, name := range param.Names {
+				params = append(params, ParamDefinition{
+					Name:     name.Name,
+					Type:     typ,
+					Position: position,
+				})
+			}
 		}
 
 		actions[recvType] = append(actions[recvType], ActionDefinition{
