@@ -36,6 +36,29 @@ func (svc *{{ .Model.Name }}Service) GetByID(ctx context.Context,{{ range $i, $f
 	return resp, nil
 }
 
+func (svc *{{ .Model.Name }}Service) FindByQueryFilter(
+	ctx context.Context, 
+{{- range $i, $field := .Model.PathFields }} 
+	{{ $field.Name}} {{ $field.Type }}, 
+{{- end}}
+	queryFilter *dto.{{ .Model.Name }}ListQueryFilter,
+	sortFilter *common.SortQueryFilter,
+) ([]*dto.{{ .Model.Name }}Item, error) {
+	models, err := svc.{{ .Model.CamelName }}Dao.FindByQueryFilter(ctx, queryFilter, sortFilter)
+	if err != nil {
+		return nil, err
+	}
+
+	resp := []*dto.{{ .Model.Name }}Item{}
+	for _, u := range models {
+		item := &dto.{{ .Model.Name }}Item{}
+		_ = copier.Copy(item, u)
+		resp = append(resp, item)
+	}
+
+	return resp, nil
+}
+
 func (svc *{{ .Model.Name }}Service) PageByQueryFilter(
 	ctx context.Context, 
 {{- range $i, $field := .Model.PathFields }} 
