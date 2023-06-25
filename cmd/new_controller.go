@@ -3,6 +3,8 @@ package cmd
 import (
 	"bytes"
 	"fmt"
+	"log"
+	"os"
 	"path/filepath"
 	"strings"
 	"text/template"
@@ -30,7 +32,8 @@ var controllerCmd = &cobra.Command{
 		// a => modules/a/controller
 		// a.b => modules/a/modules/b/controllers
 
-		file := fmt.Sprintf("modules/%s/controller", strings.ReplaceAll(args[0], ".", "/modules/"))
+		modulePath, _ := dotToModule(args[0])
+		file := fmt.Sprintf("%s/controller", modulePath)
 		if !utils.IsDir(file) {
 			return errors.New("module not exists")
 		}
@@ -50,7 +53,28 @@ var controllerCmd = &cobra.Command{
 			return err
 		}
 
-		return nil
+		//register controller provider
+		providerFile := filepath.Join(addController.Path, "provider.go")
+		if !utils.IsFile(providerFile) {
+			log.Println("[Warn] " + providerFile + " not exists, please add new provider manually")
+			return err
+		}
+
+		providerContent, err := os.ReadFile(providerFile)
+		if err != nil {
+			log.Println("[Warn] read " + providerFile + " failed, please add new provider manually")
+			return err
+		}
+
+		providerFunc := fmt.Sprintf("New%sController", addController.PascalName)
+
+		content := string(providerContent)
+		if !strings.Contains(content, providerFunc) {
+			provider := fmt.Sprintf("_ = container.Container.Provide(%s)\n\treturn nil", providerFunc)
+			content = strings.Replace(content, "return nil", provider, 1)
+		}
+
+		return os.WriteFile(providerFile, []byte(content), os.ModePerm)
 	},
 }
 
