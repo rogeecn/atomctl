@@ -63,6 +63,8 @@ var genEnumCmd = &cobra.Command{
 		g.WithSQLInt()
 		g.WithSQLNullInt()
 		g.WithSQLNullStr()
+		g.WithNames()
+		g.WithValues()
 
 		for _, fileName := range filenames {
 			log.Printf("Generating enums for %s", fileName)

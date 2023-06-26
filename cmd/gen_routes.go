@@ -169,6 +169,8 @@ func genRoutes(cmd *cobra.Command, args []string) error {
 						paramString = fmt.Sprintf(`String(%q, PathParamError)`, p.Name)
 					case "int", "uint", "int32", "uint32", "int64", "uint64":
 						paramString = fmt.Sprintf(`Integer[%s](%q, PathParamError)`, p.Type, p.Name)
+					default:
+						log.Panic("invalid path param type: ", p.Type)
 					}
 				case PositionQuery:
 					paramString = fmt.Sprintf(`Query(%s, QueryParamError)`, p.Type)
