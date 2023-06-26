@@ -274,7 +274,7 @@ func processModelTag(tag string) (string, string) {
 	tag = patternTag.ReplaceAllString(tag, "")
 
 	patternJson := regexp.MustCompile(`json:"(.*?)"`)
-	tag = patternJson.ReplaceAllString(tag, `form:"$1" query:"$1" reqHeader:"$1" json:"$1,omitempty"`)
+	tag = patternJson.ReplaceAllString(tag, `form:"$1" query:"$1" json:"$1,omitempty"`)
 
 	return tag, comment
 }

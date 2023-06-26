@@ -70,10 +70,7 @@ var genEnumCmd = &cobra.Command{
 			log.Printf("Generating enums for %s", fileName)
 
 			fileName, _ = filepath.Abs(fileName)
-			outFilePath := fmt.Sprintf("%s_enum.go", strings.TrimSuffix(fileName, filepath.Ext(fileName)))
-			if strings.HasSuffix(fileName, "_test.go") {
-				outFilePath = strings.Replace(outFilePath, "_test_enum.go", "_enum_test.go", 1)
-			}
+			outFilePath := fmt.Sprintf("%s.gen.go", strings.TrimSuffix(fileName, filepath.Ext(fileName)))
 
 			// Parse the file given in arguments
 			raw, err := g.GenerateFromFile(fileName)

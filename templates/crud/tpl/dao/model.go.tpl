@@ -3,24 +3,27 @@ package dao
 import (
 	"context"
 
-	"{{ .PkgName }}/common"
+	"{{ .PkgName }}/pkg/common"
 	"{{ .PkgName }}/database/models"
-	q "{{ .PkgName }}/database/query"
+	"{{ .PkgName }}/database/query"
 	"{{ .PkgName }}/{{ .Module }}/dto"
 
-	"github.com/jinzhu/copier"
 	"gorm.io/gen/field"
 )
 
 type {{ .Model.Name }}Dao struct {
-	query *q.Query
+	query *query.Query
 }
 
-func New{{ .Model.Name }}Dao(query *q.Query) *{{ .Model.Name }}Dao {
+func New{{ .Model.Name }}Dao(query *query.Query) *{{ .Model.Name }}Dao {
 	return &{{ .Model.Name }}Dao{query: query}
 }
 
-func (dao *{{ .Model.Name }}Dao) decorateSortQueryFilter(query q.I{{ .Model.Name }}Do, sortFilter *common.SortQueryFilter) q.I{{ .Model.Name }}Do {
+func (dao *{{ .Model.Name }}Dao) Context(ctx context.Context) query.I{{ .Model.Name }}Do {
+	return dao.query.{{ .Model.Name }}.WithContext(ctx)
+}
+
+func (dao *{{ .Model.Name }}Dao) decorateSortQueryFilter(query query.I{{ .Model.Name }}Do, sortFilter *common.SortQueryFilter) query.I{{ .Model.Name }}Do {
 	if sortFilter == nil {
 		return query
 	}
@@ -39,7 +42,7 @@ func (dao *{{ .Model.Name }}Dao) decorateSortQueryFilter(query q.I{{ .Model.Name
 	return query.Order(orderExprs...)
 }
 
-func (dao *{{ .Model.Name }}Dao) decorateQueryFilter(query q.I{{ .Model.Name }}Do, queryFilter *dto.{{ .Model.Name }}ListQueryFilter) q.I{{ .Model.Name }}Do {
+func (dao *{{ .Model.Name }}Dao) decorateQueryFilter(query query.I{{ .Model.Name }}Do, queryFilter *dto.{{ .Model.Name }}ListQueryFilter) query.I{{ .Model.Name }}Do {
 	if queryFilter == nil {
 		return query
 	}
@@ -57,32 +60,27 @@ func (dao *{{ .Model.Name }}Dao) decorateQueryFilter(query q.I{{ .Model.Name }}D
 	return query
 }
 
+func (dao *{{ .Model.Name }}Dao) UpdateColumn(ctx context.Context, id int32, field field.Expr, value interface{}) error {
+	_, err := dao.Context(ctx).Where(dao.query.{{ .Model.Name }}.ID.Eq(id)).Update(field, value)
+	return err
+}
+
 func (dao *{{ .Model.Name }}Dao) Update(ctx context.Context, id {{ .Model.IntType }}, model *models.{{ .Model.Name }}) error {
-	oldModel, err := dao.GetByID(ctx, id)
-	if err != nil {
-		return err
-	}
-	_ = copier.Copy(oldModel, model)
-
-	query := dao.query.{{ .Model.Name }}
-	_, err = query.WithContext(ctx).Where(query.ID.Eq(id)).Updates(model)
-
+	_, err := dao.Context(ctx).Where(dao.query.{{ .Model.Name }}.ID.Eq(id)).Updates(model)
 	return err
 }
 
 func (dao *{{ .Model.Name }}Dao) Delete(ctx context.Context, id {{ .Model.IntType }}) error {
-	query := dao.query.{{ .Model.Name }}
-	_, err := query.WithContext(ctx).Where(query.ID.Eq(id)).Delete()
+	_, err := dao.Context(ctx).Where(dao.query.{{ .Model.Name }}.ID.Eq(id)).Delete()
 	return err
 }
 
 func (dao *{{ .Model.Name }}Dao) Create(ctx context.Context, model *models.{{ .Model.Name }}) error {
-	return dao.query.{{ .Model.Name }}.WithContext(ctx).Create(model)
+	return dao.Context(ctx).Create(model)
 }
 
 func (dao *{{ .Model.Name }}Dao) GetByID(ctx context.Context, id {{ .Model.IntType }}) (*models.{{ .Model.Name }}, error) {
-	query := dao.query.{{ .Model.Name }}
-	return query.WithContext(ctx).Where(query.ID.Eq(id)).First()
+	return dao.Context(ctx).Where(dao.query.{{ .Model.Name }}.ID.Eq(id)).First()
 }
 
 func (dao *{{ .Model.Name }}Dao) PageByQueryFilter(
