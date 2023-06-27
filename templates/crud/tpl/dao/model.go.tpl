@@ -112,3 +112,15 @@ func (dao *{{ .Model.Name }}Dao) FindByQueryFilter(
 	{{ .Model.CamelName }}Query = dao.decorateSortQueryFilter({{ .Model.CamelName }}Query, sortFilter)
 	return {{ .Model.CamelName }}Query.Find()
 }
+
+func (dao *{{ .Model.Name }}Dao) FirstByQueryFilter(
+	ctx context.Context, 
+	queryFilter *dto.{{ .Model.Name }}ListQueryFilter,
+	sortFilter *common.SortQueryFilter,
+) ([]*models.{{ .Model.Name }}, error) {
+	query := dao.query.{{ .Model.Name }}
+	{{ .Model.CamelName }}Query := query.WithContext(ctx)
+	{{ .Model.CamelName }}Query = dao.decorateQueryFilter({{ .Model.CamelName }}Query, queryFilter)
+	{{ .Model.CamelName }}Query = dao.decorateSortQueryFilter({{ .Model.CamelName }}Query, sortFilter)
+	return {{ .Model.CamelName }}Query.First()
+}
