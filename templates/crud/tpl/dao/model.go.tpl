@@ -83,6 +83,10 @@ func (dao *{{ .Model.Name }}Dao) GetByID(ctx context.Context, id {{ .Model.IntTy
 	return dao.Context(ctx).Where(dao.query.{{ .Model.Name }}.ID.Eq(id)).First()
 }
 
+func (dao *{{ .Model.Name }}Dao) GetByIDs(ctx context.Context, ids []{{ .Model.IntType }}) ([]*models.{{ .Model.Name }}, error) {
+	return dao.Context(ctx).Where(dao.query.{{ .Model.Name }}.ID.In(ids...)).Find()
+}
+
 func (dao *{{ .Model.Name }}Dao) PageByQueryFilter(
 	ctx context.Context, 
 	queryFilter *dto.{{ .Model.Name }}ListQueryFilter,
