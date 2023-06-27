@@ -65,8 +65,8 @@ func (dao *{{ .Model.Name }}Dao) UpdateColumn(ctx context.Context, id int32, fie
 	return err
 }
 
-func (dao *{{ .Model.Name }}Dao) Update(ctx context.Context, id {{ .Model.IntType }}, model *models.{{ .Model.Name }}) error {
-	_, err := dao.Context(ctx).Where(dao.query.{{ .Model.Name }}.ID.Eq(id)).Updates(model)
+func (dao *{{ .Model.Name }}Dao) Update(ctx context.Context, model *models.{{ .Model.Name }}) error {
+	_, err := dao.Context(ctx).Where(dao.query.{{ .Model.Name }}.ID.Eq(model.ID)).Updates(model)
 	return err
 }
 
