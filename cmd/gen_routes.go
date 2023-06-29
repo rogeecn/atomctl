@@ -222,6 +222,10 @@ const (
 )
 
 func astParseRoutes(source string) []RoueDefinition {
+	if strings.HasSuffix(source, "_test.go") {
+		return []RoueDefinition{}
+	}
+
 	if strings.HasSuffix(source, "/provider.go") {
 		return []RoueDefinition{}
 	}
