@@ -83,6 +83,11 @@ func (svc *{{ .Model.Name }}Service) PageByQueryFilter(
 	return resp, total, nil
 }
 
+// CreateFromModel
+func (svc *{{ .Model.Name }}Service) CreateFromModel(ctx context.Context, model *models.{{ .Model.Name }}) error {
+	return svc.{{ .Model.CamelName }}Dao.Create(ctx, model)
+}
+
 // Create
 func (svc *{{ .Model.Name }}Service) Create(ctx context.Context,{{ range $i, $field := .Model.PathFields }} {{ $field.Name}} {{ $field.Type }}, {{end}} body *dto.{{ .Model.Name }}Form) error {
 	model := &models.{{ .Model.Name }}{}
@@ -92,10 +97,19 @@ func (svc *{{ .Model.Name }}Service) Create(ctx context.Context,{{ range $i, $fi
 
 // Update
 func (svc *{{ .Model.Name }}Service) Update(ctx context.Context,{{ range $i, $field := .Model.PathFields }} {{ $field.Name}} {{ $field.Type }}, {{end}} id {{ .Model.IntType }}, body *dto.{{ .Model.Name }}Form) error {
-	model := &models.{{ .Model.Name }}{}
+	model, err := svc.GetByID(ctx, id)
+	if err != nil {
+		return err
+	}
+
 	_ = copier.Copy(model, body)
 	model.ID = id
-	return svc.{{ .Model.CamelName }}Dao.Update(ctx, id, model)
+	return svc.{{ .Model.CamelName }}Dao.Update(ctx, model)
+}
+
+// UpdateFromModel
+func (svc *{{ .Model.Name }}Service) Update(ctx context.Context, model *models.{{ .Model.Name }}) error {
+	return svc.{{ .Model.CamelName }}Dao.Update(ctx, model)
 }
 
 // Delete
