@@ -3,6 +3,8 @@ package cmd
 import (
 	"bytes"
 	"fmt"
+	"log"
+	"os"
 	"path/filepath"
 	"strings"
 	"text/template"
@@ -50,7 +52,33 @@ var daoCmd = &cobra.Command{
 			return err
 		}
 
-		return nil
+		// register controller provider
+		providerFile := filepath.Join(addDao.Path, "provider.go")
+		if !utils.IsFile(providerFile) {
+			log.Println("[Warn] " + providerFile + " not exists, please add new provider manually")
+			return err
+		}
+
+		providerContent, err := os.ReadFile(providerFile)
+		if err != nil {
+			log.Println("[Warn] read " + providerFile + " failed, please add new provider manually")
+			return err
+		}
+
+		providerFunc := fmt.Sprintf("New%sDao", addDao.PascalName)
+
+		content := string(providerContent)
+		if !strings.Contains(content, providerFunc) {
+			provider := fmt.Sprintf("\n\tif err := container.Container.Provide(%s); err!=nil {\n\t\treturn err\n\t}\n\treturn nil", providerFunc)
+			content = strings.Replace(content, "return nil", provider, 1)
+		}
+
+		containerPackage := `"github.com/rogeecn/atom/container"`
+		if !strings.Contains(content, containerPackage) {
+			content = strings.Replace(content, "import (", "import (\n\t"+containerPackage, 1)
+		}
+
+		return os.WriteFile(providerFile, []byte(content), os.ModePerm)
 	},
 }
 

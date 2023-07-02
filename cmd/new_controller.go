@@ -70,8 +70,13 @@ var controllerCmd = &cobra.Command{
 
 		content := string(providerContent)
 		if !strings.Contains(content, providerFunc) {
-			provider := fmt.Sprintf("if err := container.Container.Provide(%s); err!=nil {\n\treturn err\n\t}\n\treturn nil", providerFunc)
+			provider := fmt.Sprintf("\n\tif err := container.Container.Provide(%s); err!=nil {\n\t\treturn err\n\t}\n\treturn nil", providerFunc)
 			content = strings.Replace(content, "return nil", provider, 1)
+		}
+
+		containerPackage := `"github.com/rogeecn/atom/container"`
+		if !strings.Contains(content, containerPackage) {
+			content = strings.Replace(content, "import (", "import (\n\t"+containerPackage, 1)
 		}
 
 		return os.WriteFile(providerFile, []byte(content), os.ModePerm)
