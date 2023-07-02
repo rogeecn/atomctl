@@ -98,7 +98,7 @@ var genCrudCmd = &cobra.Command{
 
 			content := string(providerContent)
 			if !strings.Contains(content, providerFunc) {
-				provider := fmt.Sprintf("_ = container.Container.Provide(%s)\n\treturn nil", providerFunc)
+				provider := fmt.Sprintf("if err := container.Container.Provide(%s); err!=nil {\n\treturn err\n\t}\n\treturn nil", providerFunc)
 				content = strings.Replace(content, "return nil", provider, 1)
 			}
 

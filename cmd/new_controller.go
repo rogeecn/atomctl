@@ -53,7 +53,7 @@ var controllerCmd = &cobra.Command{
 			return err
 		}
 
-		//register controller provider
+		// register controller provider
 		providerFile := filepath.Join(addController.Path, "provider.go")
 		if !utils.IsFile(providerFile) {
 			log.Println("[Warn] " + providerFile + " not exists, please add new provider manually")
@@ -70,7 +70,7 @@ var controllerCmd = &cobra.Command{
 
 		content := string(providerContent)
 		if !strings.Contains(content, providerFunc) {
-			provider := fmt.Sprintf("_ = container.Container.Provide(%s)\n\treturn nil", providerFunc)
+			provider := fmt.Sprintf("if err := container.Container.Provide(%s); err!=nil {\n\treturn err\n\t}\n\treturn nil", providerFunc)
 			content = strings.Replace(content, "return nil", provider, 1)
 		}
 
