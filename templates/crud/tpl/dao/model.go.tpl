@@ -19,6 +19,12 @@ func New{{ .Model.Name }}Dao(query *query.Query) *{{ .Model.Name }}Dao {
 	return &{{ .Model.Name }}Dao{query: query}
 }
 
+func (dao *{{ .Model.Name }}Dao) Transaction(f func() error) error {
+	return dao.query.Transaction(func(tx *query.Query) error {
+		return f()
+	})
+}
+
 func (dao *{{ .Model.Name }}Dao) Context(ctx context.Context) query.I{{ .Model.Name }}Do {
 	return dao.query.{{ .Model.Name }}.WithContext(ctx)
 }
@@ -72,6 +78,16 @@ func (dao *{{ .Model.Name }}Dao) Update(ctx context.Context, model *models.{{ .M
 
 func (dao *{{ .Model.Name }}Dao) Delete(ctx context.Context, id {{ .Model.IntType }}) error {
 	_, err := dao.Context(ctx).Where(dao.query.{{ .Model.Name }}.ID.Eq(id)).Delete()
+	return err
+}
+
+func (dao *{{ .Model.Name }}Dao) DeletePermanently(ctx context.Context, id {{ .Model.IntType }}) error {
+	_, err := dao.Context(ctx).Unscoped().Where(dao.query.{{ .Model.Name }}.ID.Eq(id)).Delete()
+	return err
+}
+
+func (dao *{{ .Model.Name }}Dao) Restore(ctx context.Context, id {{ .Model.IntType }}) error {
+	_, err := dao.Context(ctx).Unscoped().Where(dao.query.{{ .Model.Name }}.ID.Eq(id)).UpdateSimple(dao.query.{{ .Model.Name }}.DeletedAt.Null())
 	return err
 }
 
