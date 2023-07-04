@@ -264,7 +264,7 @@ func renderFile(filename string, conf []Provider) error {
 	_, _ = fd.WriteString(fmt.Sprintf("package %s\n\n", conf[0].PkgName))
 	_, _ = fd.WriteString("import (\n")
 	for _, imp := range imports {
-		_, _ = fd.WriteString(fmt.Sprintf("\t%q\n", imp))
+		_, _ = fd.WriteString(fmt.Sprintf("\t%s\n", imp))
 	}
 	_, _ = fd.WriteString(")\n\n")
 
