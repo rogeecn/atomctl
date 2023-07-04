@@ -294,16 +294,16 @@ func renderFile(filename string, conf []Provider) error {
 		structParams := []string{}
 		for name, typ := range item.InjectParams {
 			params = append(params, fmt.Sprintf("%s %s", name, typ))
-			structParams = append(structParams, fmt.Sprintf("\t\t\t%s:%s,", name, name))
+			structParams = append(structParams, fmt.Sprintf("\t\t\t%s: %s,", name, name))
 		}
 
-		_, _ = fd.WriteString("\tif err:=container.Container.Provide(func(")
+		_, _ = fd.WriteString("\tif err := container.Container.Provide(func(")
 		_, _ = fd.WriteString(strings.Join(params, ", "))
 		_, _ = fd.WriteString(fmt.Sprintf(") (*%s, error) {\n", item.StructName))
 		_, _ = fd.WriteString(fmt.Sprintf("\t\treturn &%s{\n", item.StructName))
 		_, _ = fd.WriteString(strings.Join(structParams, "\n") + "\n")
 		_, _ = fd.WriteString("\t\t}, nil\n")
-		_, _ = fd.WriteString("\t}); err!=nil{\n")
+		_, _ = fd.WriteString("\t}); err != nil {\n")
 		_, _ = fd.WriteString("\t\treturn err\n")
 		_, _ = fd.WriteString("\t}\n\n")
 	})
