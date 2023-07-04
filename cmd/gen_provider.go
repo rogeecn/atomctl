@@ -16,6 +16,25 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var scalarTypes = []string{
+	"float32",
+	"float64",
+	"int",
+	"int8",
+	"int16",
+	"int32",
+	"int64",
+	"uint",
+	"uint8",
+	"uint16",
+	"uint32",
+	"uint64",
+	"bool",
+	"uintptr",
+	"complex64",
+	"complex128",
+}
+
 // pro represents the routes command
 var genProviderCmd = &cobra.Command{
 	Use:   "provider",
@@ -173,7 +192,7 @@ func astParseProviders(projectPkg, source string) []Provider {
 
 		onlyMode := strings.HasSuffix(docMark, ":only")
 		exceptMode := strings.HasSuffix(docMark, ":except")
-		log.Printf("%s => ONLY: %+v, EXCEPT: %+v", declType.Name.Name, onlyMode, exceptMode)
+		log.Printf("[%s] %s => {only: %+v, except: %+v}", source, declType.Name.Name, onlyMode, exceptMode)
 
 		for _, field := range structType.Fields.List {
 			if provider.InjectParams == nil {
@@ -221,7 +240,7 @@ func astParseProviders(projectPkg, source string) []Provider {
 				typ = fmt.Sprintf("%s.%s", field.Type.(*ast.SelectorExpr).X.(*ast.Ident).Name, field.Type.(*ast.SelectorExpr).Sel.Name)
 			}
 
-			if strings.HasSuffix(typ, "Context") || strings.HasSuffix(typ, "Ctx") {
+			if lo.Contains(scalarTypes, strings.TrimLeft(typ, "*")) {
 				continue
 			}
 			// todo: ignore int int64 in32 ...
