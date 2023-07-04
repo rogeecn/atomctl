@@ -243,7 +243,6 @@ func astParseProviders(projectPkg, source string) []Provider {
 			if lo.Contains(scalarTypes, strings.TrimLeft(typ, "*")) {
 				continue
 			}
-			// todo: ignore int int64 in32 ...
 
 			for _, name := range field.Names {
 				provider.InjectParams[name.Name] = typ
@@ -305,7 +304,7 @@ func renderFile(filename string, conf []Provider) error {
 		_, _ = fd.WriteString(strings.Join(structParams, "\n") + "\n")
 		_, _ = fd.WriteString("\t\t}, nil\n")
 		_, _ = fd.WriteString("\t}); err!=nil{\n")
-		_, _ = fd.WriteString("\t\treturn nil\n")
+		_, _ = fd.WriteString("\t\treturn err\n")
 		_, _ = fd.WriteString("\t}\n\n")
 	})
 
