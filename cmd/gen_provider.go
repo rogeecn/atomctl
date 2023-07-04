@@ -247,8 +247,8 @@ func astParseProviders(projectPkg, source string) []Provider {
 
 func renderFile(filename string, conf []Provider) error {
 	imports := []string{
-		"github.com/rogeecn/atom/utils/opt",
-		"github.com/rogeecn/atom/container",
+		`"github.com/rogeecn/atom/utils/opt"`,
+		`"github.com/rogeecn/atom/container"`,
 	}
 	lo.ForEach(conf, func(item Provider, _ int) {
 		imports = lo.Union(imports, item.Imports)
