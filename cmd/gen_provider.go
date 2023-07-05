@@ -98,11 +98,13 @@ func genProvider(cmd *cobra.Command, args []string) error {
 }
 
 type Provider struct {
-	StructName   string
-	InjectParams map[string]string
-	Imports      []string
-	PkgName      string
-	ProviderFile string
+	StructName    string
+	ReturnType    string
+	ProviderGroup string
+	InjectParams  map[string]string
+	Imports       []string
+	PkgName       string
+	ProviderFile  string
 }
 
 func astParseProviders(projectPkg, source string) []Provider {
@@ -189,10 +191,21 @@ func astParseProviders(projectPkg, source string) []Provider {
 		if !strings.HasPrefix(docMark, "@provider") {
 			continue
 		}
+		mode, returnType, group := parseDoc(docMark)
+		fmt.Println(mode, returnType, group)
+		if group != "" {
+			provider.ProviderGroup = group
+		}
 
-		onlyMode := strings.HasSuffix(docMark, ":only")
-		exceptMode := strings.HasSuffix(docMark, ":except")
-		log.Printf("[%s] %s => {only: %+v, except: %+v}", source, declType.Name.Name, onlyMode, exceptMode)
+		if returnType == "#" {
+			provider.ReturnType = "*" + provider.StructName
+		} else {
+			provider.ReturnType = returnType
+		}
+
+		onlyMode := mode == "only"
+		exceptMode := mode == "except"
+		log.Printf("[%s] %s => ONLY: %+v, EXCEPT: %+v, Type: %s, Group: %s", source, declType.Name.Name, onlyMode, exceptMode, provider.ReturnType, provider.ProviderGroup)
 
 		for _, field := range structType.Fields.List {
 			if provider.InjectParams == nil {
@@ -299,16 +312,43 @@ func renderFile(filename string, conf []Provider) error {
 
 		_, _ = fd.WriteString("\tif err := container.Container.Provide(func(")
 		_, _ = fd.WriteString(strings.Join(params, ", "))
-		_, _ = fd.WriteString(fmt.Sprintf(") (*%s, error) {\n", item.StructName))
+		_, _ = fd.WriteString(fmt.Sprintf(") (%s, error) {\n", item.ReturnType))
 		_, _ = fd.WriteString(fmt.Sprintf("\t\treturn &%s{\n", item.StructName))
 		_, _ = fd.WriteString(strings.Join(structParams, "\n") + "\n")
 		_, _ = fd.WriteString("\t\t}, nil\n")
-		_, _ = fd.WriteString("\t}); err != nil {\n")
+		_, _ = fd.WriteString("\t}")
+		if item.ProviderGroup != "" {
+			_, _ = fd.WriteString(fmt.Sprintf("\t, %s", item.ProviderGroup))
+		}
+		_, _ = fd.WriteString("); err != nil {\n")
 		_, _ = fd.WriteString("\t\treturn err\n")
 		_, _ = fd.WriteString("\t}\n\n")
 	})
 
-	_, _ = fd.WriteString("return nil\n")
+	_, _ = fd.WriteString("\treturn nil\n")
 	_, _ = fd.WriteString("}\n\n")
 	return nil
+}
+
+func parseDoc(doc string) (string, string, string) {
+	// @provider:[except|only] [returnType] [group]
+	doc = strings.TrimLeft(doc[len("@provider"):], ":")
+	cmds := strings.Split(doc, " ")
+	cmds = lo.Filter(cmds, func(item string, idx int) bool {
+		return strings.TrimSpace(item) != ""
+	})
+
+	if len(cmds) == 0 {
+		return "except", "#", ""
+	}
+
+	if len(cmds) == 1 {
+		return cmds[0], "#", ""
+	}
+
+	if len(cmds) == 2 {
+		return cmds[0], cmds[1], ""
+	}
+
+	return cmds[0], cmds[1], cmds[2]
 }
