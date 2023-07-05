@@ -136,8 +136,13 @@ func astParseProviders(projectPkg, source string) []Provider {
 			name = imp.Name.Name
 		}
 
+		if name == "_" {
+			paths := strings.Split(strings.Trim(imp.Path.Value, "\""), "/")
+			name = paths[len(paths)-1]
+		}
+
 		var pkg string
-		if imp.Name != nil {
+		if imp.Name != nil && imp.Name.Name != "_" {
 			pkg = strings.Trim(imp.Path.Value, `"`)
 			if !strings.HasPrefix(pkg, projectPkg) {
 				continue
@@ -266,6 +271,18 @@ func astParseProviders(projectPkg, source string) []Provider {
 			}
 		}
 
+		if pkg := getTypePkgName(provider.ReturnType); pkg != "" {
+			if importPkg, ok := imports[pkg]; ok {
+				provider.Imports = append(provider.Imports, importPkg)
+			}
+		}
+
+		if pkg := getTypePkgName(provider.ProviderGroup); pkg != "" {
+			if importPkg, ok := imports[pkg]; ok {
+				provider.Imports = append(provider.Imports, importPkg)
+			}
+		}
+
 		provider.PkgName = node.Name.Name
 		provider.ProviderFile = filepath.Join(filepath.Dir(source), "provider.go")
 
@@ -318,7 +335,7 @@ func renderFile(filename string, conf []Provider) error {
 		_, _ = fd.WriteString("\t\t}, nil\n")
 		_, _ = fd.WriteString("\t}")
 		if item.ProviderGroup != "" {
-			_, _ = fd.WriteString(fmt.Sprintf("\t, %s", item.ProviderGroup))
+			_, _ = fd.WriteString(fmt.Sprintf(", %s", item.ProviderGroup))
 		}
 		_, _ = fd.WriteString("); err != nil {\n")
 		_, _ = fd.WriteString("\t\treturn err\n")
@@ -351,4 +368,11 @@ func parseDoc(doc string) (string, string, string) {
 	}
 
 	return cmds[0], cmds[1], cmds[2]
+}
+
+func getTypePkgName(typ string) string {
+	if strings.Contains(typ, ".") {
+		return strings.Split(typ, ".")[0]
+	}
+	return ""
 }
