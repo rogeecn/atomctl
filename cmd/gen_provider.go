@@ -38,7 +38,7 @@ var scalarTypes = []string{
 // pro represents the routes command
 var genProviderCmd = &cobra.Command{
 	Use:   "provider",
-	Short: "generate auto provider",
+	Short: "generate auto provider, @provider:[except|only] [returnType] [group]",
 	RunE:  genProvider,
 }
 
@@ -192,22 +192,21 @@ func astParseProviders(projectPkg, source string) []Provider {
 		}
 		provider.StructName = declType.Name.Name
 
-		docMark := strings.TrimLeft(decl.Doc.List[len(decl.Doc.List)-1].Text, "/ ")
+		docMark := strings.TrimLeft(decl.Doc.List[len(decl.Doc.List)-1].Text, "/ \t")
 		if !strings.HasPrefix(docMark, "@provider") {
 			continue
 		}
 		mode, returnType, group := parseDoc(docMark)
-		fmt.Println(mode, returnType, group)
 		if group != "" {
 			provider.ProviderGroup = group
 		}
+		fmt.Println(mode, returnType, group, provider.ProviderGroup)
 
 		if returnType == "#" {
 			provider.ReturnType = "*" + provider.StructName
 		} else {
 			provider.ReturnType = returnType
 		}
-
 		onlyMode := mode == "only"
 		exceptMode := mode == "except"
 		log.Printf("[%s] %s => ONLY: %+v, EXCEPT: %+v, Type: %s, Group: %s", source, declType.Name.Name, onlyMode, exceptMode, provider.ReturnType, provider.ProviderGroup)
@@ -350,6 +349,7 @@ func renderFile(filename string, conf []Provider) error {
 func parseDoc(doc string) (string, string, string) {
 	// @provider:[except|only] [returnType] [group]
 	doc = strings.TrimLeft(doc[len("@provider"):], ":")
+	doc = strings.ReplaceAll(doc, "\t", " ")
 	cmds := strings.Split(doc, " ")
 	cmds = lo.Filter(cmds, func(item string, idx int) bool {
 		return strings.TrimSpace(item) != ""
