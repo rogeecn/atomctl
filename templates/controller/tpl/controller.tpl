@@ -13,6 +13,6 @@ func New{{.PascalName}}Controller() *{{.PascalName}}Controller {
 	return &{{.PascalName}}Controller{}
 }
 
-func (c *{{.PascalName}}Controller) GetName(ctx *Ctx) (string, error) {
+func (c *{{.PascalName}}Controller) GetName(ctx *fiber.Ctx) (string, error) {
 	return "{{.PascalName}}",nil
 }

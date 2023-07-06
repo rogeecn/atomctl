@@ -101,7 +101,7 @@ var actionTpl = `
 {{- end }}
 //	@Success		200			{string}	TODO:AddData
 //	@Router			{{ .Route }} [{{ .RouteMethod }}]
-func (c *{{ .Controller }}) {{ .Method }}(ctx *fen.Ctx{{range $index, $param := .Params }}, {{ $param.NameCamel }} {{ $param.Type }}{{ end }}) error {
+func (c *{{ .Controller }}) {{ .Method }}(ctx *fiber.Ctx{{range $index, $param := .Params }}, {{ $param.NameCamel }} {{ $param.Type }}{{ end }}) error {
 	panic("not implemented")
 }
 

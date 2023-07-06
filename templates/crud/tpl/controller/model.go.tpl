@@ -33,8 +33,8 @@ func New{{ .Model.Name }}Controller(
 //	@Param			id	path		int	true	"{{ .Model.Name }}ID"
 //	@Success		200	{object}	dto.{{ .Model.Name }}Item
 //	@Router			/{{ .Model.RouteName }}/{id} [get]
-func (c *{{ .Model.Name }}Controller) Show(ctx *Ctx,{{ range $i, $field := .Model.PathFields }} {{ $field.Name}} {{ $field.Type }}, {{end}} id {{ .Model.IntType }}) (*dto.{{ .Model.Name }}Item, error) {
-	return c.{{ .Model.CamelName }}Svc.GetByID(ctx,{{ range $i, $field := .Model.PathFields }} {{ $field.Name}},{{ end }} id)
+func (c *{{ .Model.Name }}Controller) Show(ctx *fiber.Ctx,{{ range $i, $field := .Model.PathFields }} {{ $field.Name}} {{ $field.Type }}, {{end}} id {{ .Model.IntType }}) (*dto.{{ .Model.Name }}Item, error) {
+	return c.{{ .Model.CamelName }}Svc.GetByID(ctx.Context(),{{ range $i, $field := .Model.PathFields }} {{ $field.Name}},{{ end }} id)
 }
 
 // List list by query filter
@@ -53,7 +53,7 @@ func (c *{{ .Model.Name }}Controller) Show(ctx *Ctx,{{ range $i, $field := .Mode
 //	@Success		200			{object}	common.PageDataResponse
 //	@Router			/{{ .Model.RouteName }} [get]
 func (c *{{ .Model.Name }}Controller) List(
-	ctx *Ctx, 
+	ctx *fiber.Ctx, 
 {{- range $i, $field := .Model.PathFields }} 
 	{{ $field.Name}} {{ $field.Type }}, 
 {{- end}}
@@ -61,7 +61,7 @@ func (c *{{ .Model.Name }}Controller) List(
 	pageFilter *common.PageQueryFilter, 
 	sortFilter *common.SortQueryFilter,
 ) (*common.PageDataResponse, error) {
-	items, total, err := c.{{ .Model.CamelName }}Svc.PageByQueryFilter(ctx, {{ range $i, $field := .Model.PathFields }} {{ $field.Name}},{{ end }}queryFilter, pageFilter, sortFilter)
+	items, total, err := c.{{ .Model.CamelName }}Svc.PageByQueryFilter(ctx.Context(), {{ range $i, $field := .Model.PathFields }} {{ $field.Name}},{{ end }}queryFilter, pageFilter, sortFilter)
 	if err != nil {
 		return nil, err
 	}
@@ -86,8 +86,8 @@ func (c *{{ .Model.Name }}Controller) List(
 //	@Param			body	body		dto.{{ .Model.Name }}Form	true	"{{ .Model.Name }}Form"
 //	@Success		200		{string}	{{ .Model.Name }}ID
 //	@Router			/{{ .Model.RouteName }} [post]
-func (c *{{ .Model.Name }}Controller) Create(ctx *Ctx,{{ range $i, $field := .Model.PathFields }} {{ $field.Name}} {{ $field.Type }}, {{end}} body *dto.{{ .Model.Name }}Form) error {
-	return c.{{ .Model.CamelName }}Svc.Create(ctx, {{ range $i, $field := .Model.PathFields }} {{ $field.Name}},{{ end }}body)
+func (c *{{ .Model.Name }}Controller) Create(ctx *fiber.Ctx,{{ range $i, $field := .Model.PathFields }} {{ $field.Name}} {{ $field.Type }}, {{end}} body *dto.{{ .Model.Name }}Form) error {
+	return c.{{ .Model.CamelName }}Svc.Create(ctx.Context(), {{ range $i, $field := .Model.PathFields }} {{ $field.Name}},{{ end }}body)
 }
 
 // Update update by id
@@ -105,8 +105,8 @@ func (c *{{ .Model.Name }}Controller) Create(ctx *Ctx,{{ range $i, $field := .Mo
 //	@Success		200		{string}	{{ .Model.Name }}ID
 //	@Failure		500		{string}	{{ .Model.Name }}ID
 //	@Router			/{{ .Model.RouteName }}/{id} [put]
-func (c *{{ .Model.Name }}Controller) Update(ctx *Ctx,{{ range $i, $field := .Model.PathFields }} {{ $field.Name}} {{ $field.Type }}, {{end}}id {{ .Model.IntType }}, body *dto.{{ .Model.Name }}Form) error {
-	return c.{{ .Model.CamelName }}Svc.Update(ctx, {{ range $i, $field := .Model.PathFields }} {{ $field.Name}},{{ end }}id, body)
+func (c *{{ .Model.Name }}Controller) Update(ctx *fiber.Ctx,{{ range $i, $field := .Model.PathFields }} {{ $field.Name}} {{ $field.Type }}, {{end}}id {{ .Model.IntType }}, body *dto.{{ .Model.Name }}Form) error {
+	return c.{{ .Model.CamelName }}Svc.Update(ctx.Context(), {{ range $i, $field := .Model.PathFields }} {{ $field.Name}},{{ end }}id, body)
 }
 
 // Delete delete by id
@@ -123,6 +123,6 @@ func (c *{{ .Model.Name }}Controller) Update(ctx *Ctx,{{ range $i, $field := .Mo
 //	@Success		200	{string}	{{ .Model.Name }}ID
 //	@Failure		500	{string}	{{ .Model.Name }}ID
 //	@Router			/{{ .Model.RouteName }}/{id} [delete]
-func (c *{{ .Model.Name }}Controller) Delete(ctx *Ctx,{{ range $i, $field := .Model.PathFields }} {{ $field.Name}} {{ $field.Type }}, {{end}}id {{ .Model.IntType }}) error {
-	return c.{{ .Model.CamelName }}Svc.Delete(ctx,{{ range $i, $field := .Model.PathFields }} {{ $field.Name}},{{ end }} id)
+func (c *{{ .Model.Name }}Controller) Delete(ctx *fiber.Ctx,{{ range $i, $field := .Model.PathFields }} {{ $field.Name}} {{ $field.Type }}, {{end}}id {{ .Model.IntType }}) error {
+	return c.{{ .Model.CamelName }}Svc.Delete(ctx.Context(),{{ range $i, $field := .Model.PathFields }} {{ $field.Name}},{{ end }} id)
 }
