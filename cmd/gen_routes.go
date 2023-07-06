@@ -173,11 +173,11 @@ func genRoutes(cmd *cobra.Command, args []string) error {
 						log.Panic("invalid path param type: ", p.Type)
 					}
 				case PositionQuery:
-					paramString = fmt.Sprintf(`Query(%s, QueryParamError)`, p.Type)
+					paramString = fmt.Sprintf(`Query[%s](QueryParamError)`, p.Type)
 				case PositionBody:
-					paramString = fmt.Sprintf(`Body(%s, BodyParamError)`, p.Type)
+					paramString = fmt.Sprintf(`Body[%s](BodyParamError)`, p.Type)
 				case PositionHeader:
-					paramString = fmt.Sprintf(`Header(%s, HeaderParamError)`, p.Type)
+					paramString = fmt.Sprintf(`Header[%s](HeaderParamError)`, p.Type)
 				}
 
 				paramsStrings = append(paramsStrings, paramString)
@@ -338,10 +338,7 @@ func astParseRoutes(source string) []RoueDefinition {
 			if strings.HasSuffix(typ, string(PositionHeader)) {
 				position = PositionHeader
 			}
-
-			if strings.HasPrefix(typ, "*") {
-				typ = strings.Replace(typ, "*", "&", 1) + "{}"
-			}
+			typ = strings.TrimPrefix(typ, "*")
 
 			for _, name := range param.Names {
 				params = append(params, ParamDefinition{
