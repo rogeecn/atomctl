@@ -98,13 +98,14 @@ func genProvider(cmd *cobra.Command, args []string) error {
 }
 
 type Provider struct {
-	StructName    string
-	ReturnType    string
-	ProviderGroup string
-	InjectParams  map[string]string
-	Imports       []string
-	PkgName       string
-	ProviderFile  string
+	StructName      string
+	ReturnType      string
+	ProviderGroup   string
+	NeedPrepareFunc bool
+	InjectParams    map[string]string
+	Imports         []string
+	PkgName         string
+	ProviderFile    string
 }
 
 func astParseProviders(projectPkg, source string) []Provider {
@@ -215,6 +216,10 @@ func astParseProviders(projectPkg, source string) []Provider {
 			if provider.InjectParams == nil {
 				provider.InjectParams = make(map[string]string)
 				provider.Imports = []string{}
+			}
+
+			if field.Tag != nil {
+				provider.NeedPrepareFunc = true
 			}
 
 			if onlyMode {
@@ -329,9 +334,13 @@ func renderFile(filename string, conf []Provider) error {
 		_, _ = fd.WriteString("\tif err := container.Container.Provide(func(")
 		_, _ = fd.WriteString(strings.Join(params, ", "))
 		_, _ = fd.WriteString(fmt.Sprintf(") (%s, error) {\n", item.ReturnType))
-		_, _ = fd.WriteString(fmt.Sprintf("\t\treturn &%s{\n", item.StructName))
+		_, _ = fd.WriteString(fmt.Sprintf("\t\tobj:= &%s{\n", item.StructName))
 		_, _ = fd.WriteString(strings.Join(structParams, "\n") + "\n")
-		_, _ = fd.WriteString("\t\t}, nil\n")
+		_, _ = fd.WriteString("\t\t}\n")
+		if item.NeedPrepareFunc {
+			_, _ = fd.WriteString("\t\tif err := obj.Prepare(); err != nil {\n\t\t\treturn nil, err\n}\n")
+		}
+		_, _ = fd.WriteString("\t\treturn obj, nil\n")
 		_, _ = fd.WriteString("\t}")
 		if item.ProviderGroup != "" {
 			_, _ = fd.WriteString(fmt.Sprintf(", %s", item.ProviderGroup))
