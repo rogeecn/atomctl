@@ -4,52 +4,52 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
-	"html/template"
 	"os"
 	"os/exec"
 	"strings"
+	"text/template"
 
 	"github.com/pkg/errors"
-	"github.com/rogeecn/atomctl/templates/model"
+	"github.com/rogeecn/atomctl/templates/run_seeder"
 	"github.com/rogeecn/atomctl/utils"
 	"github.com/spf13/cobra"
 )
 
-type ModelGenerator struct {
-	Driver  string
-	AppName string
-}
-
-var modelGenerator = &ModelGenerator{}
-
 func init() {
-	genCmd.AddCommand(genModelCmd)
-	genCrudCmd.Flags().StringVarP(&modelGenerator.Driver, "driver", "D", "postgres", "define driver: postgres/mysql/sqlite")
-	genCrudCmd.Flags().StringVarP(&modelGenerator.AppName, "app", "A", "", "app name")
+	runCmd.AddCommand(runSeederCmd)
+	runSeederCmd.Flags().StringVarP(&seederRunner.Driver, "driver", "D", "postgres", "define driver: postgres/mysql/sqlite")
+	runSeederCmd.Flags().StringVarP(&seederRunner.AppName, "app", "A", "", "app name")
 }
 
-var genModelCmd = &cobra.Command{
-	Use:     "model",
-	Short:   "generate model",
-	Example: "atomctl gen model [--driver postgres]",
+type SeederRunner struct {
+	Pkg     string
+	AppName string
+	Driver  string
+}
+
+var seederRunner = &SeederRunner{}
+
+var runSeederCmd = &cobra.Command{
+	Use:   "seeder",
+	Short: "atomctl run seeder [--driver postgres]",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if !utils.IsFile("go.mod") {
 			return errors.New("run in project root directory")
 		}
 
-		pkg := getPackage()
-		if modelGenerator.AppName == "" {
-			pkgs := strings.Split(pkg, "/")
-			modelGenerator.AppName = pkgs[len(pkgs)-1]
+		seederRunner.Pkg = getPackage()
+		if seederRunner.AppName == "" {
+			pkgs := strings.Split(seederRunner.Pkg, "/")
+			seederRunner.AppName = pkgs[len(pkgs)-1]
 		}
 
-		tpl, err := template.New("model").Parse(model.Templates)
+		tpl, err := template.New("seeder").Parse(run_seeder.Templates)
 		if err != nil {
 			return err
 		}
 
 		var buf bytes.Buffer
-		if err := tpl.Execute(&buf, modelGenerator); err != nil {
+		if err := tpl.Execute(&buf, seederRunner); err != nil {
 			return err
 		}
 
