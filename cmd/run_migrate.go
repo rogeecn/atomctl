@@ -66,7 +66,7 @@ var runMigrateUpCmd = &cobra.Command{
 		}
 
 		file := "database/main.go"
-		// defer os.Remove(file)
+		defer os.Remove(file)
 		if err := os.WriteFile(file, buf.Bytes(), os.ModePerm); err != nil {
 			return err
 		}
@@ -123,7 +123,7 @@ var runMigrateDownCmd = &cobra.Command{
 		}
 
 		file := "database/main.go"
-		// defer os.Remove(file)
+		defer os.Remove(file)
 		if err := os.WriteFile(file, buf.Bytes(), os.ModePerm); err != nil {
 			return err
 		}
