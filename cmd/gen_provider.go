@@ -9,6 +9,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"git-open.qianxin-inc.cn/free/csmp/atomctl/utils"
@@ -330,7 +331,11 @@ func renderFile(filename string, conf []Provider) error {
 		// inject params
 		params := []string{}
 		structParams := []string{}
-		for name, typ := range item.InjectParams {
+
+		keys := lo.Keys(item.InjectParams)
+		sort.Strings(keys)
+		for _, key := range keys {
+			name, typ := key, item.InjectParams[key]
 			params = append(params, fmt.Sprintf("%s %s", name, typ))
 			structParams = append(structParams, fmt.Sprintf("\t\t\t%s: %s,", name, name))
 		}
