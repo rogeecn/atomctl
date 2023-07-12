@@ -213,6 +213,10 @@ func astParseProviders(projectPkg, source string) []Provider {
 		log.Printf("[%s] %s => ONLY: %+v, EXCEPT: %+v, Type: %s, Group: %s", source, declType.Name.Name, onlyMode, exceptMode, provider.ReturnType, provider.ProviderGroup)
 
 		for _, field := range structType.Fields.List {
+			if field.Names == nil {
+				continue
+			}
+
 			if provider.InjectParams == nil {
 				provider.InjectParams = make(map[string]string)
 				provider.Imports = []string{}
