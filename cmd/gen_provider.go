@@ -335,16 +335,16 @@ func renderFile(filename string, conf []Provider) error {
 		sort.Strings(keys)
 		for _, key := range keys {
 			name, typ := key, item.InjectParams[key]
-			params = append(params, fmt.Sprintf("%s %s", name, typ))
 			structParams = append(structParams, fmt.Sprintf("\t\t\t%s: %s,", name, name))
+			params = append(params, fmt.Sprintf("\t\t%s %s,", name, typ))
 		}
 
-		_, _ = fd.WriteString("\tif err := container.Container.Provide(func(")
-		_, _ = fd.WriteString(strings.Join(params, ", \n"))
-		_, _ = fd.WriteString(fmt.Sprintf(") (%s, error) {\n", item.ReturnType))
-		_, _ = fd.WriteString(fmt.Sprintf("\t\tobj:= &%s{\n", item.StructName))
-		_, _ = fd.WriteString(strings.Join(structParams, "\n") + "\n")
-		_, _ = fd.WriteString("\t\t}\n")
+		fd.WriteString("\tif err := container.Container.Provide(func(\n")
+		fd.WriteString(strings.Join(params, "\n"))
+		fd.WriteString(fmt.Sprintf("\n\t) (%s, error) {\n", item.ReturnType))
+		fd.WriteString(fmt.Sprintf("\t\tobj := &%s{\n", item.StructName))
+		fd.WriteString(strings.Join(structParams, "\n") + "\n")
+		fd.WriteString("\t\t}\n")
 		if item.NeedPrepareFunc {
 			_, _ = fd.WriteString("\t\tif err := obj.Prepare(); err != nil {\n\t\t\treturn nil, err\n}\n")
 		}
