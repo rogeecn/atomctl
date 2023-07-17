@@ -340,7 +340,7 @@ func renderFile(filename string, conf []Provider) error {
 		}
 
 		_, _ = fd.WriteString("\tif err := container.Container.Provide(func(")
-		_, _ = fd.WriteString(strings.Join(params, ", "))
+		_, _ = fd.WriteString(strings.Join(params, ", \n"))
 		_, _ = fd.WriteString(fmt.Sprintf(") (%s, error) {\n", item.ReturnType))
 		_, _ = fd.WriteString(fmt.Sprintf("\t\tobj:= &%s{\n", item.StructName))
 		_, _ = fd.WriteString(strings.Join(structParams, "\n") + "\n")
