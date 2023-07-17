@@ -9,6 +9,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strings"
 
@@ -141,20 +142,18 @@ func astParseProviders(projectPkg, source string) []Provider {
 		if name == "_" {
 			paths := strings.Split(strings.Trim(imp.Path.Value, "\""), "/")
 			name = paths[len(paths)-1]
+			pattern := regexp.MustCompile(`%v\d+$`)
+			if pattern.MatchString(name) {
+				name = paths[len(paths)-2]
+			}
 		}
 
 		var pkg string
 		if imp.Name != nil && imp.Name.Name != "_" {
 			pkg = strings.Trim(imp.Path.Value, `"`)
-			if !strings.HasPrefix(pkg, projectPkg) {
-				continue
-			}
 			pkg = fmt.Sprintf("%s %q", name, pkg)
 		} else {
 			pkg = strings.Trim(imp.Path.Value, "\"")
-			if !strings.HasPrefix(pkg, projectPkg) {
-				continue
-			}
 			pkg = fmt.Sprintf("%q", pkg)
 		}
 
