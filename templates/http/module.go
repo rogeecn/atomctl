@@ -14,6 +14,7 @@ var Files = map[string]string{
 	"database/models/model.go.tpl":         "database/models/models.go",
 	"database/query/query.go.tpl":          "database/query/query.go",
 	"database/query/query.gen.go.tpl":      "database/query/query.gen.go",
+	"database/transform":                   "database/.transform",
 	"modules/modules.go.tpl":               "modules/modules.go",
 	"docs/ember.go.tpl":                    "docs/ember.go",
 	"docs/swagger.json.tpl":                "docs/swagger.json",
