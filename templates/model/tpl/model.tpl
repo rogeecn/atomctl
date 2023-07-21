@@ -78,6 +78,18 @@ func main() {
 					FieldWithTypeTag: true,
 					Mode:             gen.WithDefaultQuery | gen.WithQueryInterface,
 				})
+				g.WithOpts(gen.WithMethod(gen.DefaultMethodTableWithNamer))
+				g.WithImportPkgPath(
+					"gorm.io/datatypes",
+					"{{ .PkgName }}/common",
+				)
+
+				transforms := getConvertModelFields()
+				for from, to := range transforms {
+					g.WithOpts(gen.FieldType(from, to))
+					g.WithOpts(gen.FieldGenType(from, "Field"))
+				}
+
 
 				g.UseDB(gq.DB) // reuse your gorm db
 
@@ -101,4 +113,37 @@ func main() {
 	if err := atom.Serve(providers, opts...); err != nil {
 		log.Fatal(err)
 	}
+}
+
+
+
+func getConvertModelFields() map[string]string {
+	convert := make(map[string]string)
+
+	filePath := "database/.transform"
+	if !fs.FileExist(filePath) {
+		return convert
+	}
+
+	b, err := os.ReadFile(filePath)
+	if err != nil {
+		log.Error(err)
+		return convert
+	}
+	lines := strings.Split(string(b), "\n")
+
+	for _, line := range lines {
+		if strings.TrimSpace(line) == "" {
+			continue
+		}
+
+		items := strings.Split(line, "=>")
+		if len(items) != 2 {
+			log.Println("invalid line: ", line)
+			continue
+		}
+		toStruct := strings.TrimSpace(items[1])
+		convert[strings.TrimSpace(items[0])] = toStruct
+	}
+	return convert
 }

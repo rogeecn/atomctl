@@ -5,7 +5,7 @@ import (
 	"{{ .PkgName }}/{{ .Module }}/dto"
 	"{{ .PkgName }}/{{ .Module }}/service"
 
-	. "github.com/rogeecn/fen"
+	"github.com/gofiber/fiber/v2"
 )
 
 type {{ .Model.Name }}Controller struct {

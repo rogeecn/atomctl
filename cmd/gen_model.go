@@ -16,6 +16,7 @@ import (
 )
 
 type ModelGenerator struct {
+	PkgName string
 	Driver  string
 	AppName string
 }
@@ -42,6 +43,7 @@ var genModelCmd = &cobra.Command{
 			pkgs := strings.Split(pkg, "/")
 			modelGenerator.AppName = pkgs[len(pkgs)-1]
 		}
+		modelGenerator.PkgName = pkg
 
 		tpl, err := template.New("model").Parse(model.Templates)
 		if err != nil {
