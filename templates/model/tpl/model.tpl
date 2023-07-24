@@ -84,6 +84,7 @@ func main() {
 				g.WithOpts(gen.WithMethod(gen.DefaultMethodTableWithNamer))
 				g.WithImportPkgPath(
 					"gorm.io/datatypes",
+					"github.com/lib/pq",
 					"{{ .PkgName }}/common",
 				)
 
