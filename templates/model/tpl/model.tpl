@@ -137,6 +137,12 @@ func getConvertModelFields() map[string]map[string]string {
 
 	for _, line := range lines {
 		line = strings.TrimSpace(line)
+		if strings.HasPrefix(line, "//") {
+			continue
+		}
+		if strings.HasPrefix(line, "--") {
+			continue
+		}
 		if line == "" {
 			continue
 		}
