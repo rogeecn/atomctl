@@ -45,7 +45,7 @@ func main() {
 	}
 
 	opts := []atom.Option{
-		atom.Name("rimeapp"),
+		atom.Name("{{.AppName}}"),
 		atom.RunE(func(cmd *cobra.Command, args []string) error {
 			return container.Container.Invoke(func(c SeedersContainer) error {
 				if len(c.Seeders) == 0 {

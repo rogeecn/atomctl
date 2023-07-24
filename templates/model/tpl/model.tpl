@@ -2,6 +2,8 @@ package main
 
 import (
 	"errors"
+	"os"
+	"strings"
 
 	{{- if eq .Driver "mysql" }}
 	mysqlProvider "github.com/rogeecn/atom-addons/providers/database/mysql"
@@ -14,6 +16,7 @@ import (
 
 	"github.com/rogeecn/atom"
 	"github.com/rogeecn/atom/container"
+	"github.com/rogeecn/atom/utils/fs"
 	"github.com/spf13/cobra"
 	"go.uber.org/dig"
 	"gorm.io/gen"
@@ -84,18 +87,20 @@ func main() {
 					"{{ .PkgName }}/common",
 				)
 
-				transforms := getConvertModelFields()
-				for from, to := range transforms {
-					g.WithOpts(gen.FieldType(from, to))
-					g.WithOpts(gen.FieldGenType(from, "Field"))
-				}
-
-
 				g.UseDB(gq.DB) // reuse your gorm db
+
+				transforms := getConvertModelFields()
+				log.Infof("Transforms: %+v", transforms)
 
 				models := []interface{}{}
 				for _, table := range tables {
-					models = append(models, g.GenerateModel(table))
+					opts := []gen.ModelOpt{}
+					if transform, ok := transforms[table]; ok {
+						for from, to := range transform {
+							opts = append(opts, gen.FieldType(from, to))
+						}
+					}
+					models = append(models, g.GenerateModel(table, opts...))
 				}
 
 				// Generate basic type-safe DAO API for struct `model.User` following conventions
@@ -115,10 +120,8 @@ func main() {
 	}
 }
 
-
-
-func getConvertModelFields() map[string]string {
-	convert := make(map[string]string)
+func getConvertModelFields() map[string]map[string]string {
+	convert := make(map[string]map[string]string)
 
 	filePath := "database/.transform"
 	if !fs.FileExist(filePath) {
@@ -133,17 +136,27 @@ func getConvertModelFields() map[string]string {
 	lines := strings.Split(string(b), "\n")
 
 	for _, line := range lines {
-		if strings.TrimSpace(line) == "" {
+		line = strings.TrimSpace(line)
+		if line == "" {
 			continue
 		}
 
 		items := strings.Split(line, "=>")
 		if len(items) != 2 {
-			log.Println("invalid line: ", line)
+			log.Warn("invalid line: ", line)
 			continue
 		}
+		tableMark := strings.Split(strings.TrimSpace(items[0]), ".")
+		if len(tableMark) != 2 {
+			log.Warn("invalid line: ", line)
+			continue
+		}
+
 		toStruct := strings.TrimSpace(items[1])
-		convert[strings.TrimSpace(items[0])] = toStruct
+		if _, ok := convert[tableMark[0]]; !ok {
+			convert[tableMark[0]] = make(map[string]string)
+		}
+		convert[tableMark[0]][tableMark[1]] = toStruct
 	}
 	return convert
 }
