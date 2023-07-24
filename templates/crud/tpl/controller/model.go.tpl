@@ -6,6 +6,7 @@ import (
 	"{{ .PkgName }}/{{ .Module }}/service"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/samber/lo"
 )
 
 type {{ .Model.Name }}Controller struct {
@@ -34,7 +35,12 @@ func New{{ .Model.Name }}Controller(
 //	@Success		200	{object}	dto.{{ .Model.Name }}Item
 //	@Router			/{{ .Model.RouteName }}/{id} [get]
 func (c *{{ .Model.Name }}Controller) Show(ctx *fiber.Ctx,{{ range $i, $field := .Model.PathFields }} {{ $field.Name}} {{ $field.Type }}, {{end}} id {{ .Model.IntType }}) (*dto.{{ .Model.Name }}Item, error) {
-	return c.{{ .Model.CamelName }}Svc.GetByID(ctx.Context(),{{ range $i, $field := .Model.PathFields }} {{ $field.Name}},{{ end }} id)
+	item, err := c.{{ .Model.CamelName }}Svc.GetByID(ctx.Context(), id)
+	if err != nil{
+		return nil, err
+	}
+
+	return c.{{ .Model.CamelName }}Svc.DecorateItem(item, 0), nil
 }
 
 // List list by query filter
@@ -50,7 +56,7 @@ func (c *{{ .Model.Name }}Controller) Show(ctx *fiber.Ctx,{{ range $i, $field :=
 //	@Param			queryFilter	query		dto.{{ .Model.Name }}ListQueryFilter	true	"{{ .Model.Name }}ListQueryFilter"
 //	@Param			pageFilter	query		common.PageQueryFilter	true	"PageQueryFilter"
 //	@Param			sortFilter	query		common.SortQueryFilter	true	"SortQueryFilter"
-//	@Success		200			{object}	common.PageDataResponse
+//	@Success		200			{object}	common.PageDataResponse{list=dto.{{ .Model.Name }}Item}
 //	@Router			/{{ .Model.RouteName }} [get]
 func (c *{{ .Model.Name }}Controller) List(
 	ctx *fiber.Ctx, 
@@ -69,7 +75,7 @@ func (c *{{ .Model.Name }}Controller) List(
 	return &common.PageDataResponse{
 		PageQueryFilter: *pageFilter,
 		Total:           total,
-		Items:           items,
+		Items:           lo.Map(items, c.{{ .Model.CamelName }}Svc.DecorateItem),
 	}, nil
 }
 

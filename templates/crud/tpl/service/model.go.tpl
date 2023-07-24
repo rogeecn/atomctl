@@ -9,7 +9,6 @@ import (
 	"{{ .PkgName }}/{{ .Module }}/dto"
 
 	"github.com/jinzhu/copier"
-	"github.com/pkg/errors"
 )
 
 type {{ .Model.Name }}Service struct {
@@ -24,7 +23,14 @@ func New{{ .Model.Name }}Service(
 	}
 }
 
-func (svc *{{ .Model.Name }}Service) GetByID(ctx context.Context,{{ range $i, $field := .Model.PathFields }} {{ $field.Name}} {{ $field.Type }}, {{end}} id {{ .Model.IntType }}) (*dto.{{ .Model.Name }}Item, error) {
+func (svc *{{ .Model.Name }}Service) DecorateItem(model *models.{{ .Model.Name }}, id int) *dto.{{ .Model.Name }}Item {
+	var dtoItem *dto.{{ .Model.Name }}Item
+	_ = copier.Copy(dtoItem, model)
+
+	return dtoItem
+}
+
+func (svc *{{ .Model.Name }}Service) GetByID(ctx context.Context, id {{ .Model.IntType }}) (*dto.{{ .Model.Name }}Item, error) {
 	model, err := svc.{{ .Model.CamelName }}Dao.GetByID(ctx, id)
 	if err != nil {
 		return nil, errors.Wrap(err, "get by id failed")
