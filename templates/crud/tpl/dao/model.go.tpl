@@ -3,7 +3,7 @@ package dao
 import (
 	"context"
 
-	"{{ .PkgName }}/pkg/common"
+	"{{ .PkgName }}/common"
 	"{{ .PkgName }}/database/models"
 	"{{ .PkgName }}/database/query"
 	"{{ .PkgName }}/{{ .Module }}/dto"

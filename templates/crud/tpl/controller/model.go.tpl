@@ -1,7 +1,7 @@
 package controller
 
 import (
-	"{{ .PkgName }}/pkg/common"
+	"{{ .PkgName }}/common"
 	"{{ .PkgName }}/{{ .Module }}/dto"
 	"{{ .PkgName }}/{{ .Module }}/service"
 

@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 
-	"{{ .PkgName }}/pkg/common"
+	"{{ .PkgName }}/common"
 	"{{ .PkgName }}/database/models"
 	"{{ .PkgName }}/{{ .Module }}/dao"
 	"{{ .PkgName }}/{{ .Module }}/dto"
