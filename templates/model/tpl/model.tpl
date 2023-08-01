@@ -78,7 +78,7 @@ func main() {
 				g.WithImportPkgPath(
 					"gorm.io/datatypes",
 					"github.com/lib/pq",
-					"{{ .PkgName }}/common",
+					"{{ .PkgName }}/common/consts",
 				)
 
 				g.UseDB(gq.DB) // reuse your gorm db

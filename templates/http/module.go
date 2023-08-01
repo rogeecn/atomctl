@@ -8,6 +8,7 @@ import (
 var Templates embed.FS
 
 var Files = map[string]string{
+	"common/consts/consts.go.tpl":          "common/consts/consts.go",
 	"common/data_structures.go.tpl":        "common/data_structures.go",
 	"database/migrations/migration.go.tpl": "database/migrations/migrations.go",
 	"database/seeders/seeder.go.tpl":       "database/seeders/seeders.go",
