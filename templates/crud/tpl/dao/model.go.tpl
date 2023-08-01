@@ -11,12 +11,9 @@ import (
 	"gorm.io/gen/field"
 )
 
+// @provider
 type {{ .Model.Name }}Dao struct {
 	query *query.Query
-}
-
-func New{{ .Model.Name }}Dao(query *query.Query) *{{ .Model.Name }}Dao {
-	return &{{ .Model.Name }}Dao{query: query}
 }
 
 func (dao *{{ .Model.Name }}Dao) Transaction(f func() error) error {

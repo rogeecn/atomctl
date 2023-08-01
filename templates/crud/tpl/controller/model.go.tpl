@@ -9,16 +9,9 @@ import (
 	"github.com/samber/lo"
 )
 
+// @provider
 type {{ .Model.Name }}Controller struct {
 	{{ .Model.CamelName }}Svc *service.{{ .Model.Name }}Service
-}
-
-func New{{ .Model.Name }}Controller(
-	{{ .Model.CamelName }}Svc *service.{{ .Model.Name }}Service,
-) *{{ .Model.Name }}Controller {
-	return &{{ .Model.Name }}Controller{
-		{{ .Model.CamelName }}Svc: {{ .Model.CamelName }}Svc,
-	}
 }
 
 // Show get single item info

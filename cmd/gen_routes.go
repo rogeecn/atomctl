@@ -109,7 +109,7 @@ func genRoutes(cmd *cobra.Command, args []string) error {
 		}
 		// 注入参数
 		if !strings.Contains(content, controllerParam) {
-			content = strings.Replace(content, "(svc http.Service", fmt.Sprintf("(svc http.Service,      %s", controllerParam), 1)
+			content = strings.Replace(content, "(svc contracts.HttpService", fmt.Sprintf("(svc contracts.HttpService, %s", controllerParam), 1)
 		}
 		// 注入包
 		if !strings.Contains(content, controllerPkg) {

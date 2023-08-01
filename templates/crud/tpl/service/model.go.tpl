@@ -11,16 +11,9 @@ import (
 	"github.com/jinzhu/copier"
 )
 
+// @provider
 type {{ .Model.Name }}Service struct {
 	{{ .Model.CamelName }}Dao *dao.{{ .Model.Name }}Dao
-}
-
-func New{{ .Model.Name }}Service(
-	{{ .Model.CamelName }}Dao *dao.{{ .Model.Name }}Dao,
-) *{{ .Model.Name }}Service {
-	return &{{ .Model.Name }}Service{
-		{{ .Model.CamelName }}Dao: {{ .Model.CamelName }}Dao,
-	}
 }
 
 func (svc *{{ .Model.Name }}Service) DecorateItem(model *models.{{ .Model.Name }}, id int) *dto.{{ .Model.Name }}Item {
