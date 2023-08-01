@@ -66,7 +66,7 @@ func (dao *{{ .Model.Name }}Dao) decorateQueryFilter(query query.I{{ .Model.Name
 	return query
 }
 
-func (dao *{{ .Model.Name }}Dao) UpdateColumn(ctx context.Context, id int32, field field.Expr, value interface{}) error {
+func (dao *{{ .Model.Name }}Dao) UpdateColumn(ctx context.Context, id {{ .Model.IntType }}, field field.Expr, value interface{}) error {
 	_, err := dao.Context(ctx).Where(dao.query.{{ .Model.Name }}.ID.Eq(id)).Update(field, value)
 	return err
 }
@@ -133,7 +133,7 @@ func (dao *{{ .Model.Name }}Dao) FirstByQueryFilter(
 	ctx context.Context, 
 	queryFilter *dto.{{ .Model.Name }}ListQueryFilter,
 	sortFilter *common.SortQueryFilter,
-) ([]*models.{{ .Model.Name }}, error) {
+) (*models.{{ .Model.Name }}, error) {
 	query := dao.query.{{ .Model.Name }}
 	{{ .Model.CamelName }}Query := query.WithContext(ctx)
 	{{ .Model.CamelName }}Query = dao.decorateQueryFilter({{ .Model.CamelName }}Query, queryFilter)

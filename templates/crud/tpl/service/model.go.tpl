@@ -82,7 +82,7 @@ func (svc *{{ .Model.Name }}Service) Update(ctx context.Context,{{ range $i, $fi
 }
 
 // UpdateFromModel
-func (svc *{{ .Model.Name }}Service) Update(ctx context.Context, model *models.{{ .Model.Name }}) error {
+func (svc *{{ .Model.Name }}Service) UpdateFromModel(ctx context.Context, model *models.{{ .Model.Name }}) error {
 	return svc.{{ .Model.CamelName }}Dao.Update(ctx, model)
 }
 
