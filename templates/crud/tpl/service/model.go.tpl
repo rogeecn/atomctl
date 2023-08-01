@@ -30,16 +30,8 @@ func (svc *{{ .Model.Name }}Service) DecorateItem(model *models.{{ .Model.Name }
 	return dtoItem
 }
 
-func (svc *{{ .Model.Name }}Service) GetByID(ctx context.Context, id {{ .Model.IntType }}) (*dto.{{ .Model.Name }}Item, error) {
-	model, err := svc.{{ .Model.CamelName }}Dao.GetByID(ctx, id)
-	if err != nil {
-		return nil, errors.Wrap(err, "get by id failed")
-	}
-
-	resp := &dto.{{ .Model.Name }}Item{}
-	_ = copier.Copy(resp, model)
-
-	return resp, nil
+func (svc *{{ .Model.Name }}Service) GetByID(ctx context.Context, id {{ .Model.IntType }}) (*models.{{ .Model.Name }}, error) {
+	return svc.{{ .Model.CamelName }}Dao.GetByID(ctx, id)
 }
 
 func (svc *{{ .Model.Name }}Service) FindByQueryFilter(
@@ -49,20 +41,8 @@ func (svc *{{ .Model.Name }}Service) FindByQueryFilter(
 {{- end}}
 	queryFilter *dto.{{ .Model.Name }}ListQueryFilter,
 	sortFilter *common.SortQueryFilter,
-) ([]*dto.{{ .Model.Name }}Item, error) {
-	models, err := svc.{{ .Model.CamelName }}Dao.FindByQueryFilter(ctx, queryFilter, sortFilter)
-	if err != nil {
-		return nil, err
-	}
-
-	resp := []*dto.{{ .Model.Name }}Item{}
-	for _, u := range models {
-		item := &dto.{{ .Model.Name }}Item{}
-		_ = copier.Copy(item, u)
-		resp = append(resp, item)
-	}
-
-	return resp, nil
+) ([]*models.{{ .Model.Name }}, error) {
+	return svc.{{ .Model.CamelName }}Dao.FindByQueryFilter(ctx, queryFilter, sortFilter)
 }
 
 func (svc *{{ .Model.Name }}Service) PageByQueryFilter(
@@ -73,20 +53,8 @@ func (svc *{{ .Model.Name }}Service) PageByQueryFilter(
 	queryFilter *dto.{{ .Model.Name }}ListQueryFilter,
 	pageFilter *common.PageQueryFilter, 
 	sortFilter *common.SortQueryFilter,
-) ([]*dto.{{ .Model.Name }}Item, int64, error) {
-	models, total, err := svc.{{ .Model.CamelName }}Dao.PageByQueryFilter(ctx, queryFilter, pageFilter.Format(), sortFilter)
-	if err != nil {
-		return nil, 0, err
-	}
-
-	resp := []*dto.{{ .Model.Name }}Item{}
-	for _, u := range models {
-		item := &dto.{{ .Model.Name }}Item{}
-		_ = copier.Copy(item, u)
-		resp = append(resp, item)
-	}
-
-	return resp, total, nil
+) ([]*models.{{ .Model.Name }}, int64, error) {
+	return svc.{{ .Model.CamelName }}Dao.PageByQueryFilter(ctx, queryFilter, pageFilter.Format(), sortFilter)
 }
 
 // CreateFromModel
