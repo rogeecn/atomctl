@@ -7,14 +7,14 @@ import (
 
 	"github.com/go-gormigrate/gormigrate/v2"
 	{{- if eq .Driver "mysql" }}
-	dbProvider "github.com/rogeecn/atom-addons/providers/database/mysql"
+	dbProvider "github.com/atom-providers/database-mysql"
 	{{- else if eq .Driver "postgres" }}
-	dbProvider "github.com/rogeecn/atom-addons/providers/database/postgres"
+	dbProvider "github.com/atom-providers/database-postgres"
 	{{- else if eq .Driver "sqlite" }}
-	dbProvider "github.com/rogeecn/atom-addons/providers/database/sqlite"
+	dbProvider "github.com/atom-providers/database-sqlite"
 	{{- end }}
 	"github.com/rogeecn/atom"
-	"github.com/rogeecn/atom-addons/providers/log"
+	"github.com/atom-providers/log"
 	"github.com/spf13/cobra"
 	"go.uber.org/dig"
 	"gorm.io/gorm"

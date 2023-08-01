@@ -6,13 +6,13 @@ import (
 	"strings"
 
 	{{- if eq .Driver "mysql" }}
-	mysqlProvider "github.com/rogeecn/atom-addons/providers/database/mysql"
+	dbProvider "github.com/atom-providers/database-mysql"
 	{{- else if eq .Driver "postgres" }}
-	postgresProvider "github.com/rogeecn/atom-addons/providers/database/postgres"
+	dbProvider "github.com/atom-providers/database-postgres"
 	{{- else if eq .Driver "sqlite" }}
-	sqliteProvider "github.com/rogeecn/atom-addons/providers/database/sqlite"
+	dbProvider "github.com/atom-providers/database-sqlite"
 	{{- end }}
-	"github.com/rogeecn/atom-addons/providers/log"
+	"github.com/atom-providers/log"
 
 	"github.com/rogeecn/atom"
 	"github.com/rogeecn/atom/container"
@@ -36,15 +36,8 @@ type GenQueryGenerator struct {
 func main() {
 	providers := container.Providers{
 		log.DefaultProvider(),
+		dbProvider.DefaultProvider(),
 	}
-
-	{{- if eq .Driver "mysql" }}
-	providers = append(providers, mysqlProvider.DefaultProvider())
-	{{- else if eq .Driver "postgres" }}
-	providers = append(providers, postgresProvider.DefaultProvider())
-	{{- else if eq .Driver "sqlite" }}
-	providers = append(providers, sqliteProvider.DefaultProvider())
-	{{- end }}
 
 	opts := []atom.Option{
 		atom.Name("{{ .AppName }}"),

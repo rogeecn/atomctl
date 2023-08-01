@@ -6,22 +6,21 @@ package main
 import (
 	"log"
 
-	"{{.Package}}/database/migrations"
-
 	"github.com/rogeecn/atom"
-	"github.com/rogeecn/atom-addons/services/http"
+	serviceHttp "github.com/atom-providers/service-http"
+	// serviceGrpc "github.com/atom-providers/service-grpc"
 	"github.com/spf13/cobra"
 )
 
 func main() {
-	providers := http.Default()
-	// providers := atom.DefaultGRPC()
+	providers := serviceHttp.Default()
+	// providers := serviceGrpc.Default()
 
 	opts := []atom.Option{
-		atom.Name("http"),
+		atom.Name("{{ .Name }}"),
 		atom.RunE(func(cmd *cobra.Command, args []string) error {
-			return http.Serve()
-			// return services.ServeGrpc()
+			return serviceHttp.Serve()
+			// return serviceGrpc.Serve()
 		}),
 	}
 
