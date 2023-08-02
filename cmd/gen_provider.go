@@ -227,13 +227,13 @@ func astParseProviders(projectPkg, source string) []Provider {
 			}
 
 			if onlyMode {
-				if field.Tag == nil || !strings.Contains(field.Tag.Value, `inject:true`) {
+				if field.Tag == nil || !strings.Contains(field.Tag.Value, `inject:"true"`) {
 					continue
 				}
 			}
 
 			if exceptMode {
-				if field.Tag != nil && strings.Contains(field.Tag.Value, `inject:false`) {
+				if field.Tag != nil && strings.Contains(field.Tag.Value, `inject:"false"`) {
 					continue
 				}
 			}
