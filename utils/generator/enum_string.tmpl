@@ -106,8 +106,8 @@ var err{{.enum.Name}}NilPtr = errors.New("value pointer is nil") // one per type
 {{ end }}
 
 {{/* SQL stored as a string value */}}
-{{ if or .sql .sqlnullstr }}
-
+{{ if .sql }}
+{{ if eq .enum.Type "string" }}
 // Scan implements the Scanner interface.
 func (x *{{.enum.Name}}) Scan(value interface{}) (err error) {
 	if value == nil {
@@ -145,10 +145,9 @@ func (x *{{.enum.Name}}) Scan(value interface{}) (err error) {
 func (x {{.enum.Name}}) Value() (driver.Value, error) {
 	return x.String(), nil
 }
-{{end}}
 
+{{ else if or .sqlint .sqlnullint }}
 {{/* SQL stored as an integer value */}}
-{{ if or .sqlint .sqlnullint }}
 var sqlInt{{.enum.Name}}Map = map[int64]{{.enum.Name}}{ {{ range $rIndex, $value := .enum.Values }}{{ if ne $value.Name "_"}}
 {{ $value.ValueInt }}: {{ $value.PrefixedName }},{{end}}
 {{- end}}
@@ -249,6 +248,7 @@ func (x {{.enum.Name}}) Value() (driver.Value, error) {
 	return int64(val), nil
 }
 
+{{end}}
 {{end}}
 
 

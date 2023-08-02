@@ -13,7 +13,7 @@ import (
 	"sort"
 	"strings"
 
-	"git-open.qianxin-inc.cn/free/csmp/atomctl/utils"
+	"github.com/rogeecn/atomctl/utils"
 	"github.com/samber/lo"
 	"github.com/spf13/cobra"
 )

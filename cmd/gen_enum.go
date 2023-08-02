@@ -11,8 +11,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"git-open.qianxin-inc.cn/free/csmp/atomctl/utils"
-	"git-open.qianxin-inc.cn/free/csmp/atomctl/utils/generator"
+	"github.com/rogeecn/atomctl/utils"
+	"github.com/rogeecn/atomctl/utils/generator"
 	"github.com/spf13/cobra"
 )
 
@@ -27,6 +27,7 @@ var genEnumCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
+		pwd = "/Users/rogee/tmp/tt"
 
 		err = filepath.Walk(pwd, func(path string, info fs.FileInfo, err error) error {
 			if utils.IsDir(path) {
@@ -58,11 +59,12 @@ var genEnumCmd = &cobra.Command{
 
 		g := generator.NewGenerator()
 
-		g.WithMarshal()
+		// g.WithMarshal()
+		g.WithFlag()
 		g.WithSQLDriver()
-		// g.WithSQLInt()
-		// g.WithSQLNullInt()
-		// g.WithSQLNullStr()
+		g.WithSQLInt()
+		g.WithSQLNullInt()
+		g.WithSQLNullStr()
 		g.WithNames()
 		g.WithValues()
 

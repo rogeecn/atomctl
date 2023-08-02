@@ -10,7 +10,7 @@
             "request": "launch",
             "mode": "auto",
             "program": "${workspaceFolder}",
-            "args": ["gen","crud","tests/crud.go"]
+            "args": ["gen","enum"]
         }
     ]
 }

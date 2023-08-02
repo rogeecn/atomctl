@@ -196,7 +196,7 @@ func (x *{{.enum.Name}}) Scan(value interface{}) (err error) {
 {{ if or .sql .sqlnullstr }}
 // Value implements the driver Valuer interface.
 func (x {{.enum.Name}}) Value() (driver.Value, error) {
-	return x.String(), nil
+	return {{.enum.Type }}(x), nil
 }
 {{ else }}
 // Value implements the driver Valuer interface.

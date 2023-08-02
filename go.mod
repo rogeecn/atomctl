@@ -3,7 +3,6 @@ module github.com/rogeecn/atomctl
 go 1.19
 
 require (
-	git-open.qianxin-inc.cn/free/csmp/atomctl v0.0.0-20230620111318-414a70688fd6
 	github.com/Masterminds/sprig/v3 v3.2.3
 	github.com/bradleyjkemp/cupaloy/v2 v2.8.0
 	github.com/gertd/go-pluralize v0.2.1
