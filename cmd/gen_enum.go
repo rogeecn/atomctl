@@ -61,8 +61,8 @@ var genEnumCmd = &cobra.Command{
 		g.WithMarshal()
 		g.WithSQLDriver()
 		// g.WithSQLInt()
-		g.WithSQLNullInt()
-		g.WithSQLNullStr()
+		// g.WithSQLNullInt()
+		// g.WithSQLNullStr()
 		g.WithNames()
 		g.WithValues()
 
