@@ -7,6 +7,7 @@ import (
 	"go/token"
 	"io/fs"
 	"log"
+	"math/rand"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -99,13 +100,19 @@ func genProvider(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
+type InjectParam struct {
+	Star         string
+	Type         string
+	Package      string
+	PackageAlias string
+}
 type Provider struct {
 	StructName      string
 	ReturnType      string
 	ProviderGroup   string
 	NeedPrepareFunc bool
-	InjectParams    map[string]string
-	Imports         []string
+	InjectParams    map[string]InjectParam
+	Imports         map[string]string
 	PkgName         string
 	ProviderFile    string
 }
@@ -127,7 +134,7 @@ func astParseProviders(projectPkg, source string) []Provider {
 		log.Println("ERR: ", err)
 		return nil
 	}
-
+	vPattern := regexp.MustCompile(`^v\d+$`)
 	imports := make(map[string]string)
 	for _, imp := range node.Imports {
 
@@ -135,6 +142,9 @@ func astParseProviders(projectPkg, source string) []Provider {
 		if imp.Name == nil {
 			paths := strings.Split(strings.Trim(imp.Path.Value, "\""), "/")
 			name = paths[len(paths)-1]
+			if vPattern.MatchString(name) {
+				name = paths[len(paths)-2]
+			}
 		} else {
 			name = imp.Name.Name
 		}
@@ -142,27 +152,23 @@ func astParseProviders(projectPkg, source string) []Provider {
 		if name == "_" {
 			paths := strings.Split(strings.Trim(imp.Path.Value, "\""), "/")
 			name = paths[len(paths)-1]
-			pattern := regexp.MustCompile(`%v\d+$`)
-			if pattern.MatchString(name) {
+			if vPattern.MatchString(name) {
 				name = paths[len(paths)-2]
 			}
+			if _, ok := imports[name]; ok {
+				name = fmt.Sprintf("%s%d", name, rand.Intn(100))
+			}
 		}
-
-		var pkg string
-		if imp.Name != nil && imp.Name.Name != "_" {
-			pkg = strings.Trim(imp.Path.Value, `"`)
-			pkg = fmt.Sprintf("%s %q", name, pkg)
-		} else {
-			pkg = strings.Trim(imp.Path.Value, "\"")
-			pkg = fmt.Sprintf("%q", pkg)
-		}
-
+		pkg := strings.Trim(imp.Path.Value, `"`)
 		imports[name] = pkg
 	}
 
 	// 再去遍历 struct 的方法去
 	for _, decl := range node.Decls {
-		provider := Provider{}
+		provider := Provider{
+			InjectParams: make(map[string]InjectParam),
+			Imports:      make(map[string]string),
+		}
 
 		decl, ok := decl.(*ast.GenDecl)
 		if !ok {
@@ -201,7 +207,7 @@ func astParseProviders(projectPkg, source string) []Provider {
 		if group != "" {
 			provider.ProviderGroup = group
 		}
-		fmt.Println(mode, returnType, group, provider.ProviderGroup)
+		// fmt.Println(mode, returnType, group, provider.ProviderGroup)
 
 		if returnType == "#" {
 			provider.ReturnType = "*" + provider.StructName
@@ -215,11 +221,6 @@ func astParseProviders(projectPkg, source string) []Provider {
 		for _, field := range structType.Fields.List {
 			if field.Names == nil {
 				continue
-			}
-
-			if provider.InjectParams == nil {
-				provider.InjectParams = make(map[string]string)
-				provider.Imports = []string{}
 			}
 
 			if field.Tag != nil {
@@ -238,56 +239,68 @@ func astParseProviders(projectPkg, source string) []Provider {
 				}
 			}
 
+			var star string
 			var pkg string
+			var pkgAlias string
 			var typ string
 			switch field.Type.(type) {
 			case *ast.Ident:
 				typ = field.Type.(*ast.Ident).Name
 			case *ast.StarExpr:
+				star = "*"
 				paramsType := field.Type.(*ast.StarExpr)
 				switch paramsType.X.(type) {
 				case *ast.SelectorExpr:
 					X := paramsType.X.(*ast.SelectorExpr)
 
-					pkg = X.X.(*ast.Ident).Name
-					if _, ok := imports[pkg]; !ok {
+					pkgAlias = X.X.(*ast.Ident).Name
+					p, ok := imports[pkgAlias]
+					if !ok {
 						continue
 					}
+					pkg = p
 
-					typ = fmt.Sprintf("*%s.%s", X.X.(*ast.Ident).Name, X.Sel.Name)
+					typ = X.Sel.Name
 				default:
-					typ = fmt.Sprintf("*%s", paramsType.X.(*ast.Ident).Name)
+					typ = paramsType.X.(*ast.Ident).Name
 				}
 			case *ast.SelectorExpr:
-				pkg = field.Type.(*ast.SelectorExpr).X.(*ast.Ident).Name
-				if _, ok := imports[pkg]; !ok {
+				pkgAlias = field.Type.(*ast.SelectorExpr).X.(*ast.Ident).Name
+				p, ok := imports[pkgAlias]
+				if !ok {
 					continue
 				}
-				typ = fmt.Sprintf("%s.%s", field.Type.(*ast.SelectorExpr).X.(*ast.Ident).Name, field.Type.(*ast.SelectorExpr).Sel.Name)
+				pkg = p
+				typ = field.Type.(*ast.SelectorExpr).Sel.Name
 			}
 
-			if lo.Contains(scalarTypes, strings.TrimLeft(typ, "*")) {
+			if lo.Contains(scalarTypes, typ) {
 				continue
 			}
 
 			for _, name := range field.Names {
-				provider.InjectParams[name.Name] = typ
+				provider.InjectParams[name.Name] = InjectParam{
+					Star:         star,
+					Type:         typ,
+					Package:      pkg,
+					PackageAlias: pkgAlias,
+				}
 			}
 
-			if importPkg, ok := imports[pkg]; ok {
-				provider.Imports = append(provider.Imports, importPkg)
+			if importPkg, ok := imports[pkgAlias]; ok {
+				provider.Imports[importPkg] = pkgAlias
 			}
 		}
 
-		if pkg := getTypePkgName(provider.ReturnType); pkg != "" {
-			if importPkg, ok := imports[pkg]; ok {
-				provider.Imports = append(provider.Imports, importPkg)
+		if pkgAlias := getTypePkgName(provider.ReturnType); pkgAlias != "" {
+			if importPkg, ok := imports[pkgAlias]; ok {
+				provider.Imports[importPkg] = pkgAlias
 			}
 		}
 
-		if pkg := getTypePkgName(provider.ProviderGroup); pkg != "" {
-			if importPkg, ok := imports[pkg]; ok {
-				provider.Imports = append(provider.Imports, importPkg)
+		if pkgAlias := getTypePkgName(provider.ProviderGroup); pkgAlias != "" {
+			if importPkg, ok := imports[pkgAlias]; ok {
+				provider.Imports[importPkg] = pkgAlias
 			}
 		}
 
@@ -302,12 +315,14 @@ func astParseProviders(projectPkg, source string) []Provider {
 }
 
 func renderFile(filename string, conf []Provider) error {
-	imports := []string{
-		`"github.com/rogeecn/atom/utils/opt"`,
-		`"github.com/rogeecn/atom/container"`,
+	imports := map[string]string{
+		"seccloud/cspm/pkg/container": "",
+		"seccloud/cspm/pkg/utils/opt": "",
 	}
 	lo.ForEach(conf, func(item Provider, _ int) {
-		imports = lo.Union(imports, item.Imports)
+		for k, v := range item.Imports {
+			imports[k] = v
+		}
 	})
 
 	// render file
@@ -319,38 +334,48 @@ func renderFile(filename string, conf []Provider) error {
 
 	_, _ = fd.WriteString(fmt.Sprintf("package %s\n\n", conf[0].PkgName))
 	_, _ = fd.WriteString("import (\n")
-	for _, imp := range imports {
-		_, _ = fd.WriteString(fmt.Sprintf("\t%s\n", imp))
+	for pkg, alias := range imports {
+		if strings.HasSuffix(pkg, "/"+alias) || pkg == alias {
+			fd.WriteString(fmt.Sprintf("\t%q\n", pkg))
+			continue
+		}
+		fd.WriteString(fmt.Sprintf("\t%s %q\n", alias, pkg))
 	}
 	_, _ = fd.WriteString(")\n\n")
 
 	_, _ = fd.WriteString("func Provide(opts ...opt.Option) error {\n")
 
 	lo.ForEach(conf, func(item Provider, _ int) {
-		// inject params
-		params := []string{}
-		structParams := []string{}
-
+		// sort params
 		keys := lo.Keys(item.InjectParams)
 		sort.Strings(keys)
-		for _, key := range keys {
-			name, typ := key, item.InjectParams[key]
-			structParams = append(structParams, fmt.Sprintf("\t\t\t%s: %s,", name, name))
-			params = append(params, fmt.Sprintf("\t\t%s %s,", name, typ))
-		}
 
 		fd.WriteString("\tif err := container.Container.Provide(func(")
-		if len(params) > 0 {
+		if len(keys) > 0 {
 			fd.WriteString("\n")
-			fd.WriteString(strings.Join(params, ", \n"))
-			fd.WriteString(",\n\t")
+			for _, key := range keys {
+				name, param := key, item.InjectParams[key]
+				fd.WriteString(fmt.Sprintf("\t\t%s %s", name, param.Star))
+
+				if param.Package == "" {
+					fd.WriteString(fmt.Sprintf("%s,\n", param.Type))
+					continue
+				}
+
+				if alias, ok := imports[param.Package]; ok {
+					fd.WriteString(fmt.Sprintf("%s.%s,\n", alias, param.Type))
+				}
+			}
+			fd.WriteString("\t")
 		}
 		fd.WriteString(fmt.Sprintf(") (%s, error) {\n", item.ReturnType))
 
 		fd.WriteString(fmt.Sprintf("\t\tobj := &%s{", item.StructName))
-		if len(structParams) > 0 {
+		if len(keys) > 0 {
 			fd.WriteString("\n")
-			fd.WriteString(strings.Join(structParams, "\n") + "\n")
+			for _, name := range keys {
+				fd.WriteString(fmt.Sprintf("\t\t\t%s: %s,\n", name, name))
+			}
 			fd.WriteString("\t\t")
 		}
 		fd.WriteString("}\n")
