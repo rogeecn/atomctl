@@ -2,11 +2,13 @@ package cmd
 
 import (
 	"bytes"
+	"os"
 	"path/filepath"
 	"text/template"
 
 	"github.com/rogeecn/atomctl/templates/http"
 	"github.com/rogeecn/atomctl/utils"
+	"github.com/samber/lo"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -18,18 +20,17 @@ var addHttp = &HttpGenerator{}
 var httpCmd = &cobra.Command{
 	Use:     "http",
 	Short:   "create http project",
-	Example: "atomctl new http [pkg] [name]",
+	Example: "atomctl new http [pkg]",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		if len(args) != 2 {
+		if len(args) != 1 {
 			return errors.New("invalid params")
 		}
-
-		file := args[1]
-		if utils.IsDir(file) {
+		addHttp.Package = args[0]
+		addHttp.Name = filepath.Base(args[0])
+		addHttp.Path = filepath.Join(lo.Must1(os.Getwd()), addHttp.Name)
+		if utils.IsDir(addHttp.Path) {
 			return errors.New("project already exists")
 		}
-		addHttp.Path = file
-		addHttp.Package = args[0]
 
 		generateFiles, err := addHttp.prepareFiles(http.Files)
 		if err != nil {
