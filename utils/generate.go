@@ -9,6 +9,7 @@ import (
 	"text/template"
 
 	"github.com/pkg/errors"
+	"golang.org/x/tools/imports"
 )
 
 // 0: InjectHere
@@ -41,12 +42,20 @@ func Generate(files map[string]string, fs embed.FS, m any) error {
 		if err != nil {
 			return errors.Wrapf(err, "open go file(%s) failed", target)
 		}
-		defer fd.Close()
 		log.Println("generate: ", target)
 
-		if err := t.Execute(fd, m); err != nil {
+		err = t.Execute(fd, m)
+		fd.Close()
+		if err != nil {
 			return errors.Wrapf(err, "generate file failed, target: %s", target)
 		}
+
+		result, err := imports.Process(target, nil, nil)
+		if err != nil {
+			log.Println("format file failed: ", target)
+			continue
+		}
+		os.WriteFile(target, result, os.ModePerm)
 	}
 	return nil
 }

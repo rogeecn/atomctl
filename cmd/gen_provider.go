@@ -17,6 +17,7 @@ import (
 	"github.com/rogeecn/atomctl/utils"
 	"github.com/samber/lo"
 	"github.com/spf13/cobra"
+	"golang.org/x/tools/imports"
 )
 
 var scalarTypes = []string{
@@ -315,9 +316,16 @@ func astParseProviders(projectPkg, source string) []Provider {
 }
 
 func renderFile(filename string, conf []Provider) error {
+	defer func() {
+		result, err := imports.Process(filename, nil, nil)
+		if err == nil {
+			os.WriteFile(filename, result, os.ModePerm)
+		}
+	}()
+
 	imports := map[string]string{
-		"seccloud/cspm/pkg/container": "",
-		"seccloud/cspm/pkg/utils/opt": "",
+		"github.com/rogeecn/atom/container": "",
+		"github.com/rogeecn/atom/utils/opt": "",
 	}
 	lo.ForEach(conf, func(item Provider, _ int) {
 		for k, v := range item.Imports {

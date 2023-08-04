@@ -108,6 +108,7 @@ var genCrudCmd = &cobra.Command{
 				content = strings.Replace(content, "import (", "import (\n\t"+containerPackage, 1)
 			}
 			log.Printf("[Info] add new provider: %s for %s", providerFunc, providerFile)
+
 			_ = os.WriteFile(providerFile, []byte(content), os.ModePerm)
 		}
 
