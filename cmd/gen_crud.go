@@ -352,7 +352,7 @@ func processModelTag(tag string) (string, string) {
 	tag = patternTag.ReplaceAllString(tag, "")
 
 	patternJson := regexp.MustCompile(`json:"(.*?)"`)
-	tag = patternJson.ReplaceAllString(tag, `form:"$1" query:"$1" json:"$1,omitempty"`)
+	tag = patternJson.FindStringSubmatch(tag)[1]
 
 	return tag, comment
 }
