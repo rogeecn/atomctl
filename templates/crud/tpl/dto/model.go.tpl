@@ -1,7 +1,9 @@
 package dto
 
 import (
-	"time"
+	{{- range .Model.Imports }}
+	{{ . }}
+	{{- end }}
 )
 
 type {{ .Model.Name }}Form struct {
@@ -14,6 +16,10 @@ type {{ .Model.Name }}ListQueryFilter struct {
 
 type {{ .Model.Name }}Item struct {
 	{{- range .Model.Fields }}
-	{{ .Name }} {{ .Type }} {{ .Tag }} // {{ .Comment }}
+	{{- if .PackageAlias }}
+	{{ .Name }} *{{ .PackageAlias }}.{{ .Type }} {{ .Tag }} // {{ .Comment }}
+	{{- else }}
+	{{ .Name }} *{{ .Type }} {{ .Tag }} // {{ .Comment }}
+	{{- end }}
 	{{- end }}
 }

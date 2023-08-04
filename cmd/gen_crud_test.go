@@ -47,6 +47,5 @@ func Test_genCrud(t *testing.T) {
 
 		_, err = genCrud("hello", path, "world")
 		So(err, ShouldBeNil)
-
 	})
 }

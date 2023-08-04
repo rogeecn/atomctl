@@ -10,6 +10,7 @@ import (
 	"go/parser"
 	"go/token"
 	"log"
+	"math/rand"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -20,6 +21,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/rogeecn/atomctl/templates/crud"
 	"github.com/rogeecn/atomctl/utils"
+	"github.com/samber/lo"
 	"github.com/spf13/cobra"
 )
 
@@ -72,7 +74,6 @@ var genCrudCmd = &cobra.Command{
 		}
 
 		log.Println("generate crud success")
-		log.Println("REMEMBER TO ADD NEW PROVIDERS")
 
 		for _, file := range generateFiles {
 			dirname := filepath.Base(filepath.Dir(file))
@@ -172,6 +173,7 @@ type ModelInfo struct {
 	IntType    string
 	Fields     []ModelField
 	PathFields []ModelField
+	Imports    []string
 }
 
 func (m *ModelInfo) GuessIntType() {
@@ -203,15 +205,46 @@ func (m *ModelInfo) parsePathFields() {
 }
 
 type ModelField struct {
-	Name    string
-	Type    string
-	Tag     string
-	Comment string
+	Name         string
+	Type         string
+	Tag          string
+	Comment      string
+	Package      string
+	PackageAlias string
 }
 
 func parseModelInfo(file *ast.File) ModelInfo {
 	modelInfo := ModelInfo{}
 	fields := []ModelField{}
+	vPattern := regexp.MustCompile(`^v\d+$`)
+	imports := make(map[string]string)
+	for _, imp := range file.Imports {
+
+		name := ""
+		if imp.Name == nil {
+			paths := strings.Split(strings.Trim(imp.Path.Value, "\""), "/")
+			name = paths[len(paths)-1]
+			if vPattern.MatchString(name) {
+				name = paths[len(paths)-2]
+			}
+		} else {
+			name = imp.Name.Name
+		}
+
+		if name == "_" {
+			paths := strings.Split(strings.Trim(imp.Path.Value, "\""), "/")
+			name = paths[len(paths)-1]
+			if vPattern.MatchString(name) {
+				name = paths[len(paths)-2]
+			}
+			if _, ok := imports[name]; ok {
+				name = fmt.Sprintf("%s%d", name, rand.Intn(100))
+			}
+		}
+		pkg := strings.Trim(imp.Path.Value, `"`)
+		imports[name] = pkg
+	}
+
 	for _, decl := range file.Decls {
 		switch decl.(type) {
 		case *ast.GenDecl:
@@ -223,36 +256,81 @@ func parseModelInfo(file *ast.File) ModelInfo {
 			modelInfo.CamelName = strcase.ToLowerCamel(modelInfo.Name)
 
 			for _, field := range spec.Type.(*ast.StructType).Fields.List {
-				if field.Names[0].Name == "DeletedAt" {
-					continue
-				}
-
 				tag := ""
 				if field.Tag != nil {
 					tag = field.Tag.Value
 				}
 
+				var pkg string
+				var pkgAlias string
 				var typ string
 				switch field.Type.(type) {
 				case *ast.Ident:
 					typ = field.Type.(*ast.Ident).Name
+				case *ast.IndexExpr:
+					pkgAlias = field.Type.(*ast.IndexExpr).Index.(*ast.SelectorExpr).X.(*ast.Ident).Name
+					p, ok := imports[pkgAlias]
+					if !ok {
+						continue
+					}
+					pkg = p
+					typ = field.Type.(*ast.IndexExpr).Index.(*ast.SelectorExpr).Sel.Name
 				case *ast.StarExpr:
 					paramsType := field.Type.(*ast.StarExpr)
-					X := paramsType.X.(*ast.SelectorExpr)
-					typ = fmt.Sprintf("%s.%s", X.X.(*ast.Ident).Name, X.Sel.Name)
+					switch paramsType.X.(type) {
+					case *ast.SelectorExpr:
+						X := paramsType.X.(*ast.SelectorExpr)
+
+						pkgAlias = X.X.(*ast.Ident).Name
+						p, ok := imports[pkgAlias]
+						if !ok {
+							continue
+						}
+						pkg = p
+
+						typ = X.Sel.Name
+					default:
+						typ = paramsType.X.(*ast.Ident).Name
+					}
 				case *ast.SelectorExpr:
-					typ = fmt.Sprintf("%s.%s", field.Type.(*ast.SelectorExpr).X.(*ast.Ident).Name, field.Type.(*ast.SelectorExpr).Sel.Name)
+					pkgAlias = field.Type.(*ast.SelectorExpr).X.(*ast.Ident).Name
+					p, ok := imports[pkgAlias]
+					if !ok {
+						continue
+					}
+					pkg = p
+					typ = field.Type.(*ast.SelectorExpr).Sel.Name
 				}
 
 				tag, comment := processModelTag(tag)
 				fields = append(fields, ModelField{
-					Name:    field.Names[0].Name,
-					Type:    "*" + typ,
-					Tag:     tag,
-					Comment: comment,
+					Name:         field.Names[0].Name,
+					Tag:          tag,
+					Comment:      comment,
+					Type:         typ,
+					Package:      pkg,
+					PackageAlias: pkgAlias,
 				})
 			}
 			modelInfo.Fields = fields
+			modelInfo.Imports = lo.Uniq(lo.FilterMap(fields, func(field ModelField, _ int) (string, bool) {
+				if field.Package == "" {
+					return "", false
+				}
+				if field.PackageAlias == "" {
+					return fmt.Sprintf("%q", field.Package), true
+				}
+
+				if field.PackageAlias == field.Package {
+					return fmt.Sprintf("%q", field.Package), true
+				}
+
+				if strings.HasSuffix(field.Package, "/"+field.PackageAlias) {
+					return fmt.Sprintf("%q", field.Package), true
+				}
+
+				return fmt.Sprintf("%s %q", field.PackageAlias, field.Package), true
+			}))
 			return modelInfo
 		}
 	}
