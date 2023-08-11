@@ -27,8 +27,6 @@ var genEnumCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		pwd = "/Users/rogee/tmp/tt"
-
 		err = filepath.Walk(pwd, func(path string, info fs.FileInfo, err error) error {
 			if utils.IsDir(path) {
 				return nil

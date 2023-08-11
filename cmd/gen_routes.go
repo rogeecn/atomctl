@@ -406,5 +406,15 @@ func formatRoute(route string) string {
 	if !pattern.MatchString(route) {
 		return route
 	}
-	return pattern.ReplaceAllString(route, ":$1")
+
+	items := pattern.FindAllStringSubmatch(route, -1)
+	for _, item := range items {
+		param := strcase.ToLowerCamel(item[1])
+		route = strings.ReplaceAll(route, item[0], fmt.Sprintf("{%s}", param))
+	}
+
+	route = pattern.ReplaceAllString(route, ":$1")
+	route = strings.ReplaceAll(route, "/:id", "/:id<int>")
+	route = strings.ReplaceAll(route, "Id/", "Id<int>/")
+	return route
 }

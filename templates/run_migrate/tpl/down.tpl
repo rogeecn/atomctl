@@ -48,7 +48,7 @@ func main() {
 				m := gormigrate.New(mi.DB, gormigrate.DefaultOptions, sortedMigrations(mi.Migrations))
 				if len(migrateToId) > 0 {
 					log.Infof("migrate down to [%s]\n", migrateToId)
-					return m.RollbackTo(migrateToId)
+					m.RollbackTo(migrateToId)
 				}
 				return m.RollbackLast()
 			})
