@@ -74,7 +74,13 @@ func main() {
 					FieldWithTypeTag: true,
 					Mode:             gen.WithDefaultQuery | gen.WithQueryInterface,
 				})
-				g.WithOpts(gen.WithMethod(gen.DefaultMethodTableWithNamer))
+				tags := map[string]string{
+					"swaggertype": "string",
+				}
+				g.WithOpts(
+					gen.WithMethod(gen.DefaultMethodTableWithNamer),
+					gen.FieldNewTag("deleted_at", tags),
+				)
 				g.WithImportPkgPath(
 					"gorm.io/datatypes",
 					"github.com/lib/pq",
