@@ -178,6 +178,8 @@ func genRoutes(cmd *cobra.Command, args []string) error {
 					paramString = fmt.Sprintf(`Body[%s](BodyParamError)`, p.Type)
 				case PositionHeader:
 					paramString = fmt.Sprintf(`Header[%s](HeaderParamError)`, p.Type)
+				case PositionClaim:
+					paramString = fmt.Sprintf(`JwtClaim[%s](ClaimParamError)`, p.Type)
 				}
 
 				paramsStrings = append(paramsStrings, paramString)
@@ -219,6 +221,7 @@ const (
 	PositionQuery  Position = "Query"
 	PositionBody   Position = "Body"
 	PositionHeader Position = "Header"
+	PositionClaim  Position = "Claims"
 )
 
 func astParseRoutes(source string) []RoueDefinition {
@@ -337,6 +340,9 @@ func astParseRoutes(source string) []RoueDefinition {
 			}
 			if strings.HasSuffix(typ, string(PositionHeader)) {
 				position = PositionHeader
+			}
+			if strings.HasSuffix(typ, string(PositionClaim)) {
+				position = PositionClaim
 			}
 			typ = strings.TrimPrefix(typ, "*")
 
