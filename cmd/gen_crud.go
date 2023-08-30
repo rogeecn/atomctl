@@ -25,13 +25,17 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var flagForce bool
+var (
+	flagForce   bool
+	backendDest string
+)
 
 func init() {
 	genCmd.AddCommand(genCrudCmd)
 	genCrudCmd.Flags().String("route", "", "manually define route path")
 	genCrudCmd.Flags().String("tag", "DEFAULT_TAG_NAME", "define swagger tag")
 	genCrudCmd.Flags().BoolVar(&flagForce, "force", false, "overwrite file if exists")
+	genCrudCmd.Flags().StringVar(&backendDest, "backend", "", "generate backend")
 }
 
 var genCrudCmd = &cobra.Command{
@@ -61,12 +65,8 @@ var genCrudCmd = &cobra.Command{
 		modelInfo.GuessIntType()
 		modelInfo.parsePathFields()
 
-		render := CrudRenderParams{
-			PkgName: pkgName,
-			Module:  modulePath,
-			Model:   modelInfo,
-		}
-
+		// render go files
+		render := CrudRenderParams{PkgName: pkgName, Module: modulePath, Model: modelInfo}
 		generateFiles, err := render.prepareFiles(crud.Files, args[0], flagForce)
 		if err != nil {
 			return err
@@ -115,6 +115,21 @@ var genCrudCmd = &cobra.Command{
 			_ = os.WriteFile(providerFile, []byte(content), os.ModePerm)
 		}
 
+		if backendDest == "" {
+			return nil
+		}
+
+		// render vue template backend files
+		backendRender := CrudRenderParams{PkgName: pkgName, Module: backendDest, Model: modelInfo}
+		generateFiles, err = backendRender.prepareFiles(crud.BackendFiles, args[0], flagForce)
+		if err != nil {
+			return err
+		}
+
+		if err := utils.Generate(generateFiles, crud.Templates, render); err != nil {
+			return err
+		}
+		log.Println("generate to ", backendDest, " success")
 		return nil
 	},
 }

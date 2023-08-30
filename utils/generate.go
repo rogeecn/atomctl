@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 	"text/template"
 
 	"github.com/pkg/errors"
@@ -50,12 +51,14 @@ func Generate(files map[string]string, fs embed.FS, m any) error {
 			return errors.Wrapf(err, "generate file failed, target: %s", target)
 		}
 
-		result, err := imports.Process(target, nil, nil)
-		if err != nil {
-			log.Println("format file failed: ", target)
-			continue
+		if strings.HasSuffix(target, ".go") {
+			result, err := imports.Process(target, nil, nil)
+			if err != nil {
+				log.Println("format file failed: ", target)
+				continue
+			}
+			os.WriteFile(target, result, os.ModePerm)
 		}
-		os.WriteFile(target, result, os.ModePerm)
 	}
 	return nil
 }

@@ -13,3 +13,7 @@ var Files = map[string]string{
 	"controller/model.go.tpl": "controller/{filename}.go",
 	"service/model.go.tpl":    "service/{filename}.go",
 }
+
+var BackendFiles = map[string]string{
+	"backend/src/api/api.ts.tpl": "src/api/{filename}.ts",
+}
