@@ -64,6 +64,7 @@ var genCrudCmd = &cobra.Command{
 		}
 		modelInfo.GuessIntType()
 		modelInfo.parsePathFields()
+		modelInfo.Filename = args[0]
 
 		// render go files
 		render := CrudRenderParams{PkgName: pkgName, Module: modulePath, Model: modelInfo}
@@ -120,7 +121,9 @@ var genCrudCmd = &cobra.Command{
 		}
 
 		// render vue template backend files
-		backendRender := CrudRenderParams{PkgName: pkgName, Module: backendDest, Model: modelInfo}
+		backendRender := CrudRenderParams{PkgName: pkgName, Module: backendDest, Model: modelInfo, Vars: map[string]string{
+			"module": strings.ReplaceAll(args[1], ".", "/"),
+		}}
 		generateFiles, err = backendRender.prepareFiles(crud.BackendFiles, args[0], flagForce)
 		if err != nil {
 			return err
@@ -149,6 +152,7 @@ type CrudRenderParams struct {
 	PkgName string
 	Module  string
 	Model   *ModelInfo
+	Vars    map[string]string
 }
 
 func (m *CrudRenderParams) prepareFiles(files map[string]string, filename string, force bool) (map[string]string, error) {
@@ -174,7 +178,13 @@ func (m *CrudRenderParams) prepareFiles(files map[string]string, filename string
 		}
 		tplFilePath := "tpl/" + tpl
 
-		target = filepath.Join(m.Module, strings.Replace(target, "{filename}", filename, -1))
+		target = strings.Replace(target, "{filename}", filename, -1)
+		if m.Vars != nil {
+			for k, v := range m.Vars {
+				target = strings.Replace(target, "{"+k+"}", v, -1)
+			}
+		}
+		target = filepath.Join(m.Module, target)
 		result[tplFilePath] = target
 		if utils.IsFile(target) && !force {
 			return nil, errors.New(target + " file exists")
@@ -193,6 +203,7 @@ type ModelInfo struct {
 	Fields     []ModelField
 	PathFields []ModelField
 	Imports    []string
+	Filename   string
 }
 
 func (m *ModelInfo) GuessIntType() {
