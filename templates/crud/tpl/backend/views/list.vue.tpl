@@ -153,4 +153,3 @@ const rowSelection = reactive<TableRowSelection>({
   onlyCurrent: false,
 });
 </script>
-@/components/table/table@/components/table

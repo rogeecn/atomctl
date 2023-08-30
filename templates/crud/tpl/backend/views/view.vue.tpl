@@ -11,8 +11,7 @@
     </PageHeader>
 
     <Container :loading="loading" :rows="2">
-      <a-descriptions :data="renderData" :column="3" :align="{ label: 'right' }" size="large"
-        :title="userInfo.username" />
+      <a-descriptions :data="renderData" :column="3" :align="{ label: 'right' }" size="large" :title="title" />
     </Container>
   </div>
 </template>
@@ -28,6 +27,7 @@ import { useRoute, useRouter } from 'vue-router';
 const route = useRoute();
 const router = useRouter();
 
+const title=ref<string>("Title")
 
 const { loading, setLoading } = useLoading();
 const renderData = ref<DescData[]>([]);
