@@ -14,6 +14,59 @@ type {{ .Model.Name }}Controller struct {
 	{{ .Model.CamelName }}Svc *service.{{ .Model.Name }}Service
 }
 
+// Filters 
+//
+//	@Summary		Filters
+//	@Tags			{{ .Model.TagName }}
+//	@Accept			json
+//	@Produce		json
+//	@Success		200			{array}	common.Filter
+//	@Router			/{{ .Model.RouteName }}/filters [get]
+func (c *{{ .Model.Name }}Controller) Filters(ctx *fiber.Ctx) ([]common.Filter, error) {
+	return dto.{{ .Model.Name }}ListQueryFilters(), nil
+}
+
+// Columns 
+//
+//	@Summary		columns
+//	@Tags			{{ .Model.TagName }}
+//	@Accept			json
+//	@Produce		json
+//	@Success		200			{object}	common.Columns
+//	@Router			/{{ .Model.RouteName }}/columns [get]
+func (c *{{ .Model.Name }}Controller) Columns(ctx *fiber.Ctx) (common.Columns, error) {
+	columns := []common.TableColumnData{
+	{{- range .Model.Fields }}
+		{Title: "{{ .Comment }}", DataIndex: {{ .Tag }}},
+	{{- end }}
+		{Title: "操作", DataIndex: "operations", Align: lo.ToPtr("right")},
+	}
+
+	return common.NewColumns(columns), nil
+}
+
+// LabelShow
+//
+//	@Summary		LabelShow
+//	@Tags			{{ .Model.TagName }}
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		int	true	"ID"
+//	@Success		200	{object}	dto.UserItem
+//	@Router			/{{ .Model.RouteName }}/{id}/label [get]
+func (c *{{ .Model.Name }}Controller) LabelShow(ctx *fiber.Ctx, id int64) ([]common.LabelItem, error) {
+	item, err := c.{{ .Model.CamelName }}Svc.GetByID(ctx.Context(), id)
+	if err != nil{
+		return nil, err
+	}
+
+	return []common.LabelItem{
+	{{- range .Model.Fields }}
+		{Label: "{{ .Comment }}", Value: item.{{ .Name }}},
+	{{- end }}
+	}, nil
+}
+
 // Show get single item info
 //
 //	@Summary		get by id
@@ -39,7 +92,6 @@ func (c *{{ .Model.Name }}Controller) Show(ctx *fiber.Ctx,{{ range $i, $field :=
 // List list by query filter
 //
 //	@Summary		list by query filter
-//	@Description	list by query filter
 //	@Tags			{{ .Model.TagName }}
 //	@Accept			json
 //	@Produce		json
@@ -75,7 +127,6 @@ func (c *{{ .Model.Name }}Controller) List(
 // Create a new item
 //
 //	@Summary		create new item
-//	@Description	create new item
 //	@Tags			{{ .Model.TagName }}
 //	@Accept			json
 //	@Produce		json
@@ -89,10 +140,9 @@ func (c *{{ .Model.Name }}Controller) Create(ctx *fiber.Ctx,{{ range $i, $field 
 	return c.{{ .Model.CamelName }}Svc.Create(ctx.Context(), {{ range $i, $field := .Model.PathFields }} {{ $field.Name}},{{ end }}body)
 }
 
-// Update update by id
+// Update by id
 //
 //	@Summary		update by id
-//	@Description	update by id
 //	@Tags			{{ .Model.TagName }}
 //	@Accept			json
 //	@Produce		json
@@ -102,16 +152,14 @@ func (c *{{ .Model.Name }}Controller) Create(ctx *fiber.Ctx,{{ range $i, $field 
 //	@Param			id		path		int				true	"{{ .Model.Name }}ID"
 //	@Param			body	body		dto.{{ .Model.Name }}Form	true	"{{ .Model.Name }}Form"
 //	@Success		200		{string}	{{ .Model.Name }}ID
-//	@Failure		500		{string}	{{ .Model.Name }}ID
 //	@Router			/{{ .Model.RouteName }}/{id} [put]
 func (c *{{ .Model.Name }}Controller) Update(ctx *fiber.Ctx,{{ range $i, $field := .Model.PathFields }} {{ $field.Name}} {{ $field.Type }}, {{end}}id {{ .Model.IntType }}, body *dto.{{ .Model.Name }}Form) error {
 	return c.{{ .Model.CamelName }}Svc.Update(ctx.Context(), {{ range $i, $field := .Model.PathFields }} {{ $field.Name}},{{ end }}id, body)
 }
 
-// Delete delete by id
+// Delete by id
 //
 //	@Summary		delete by id
-//	@Description	delete by id
 //	@Tags			{{ .Model.TagName }}
 //	@Accept			json
 //	@Produce		json
@@ -120,7 +168,6 @@ func (c *{{ .Model.Name }}Controller) Update(ctx *fiber.Ctx,{{ range $i, $field 
 {{- end}}
 //	@Param			id	path		int	true	"{{ .Model.Name }}ID"
 //	@Success		200	{string}	{{ .Model.Name }}ID
-//	@Failure		500	{string}	{{ .Model.Name }}ID
 //	@Router			/{{ .Model.RouteName }}/{id} [delete]
 func (c *{{ .Model.Name }}Controller) Delete(ctx *fiber.Ctx,{{ range $i, $field := .Model.PathFields }} {{ $field.Name}} {{ $field.Type }}, {{end}}id {{ .Model.IntType }}) error {
 	return c.{{ .Model.CamelName }}Svc.Delete(ctx.Context(),{{ range $i, $field := .Model.PathFields }} {{ $field.Name}},{{ end }} id)

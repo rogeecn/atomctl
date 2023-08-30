@@ -1,6 +1,7 @@
 package dto
 
 import (
+	"{{ .PkgName }}/common"
 	{{- range .Model.Imports }}
 	{{ . }}
 	{{- end }}
@@ -31,6 +32,15 @@ type {{ .Model.Name }}ListQueryFilter struct {
 	{{- end }}
 	{{- end }}
 }
+
+func {{ .Model.Name }}ListQueryFilters() []common.Filter {
+	return []common.Filter{
+	{{- range .Model.Fields }}
+		{Type: common.FilterTypeString, Name: "{{ .Tag }}", Label: "{{ .Comment }}"},
+	{{- end }}
+	}
+}
+
 
 type {{ .Model.Name }}Item struct {
 	{{- range .Model.Fields }}
