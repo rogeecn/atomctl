@@ -28,6 +28,8 @@ import (
 var (
 	flagForce   bool
 	backendDest string
+	title       string
+	moduleTitle string
 )
 
 func init() {
@@ -36,6 +38,8 @@ func init() {
 	genCrudCmd.Flags().String("tag", "DEFAULT_TAG_NAME", "define swagger tag")
 	genCrudCmd.Flags().BoolVar(&flagForce, "force", false, "overwrite file if exists")
 	genCrudCmd.Flags().StringVar(&backendDest, "backend", "", "generate backend")
+	genCrudCmd.Flags().StringVar(&title, "title", "", "generate title")
+	genCrudCmd.Flags().StringVar(&moduleTitle, "module-title", "", "generate module title")
 }
 
 var genCrudCmd = &cobra.Command{
@@ -67,7 +71,11 @@ var genCrudCmd = &cobra.Command{
 		modelInfo.Filename = args[0]
 
 		// render go files
-		render := CrudRenderParams{PkgName: pkgName, Module: modulePath, Model: modelInfo}
+		render := CrudRenderParams{
+			PkgName: pkgName,
+			Module:  modulePath,
+			Model:   modelInfo,
+		}
 		generateFiles, err := render.prepareFiles(crud.Files, args[0], flagForce)
 		if err != nil {
 			return err
@@ -121,20 +129,53 @@ var genCrudCmd = &cobra.Command{
 		}
 
 		// render vue template backend files
-		backendRender := CrudRenderParams{PkgName: pkgName, Module: backendDest, Model: modelInfo, Vars: map[string]string{
-			"module": strings.ReplaceAll(args[1], ".", "/"),
-		}}
+		backendRender := &CrudRenderParams{
+			PkgName: pkgName,
+			Module:  backendDest,
+			Model:   modelInfo,
+			Vars: map[string]string{
+				"module": strings.ReplaceAll(args[1], ".", "/"),
+			},
+			Title:       title,
+			ModuleTitle: moduleTitle,
+		}
 		generateFiles, err = backendRender.prepareFiles(crud.BackendFiles, args[0], flagForce)
 		if err != nil {
 			return err
 		}
 
-		if err := utils.Generate(generateFiles, crud.Templates, render); err != nil {
+		if err := utils.Generate(generateFiles, crud.Templates, backendRender); err != nil {
 			return err
 		}
 		log.Println("generate to ", backendDest, " success")
+
+		outputRoutes(backendRender)
 		return nil
 	},
+}
+
+func outputRoutes(render *CrudRenderParams) {
+	t := `
+	// {{ .Vars.moduleTitle }}
+    { path: '{{ .Model.Filename }}', name: '{{ .Model.Name }}List', component: () => import('@/views/{{ .Vars.module }}/{{ .Model.Filename }}/list.vue'), meta: { title: '{{ .Title }}列表', requiresAuth: true }, },
+    { path: '{{ .Model.Filename }}/view/:id', name: '{{ .Model.Name }}View', component: () => import('@/views/{{ .Vars.module }}/{{ .Model.Filename }}/view.vue'), meta: { title: '{{ .Title }}详情', requiresAuth: true, hideInMenu: true } },
+    { path: '{{ .Model.Filename }}/edit/:id', name: '{{ .Model.Name }}Edit', component: () => import('@/views/{{ .Vars.module }}/{{ .Model.Filename }}/edit.vue'), meta: { title: '{{ .Title }}编辑', requiresAuth: true, hideInMenu: true } },
+    { path: '{{ .Model.Filename }}/create', name: '{{ .Model.Name }}Create', component: () => import('@/views/{{ .Vars.module }}/{{ .Model.Filename }}/create.vue'), meta: { title: '{{ .Title }}创建', requiresAuth: true, hideInMenu: true } },
+	`
+
+	buf := bytes.NewBuffer(nil)
+	tpl, err := template.New("Route").Parse(t)
+	if err != nil {
+		fmt.Println("ERR: ", err)
+		return
+	}
+
+	if err := tpl.Execute(buf, render); err != nil {
+		fmt.Println("ERR: ", err)
+		return
+	}
+
+	fmt.Printf("\n\n%s\n", buf.Bytes())
 }
 
 func genCrud(pkgName, modelFile, moduleName string) (*ModelInfo, error) {
@@ -149,10 +190,12 @@ func genCrud(pkgName, modelFile, moduleName string) (*ModelInfo, error) {
 }
 
 type CrudRenderParams struct {
-	PkgName string
-	Module  string
-	Model   *ModelInfo
-	Vars    map[string]string
+	PkgName     string
+	Module      string
+	Model       *ModelInfo
+	Title       string
+	ModuleTitle string
+	Vars        map[string]string
 }
 
 func (m *CrudRenderParams) prepareFiles(files map[string]string, filename string, force bool) (map[string]string, error) {
@@ -167,10 +210,11 @@ func (m *CrudRenderParams) prepareFiles(files map[string]string, filename string
 			}
 		} else {
 			newName := bytes.NewBuffer(nil)
-			t, err := template.New("name").Parse(target)
+			t, err := template.New("tpl_" + tpl).Parse(target)
 			if err != nil {
 				return nil, errors.Wrap(err, "init template failed")
 			}
+			fmt.Println("-----", m)
 			if err := t.Execute(newName, m); err != nil {
 				return nil, errors.Wrapf(err, "generate target file failed, tpl: %s", tpl)
 			}
