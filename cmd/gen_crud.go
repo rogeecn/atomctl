@@ -25,10 +25,13 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var flagForce bool
+
 func init() {
 	genCmd.AddCommand(genCrudCmd)
 	genCrudCmd.Flags().String("route", "", "manually define route path")
 	genCrudCmd.Flags().String("tag", "DEFAULT_TAG_NAME", "define swagger tag")
+	genCrudCmd.Flags().BoolVar(&flagForce, "force", false, "overwrite file if exists")
 }
 
 var genCrudCmd = &cobra.Command{
@@ -64,7 +67,7 @@ var genCrudCmd = &cobra.Command{
 			Model:   modelInfo,
 		}
 
-		generateFiles, err := render.prepareFiles(crud.Files, args[0])
+		generateFiles, err := render.prepareFiles(crud.Files, args[0], flagForce)
 		if err != nil {
 			return err
 		}
@@ -133,7 +136,7 @@ type CrudRenderParams struct {
 	Model   *ModelInfo
 }
 
-func (m *CrudRenderParams) prepareFiles(files map[string]string, filename string) (map[string]string, error) {
+func (m *CrudRenderParams) prepareFiles(files map[string]string, filename string, force bool) (map[string]string, error) {
 	result := make(map[string]string)
 	for tpl, target := range files {
 		// get target file name
@@ -158,7 +161,7 @@ func (m *CrudRenderParams) prepareFiles(files map[string]string, filename string
 
 		target = filepath.Join(m.Module, strings.Replace(target, "{filename}", filename, -1))
 		result[tplFilePath] = target
-		if utils.IsFile(target) {
+		if utils.IsFile(target) && !force {
 			return nil, errors.New(target + " file exists")
 		}
 	}
