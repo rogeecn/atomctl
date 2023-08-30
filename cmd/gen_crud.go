@@ -27,6 +27,7 @@ import (
 
 var (
 	flagForce   bool
+	onlyBackend bool
 	backendDest string
 	title       string
 	moduleTitle string
@@ -37,6 +38,7 @@ func init() {
 	genCrudCmd.Flags().String("route", "", "manually define route path")
 	genCrudCmd.Flags().String("tag", "DEFAULT_TAG_NAME", "define swagger tag")
 	genCrudCmd.Flags().BoolVar(&flagForce, "force", false, "overwrite file if exists")
+	genCrudCmd.Flags().BoolVar(&onlyBackend, "only-backend", false, "generate backend")
 	genCrudCmd.Flags().StringVar(&backendDest, "backend", "", "generate backend")
 	genCrudCmd.Flags().StringVar(&title, "title", "", "generate title")
 	genCrudCmd.Flags().StringVar(&moduleTitle, "module-title", "", "generate module title")
@@ -71,59 +73,60 @@ var genCrudCmd = &cobra.Command{
 		modelInfo.Filename = args[0]
 
 		// render go files
-		render := CrudRenderParams{
-			PkgName: pkgName,
-			Module:  modulePath,
-			Model:   modelInfo,
-		}
-		generateFiles, err := render.prepareFiles(crud.Files, args[0], flagForce)
-		if err != nil {
-			return err
-		}
-
-		if err := utils.Generate(generateFiles, crud.Templates, render); err != nil {
-			return err
-		}
-
-		log.Println("generate crud success")
-
-		for _, file := range generateFiles {
-			dirname := filepath.Base(filepath.Dir(file))
-			if dirname == "dto" {
-				continue
+		if !onlyBackend {
+			render := CrudRenderParams{
+				PkgName: pkgName,
+				Module:  modulePath,
+				Model:   modelInfo,
 			}
-
-			providerFile := filepath.Join(filepath.Dir(file), "provider.go")
-			if !utils.IsFile(providerFile) {
-				log.Println("[Warn] " + providerFile + " not exists, please add new provider manually")
-				continue
-			}
-
-			providerContent, err := os.ReadFile(providerFile)
+			generateFiles, err := render.prepareFiles(crud.Files, args[0], flagForce)
 			if err != nil {
-				log.Println("[Warn] read " + providerFile + " failed, please add new provider manually")
-				continue
+				return err
 			}
 
-			suffix := strcase.ToCamel(dirname)
-
-			providerFunc := fmt.Sprintf("New%s%s", modelInfo.Name, suffix)
-
-			content := string(providerContent)
-			if !strings.Contains(content, providerFunc) {
-				provider := fmt.Sprintf("\n\tif err := container.Container.Provide(%s); err!=nil {\n\t\treturn err\n\t}\n\treturn nil", providerFunc)
-				content = strings.Replace(content, "return nil", provider, 1)
+			if err := utils.Generate(generateFiles, crud.Templates, render); err != nil {
+				return err
 			}
 
-			containerPackage := `"github.com/rogeecn/atom/container"`
-			if !strings.Contains(content, containerPackage) {
-				content = strings.Replace(content, "import (", "import (\n\t"+containerPackage, 1)
-			}
-			log.Printf("[Info] add new provider: %s for %s", providerFunc, providerFile)
+			log.Println("generate crud success")
 
-			_ = os.WriteFile(providerFile, []byte(content), os.ModePerm)
+			for _, file := range generateFiles {
+				dirname := filepath.Base(filepath.Dir(file))
+				if dirname == "dto" {
+					continue
+				}
+
+				providerFile := filepath.Join(filepath.Dir(file), "provider.go")
+				if !utils.IsFile(providerFile) {
+					log.Println("[Warn] " + providerFile + " not exists, please add new provider manually")
+					continue
+				}
+
+				providerContent, err := os.ReadFile(providerFile)
+				if err != nil {
+					log.Println("[Warn] read " + providerFile + " failed, please add new provider manually")
+					continue
+				}
+
+				suffix := strcase.ToCamel(dirname)
+
+				providerFunc := fmt.Sprintf("New%s%s", modelInfo.Name, suffix)
+
+				content := string(providerContent)
+				if !strings.Contains(content, providerFunc) {
+					provider := fmt.Sprintf("\n\tif err := container.Container.Provide(%s); err!=nil {\n\t\treturn err\n\t}\n\treturn nil", providerFunc)
+					content = strings.Replace(content, "return nil", provider, 1)
+				}
+
+				containerPackage := `"github.com/rogeecn/atom/container"`
+				if !strings.Contains(content, containerPackage) {
+					content = strings.Replace(content, "import (", "import (\n\t"+containerPackage, 1)
+				}
+				log.Printf("[Info] add new provider: %s for %s", providerFunc, providerFile)
+
+				_ = os.WriteFile(providerFile, []byte(content), os.ModePerm)
+			}
 		}
-
 		if backendDest == "" {
 			return nil
 		}
@@ -139,7 +142,7 @@ var genCrudCmd = &cobra.Command{
 			Title:       title,
 			ModuleTitle: moduleTitle,
 		}
-		generateFiles, err = backendRender.prepareFiles(crud.BackendFiles, args[0], flagForce)
+		generateFiles, err := backendRender.prepareFiles(crud.BackendFiles, args[0], flagForce)
 		if err != nil {
 			return err
 		}
@@ -214,7 +217,6 @@ func (m *CrudRenderParams) prepareFiles(files map[string]string, filename string
 			if err != nil {
 				return nil, errors.Wrap(err, "init template failed")
 			}
-			fmt.Println("-----", m)
 			if err := t.Execute(newName, m); err != nil {
 				return nil, errors.Wrapf(err, "generate target file failed, tpl: %s", tpl)
 			}

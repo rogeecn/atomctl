@@ -17,7 +17,7 @@ import (
 
 func init() {
 	runCmd.AddCommand(runSeederCmd)
-	runSeederCmd.Flags().StringVarP(&seederRunner.Driver, "driver", "D", "postgres", "define driver: postgres/mysql/sqlite")
+	runSeederCmd.Flags().StringVarP(&seederRunner.Driver, "driver", "D", "mysql", "define driver: postgres/mysql/sqlite")
 	runSeederCmd.Flags().StringVarP(&seederRunner.AppName, "app", "A", "", "app name")
 }
 

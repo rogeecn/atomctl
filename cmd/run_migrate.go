@@ -29,7 +29,7 @@ func init() {
 	runMigrateCmd.AddCommand(runMigrateUpCmd)
 	runMigrateCmd.AddCommand(runMigrateDownCmd)
 
-	runMigrateCmd.PersistentFlags().StringVarP(&migrationRunner.Driver, "driver", "D", "postgres", "define driver: postgres/mysql/sqlite")
+	runMigrateCmd.PersistentFlags().StringVarP(&migrationRunner.Driver, "driver", "D", "mysql", "define driver: postgres/mysql/sqlite")
 	runMigrateCmd.PersistentFlags().StringVarP(&migrationRunner.AppName, "app", "A", "", "app name")
 	runMigrateCmd.PersistentFlags().StringVar(&migrationRunner.MigrateToId, "to", "", "migrate to id")
 }
