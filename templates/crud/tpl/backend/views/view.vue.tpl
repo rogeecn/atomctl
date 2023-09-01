@@ -1,6 +1,6 @@
 <template>
   <div>
-    <PageHeader title="{{ .Vars.moduleTitle }}" subtitle="{{ .Vars.title }}详情" :back="true" :loading="loading"/>
+    <PageHeader title="{{ .Vars.moduleTitle }}" subtitle="{{ .Vars.title }}详情" :back="true" :loading="loading">
       <a-button type="primary" @click="$router.push({ name: '{{ .Model.Name }}Edit', params: { id: route.params.id } })">编辑</a-button>
 
       <a-popconfirm content="确认删除？" type="warning" :ok-loading="deleting" @ok="handleConfirmDelete" position="lt">
