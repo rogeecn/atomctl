@@ -15,7 +15,7 @@ var Files = map[string]string{
 }
 
 var BackendFiles = map[string]string{
-	"backend/api.ts.tpl":               "src/api/{filename}.ts",
+	"backend/api.ts.tpl":               "src/api/{module}/{filename}.ts",
 	"backend/views/list.vue.tpl":       "src/views/{module}/{filename}/list.vue",
 	"backend/views/view.vue.tpl":       "src/views/{module}/{filename}/view.vue",
 	"backend/views/create.vue.tpl":     "src/views/{module}/{filename}/create.vue",

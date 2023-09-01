@@ -1,6 +1,6 @@
 <template>
   <div>
-    <PageHeader title="{{ .ModuleTitle }}" subtitle="{{ .Title }}列表">
+    <PageHeader title="{{ .Vars.moduleTitle }}" subtitle="{{ .Vars.title }}列表"/>
       <ActionCreate :to="{ name: '{{ .Model.Name }}Create' }" />
       <ActionImport />
       <ActionExport />

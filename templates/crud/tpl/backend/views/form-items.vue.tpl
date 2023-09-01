@@ -20,7 +20,7 @@
 </template>
 
 <script lang="ts" setup>
-import { {{ .Model.Name }}Item } from '@/api/{{ .Model.Filename }}';
+import { {{ .Model.Name }}Item } from '@/api/{{.Vars.module}}/{{ .Model.Filename }}';
 
 const props = defineProps<{
   form: {{ .Model.Name }}Item;

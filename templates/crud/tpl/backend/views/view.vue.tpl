@@ -1,6 +1,6 @@
 <template>
   <div>
-    <PageHeader title="{{.ModuleTitle}}" subtitle="{{ .Title }}详情" :back="true" :loading="loading">
+    <PageHeader title="{{ .Vars.moduleTitle }}" subtitle="{{ .Vars.title }}详情" :back="true" :loading="loading"/>
       <a-button type="primary" @click="$router.push({ name: '{{ .Model.Name }}Edit', params: { id: route.params.id } })">编辑</a-button>
 
       <a-popconfirm content="确认删除？" type="warning" :ok-loading="deleting" @ok="handleConfirmDelete" position="lt">
@@ -17,7 +17,7 @@
 </template>
 
 <script lang="ts" setup>
-import { {{ .Model.Name }}Item, delete{{ .Model.Name }}Item, get{{ .Model.Name }}Item, table{{ .Model.Name }}Labels } from '@/api/{{ .Model.Filename}}';
+import { {{ .Model.Name }}Item, delete{{ .Model.Name }}Item, get{{ .Model.Name }}Item, table{{ .Model.Name }}Labels } from '@/api/{{.Vars.module}}/{{ .Model.Filename }}';
 import { Container, PageHeader } from "@/components/layout";
 import useLoading from '@/hooks/loading';
 import { DescData, Message } from '@arco-design/web-vue';

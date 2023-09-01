@@ -137,10 +137,10 @@ var genCrudCmd = &cobra.Command{
 			Module:  backendDest,
 			Model:   modelInfo,
 			Vars: map[string]string{
-				"module": strings.ReplaceAll(args[1], ".", "/"),
+				"module":      strings.ReplaceAll(args[1], ".", "/"),
+				"title":       title,
+				"moduleTitle": moduleTitle,
 			},
-			Title:       title,
-			ModuleTitle: moduleTitle,
 		}
 		generateFiles, err := backendRender.prepareFiles(crud.BackendFiles, args[0], flagForce)
 		if err != nil {

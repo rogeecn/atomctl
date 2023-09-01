@@ -1,6 +1,6 @@
 <template>
   <div>
-    <PageHeader title="{{ .ModuleTitle }}" subtitle="{{ .Title }}编辑" :back="true" :loading="false" />
+    <PageHeader title="{{ .Vars.moduleTitle }}" subtitle="{{ .Vars.title }}编辑" :back="true" :loading="false" />
 
     <Container class="pt-5">
       <a-form :model="form" @submit="handleSubmit" class="md:w-3/4 sm:w-full">
@@ -16,7 +16,7 @@
 </template>
 
 <script lang="ts" setup>
-import { {{ .Model.Name }}Item, create{{ .Model.Name }}Item } from '@/api/{{ .Model.Filename }}';
+import { {{ .Model.Name }}Item, create{{ .Model.Name }}Item } from '@/api/{{.Vars.module}}/{{ .Model.Filename }}';
 import { Container, PageHeader } from '@/components/layout';
 import useLoading from '@/hooks/loading';
 import { Message } from '@arco-design/web-vue';
