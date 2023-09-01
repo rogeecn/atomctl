@@ -59,7 +59,7 @@ delete{{ .Model.Name }}Item,
 query{{ .Model.Name }}List,
 table{{ .Model.Name }}Columns,
 table{{ .Model.Name }}Filters,
-} from "@/api/{{ .Model.Filename }}";
+} from "@/api/{{ .Vars.module }}/{{ .Model.Filename }}";
 import { Container, PageHeader } from "@/components/layout";
 import {
 ActionColumn,
