@@ -160,11 +160,10 @@ var genCrudCmd = &cobra.Command{
 func outputRoutes(render *CrudRenderParams) {
 	t := `
 	// {{ .Vars.title }}
-    { path: '{{ .Model.Filename }}', name: '{{ .Model.Name }}List', component: () => import('@/views/{{ .Vars.module }}/{{ .Model.Filename }}/list.vue'), meta: { title: '{{ .Vars.title }}列表', requiresAuth: true, hideInMenu: false }, children:[
-		{ path: 'view/:id', name: '{{ .Model.Name }}View', component: () => import('@/views/{{ .Vars.module }}/{{ .Model.Filename }}/view.vue'), meta: { title: '{{ .Vars.title }}详情', requiresAuth: true, hideInMenu: true } },
-		{ path: 'edit/:id', name: '{{ .Model.Name }}Edit', component: () => import('@/views/{{ .Vars.module }}/{{ .Model.Filename }}/edit.vue'), meta: { title: '{{ .Vars.title }}编辑', requiresAuth: true, hideInMenu: true } },
-		{ path: 'create', name: '{{ .Model.Name }}Create', component: () => import('@/views/{{ .Vars.module }}/{{ .Model.Filename }}/create.vue'), meta: { title: '{{ .Vars.title }}创建', requiresAuth: true, hideInMenu: true } },
-	]},
+    { path: '{{ .Model.Filename }}', name: '{{ .Model.Name }}List', component: () => import('@/views/{{ .Vars.module }}/{{ .Model.Filename }}/list.vue'), meta: { title: '{{ .Vars.title }}列表', requiresAuth: true, hideInMenu: false }},
+	{ path: '{{ .Model.Filename }}/view/:id', name: '{{ .Model.Name }}View', component: () => import('@/views/{{ .Vars.module }}/{{ .Model.Filename }}/view.vue'), meta: { title: '{{ .Vars.title }}详情', requiresAuth: true, hideInMenu: true } },
+	{ path: '{{ .Model.Filename }}/edit/:id', name: '{{ .Model.Name }}Edit', component: () => import('@/views/{{ .Vars.module }}/{{ .Model.Filename }}/edit.vue'), meta: { title: '{{ .Vars.title }}编辑', requiresAuth: true, hideInMenu: true } },
+	{ path: '{{ .Model.Filename }}/create', name: '{{ .Model.Name }}Create', component: () => import('@/views/{{ .Vars.module }}/{{ .Model.Filename }}/create.vue'), meta: { title: '{{ .Vars.title }}创建', requiresAuth: true, hideInMenu: true } },
 
 	- title:  {{ .Vars.title }}
         name: {{ .Model.Name }}List
