@@ -1,6 +1,6 @@
 <template>
   <div>
-    <PageHeader title="{{ .Vars.moduleTitle }}" subtitle="{{ .Vars.title }}编辑" :back="true" :loading="false" />
+    <PageHeader subtitle="{{ .Vars.moduleTitle }}" :back="true" :loading="false" />
 
     <Container class="pt-5">
       <a-form :model="form" @submit="handleSubmit" class="md:w-3/4 sm:w-full">
