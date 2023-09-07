@@ -159,11 +159,52 @@ var genCrudCmd = &cobra.Command{
 
 func outputRoutes(render *CrudRenderParams) {
 	t := `
-	// {{ .Vars.moduleTitle }}
-    { path: '{{ .Model.Filename }}', name: '{{ .Model.Name }}List', component: () => import('@/views/{{ .Vars.module }}/{{ .Model.Filename }}/list.vue'), meta: { title: '{{ .Vars.title }}列表', requiresAuth: true }, },
-    { path: '{{ .Model.Filename }}/view/:id', name: '{{ .Model.Name }}View', component: () => import('@/views/{{ .Vars.module }}/{{ .Model.Filename }}/view.vue'), meta: { title: '{{ .Vars.title }}详情', requiresAuth: true, hideInMenu: true } },
-    { path: '{{ .Model.Filename }}/edit/:id', name: '{{ .Model.Name }}Edit', component: () => import('@/views/{{ .Vars.module }}/{{ .Model.Filename }}/edit.vue'), meta: { title: '{{ .Vars.title }}编辑', requiresAuth: true, hideInMenu: true } },
-    { path: '{{ .Model.Filename }}/create', name: '{{ .Model.Name }}Create', component: () => import('@/views/{{ .Vars.module }}/{{ .Model.Filename }}/create.vue'), meta: { title: '{{ .Vars.title }}创建', requiresAuth: true, hideInMenu: true } },
+	// {{ .Vars.title }}
+    { path: '{{ .Model.Filename }}', name: '{{ .Model.Name }}List', component: () => import('@/views/{{ .Vars.module }}/{{ .Model.Filename }}/list.vue'), meta: { title: '{{ .Vars.title }}列表', requiresAuth: true, hideInMenu: false }, children:[
+		{ path: 'view/:id', name: '{{ .Model.Name }}View', component: () => import('@/views/{{ .Vars.module }}/{{ .Model.Filename }}/view.vue'), meta: { title: '{{ .Vars.title }}详情', requiresAuth: true, hideInMenu: true } },
+		{ path: 'edit/:id', name: '{{ .Model.Name }}Edit', component: () => import('@/views/{{ .Vars.module }}/{{ .Model.Filename }}/edit.vue'), meta: { title: '{{ .Vars.title }}编辑', requiresAuth: true, hideInMenu: true } },
+		{ path: 'create', name: '{{ .Model.Name }}Create', component: () => import('@/views/{{ .Vars.module }}/{{ .Model.Filename }}/create.vue'), meta: { title: '{{ .Vars.title }}创建', requiresAuth: true, hideInMenu: true } },
+	]},
+
+	- title:  {{ .Vars.title }}
+        name: {{ .Model.Name }}List
+        path: {{ .Model.Filename }}
+        meta:
+          hideInMenu: false
+        api:
+          - get#/{{ .Model.RouteName }}
+        children:
+          - title: {{ .Vars.title }}创建
+            name: {{ .Model.Name }}Create
+            path: create
+            api:
+              - post#/{{ .Model.RouteName }}
+          - title: {{ .Vars.title }}查看
+            name: {{ .Model.Name }}View
+            path: view/{id}
+            api:
+              - get#/{{ .Model.RouteName }}/{id}
+          - title: {{ .Vars.title }}编辑
+            name: {{ .Model.Name }}Edit
+            path: edit/{id}
+            api:
+              - put#/{{ .Model.RouteName }}/{id}
+              - get#/{{ .Model.RouteName }}/{id}
+          - title: {{ .Vars.title }}删除
+            name: {{ .Model.Name }}Delete
+            path: delete/{id}
+            api:
+              - delete#/{{ .Model.RouteName }}/{id}
+          - title: {{ .Vars.title }}导入
+            name: {{ .Model.Name }}Import
+            path: import
+            api:
+              - post#/{{ .Model.RouteName }}/import
+          - title: {{ .Vars.title }}下载
+            name: {{ .Model.Name }}Download
+            path: download
+            api:
+              - post#/{{ .Model.RouteName }}/download
 	`
 
 	buf := bytes.NewBuffer(nil)

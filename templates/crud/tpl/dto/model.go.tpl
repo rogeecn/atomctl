@@ -33,14 +33,6 @@ type {{ .Model.Name }}ListQueryFilter struct {
 	{{- end }}
 }
 
-func {{ .Model.Name }}ListQueryFilters() []common.Filter {
-	return []common.Filter{
-	{{- range .Model.Fields }}
-		{Type: common.FilterTypeString, Name: "{{ .Tag }}", Label: "{{ .Comment }}"},
-	{{- end }}
-	}
-}
-
 
 type {{ .Model.Name }}Item struct {
 	{{- range .Model.Fields }}
