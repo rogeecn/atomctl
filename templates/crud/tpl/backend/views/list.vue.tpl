@@ -1,9 +1,9 @@
 <template>
   <div>
     <PageHeader subtitle="{{ .Vars.moduleTitle }}">
-      <ActionCreate :to="{ name: '{{ .Model.Name }}Create' }" />
-      <ActionImport />
-      <ActionExport />
+      <ActionCreate v-can="'{{ .Model.Name }}Create'" :to="{ name: '{{ .Model.Name }}Create' }" />
+      <ActionImport v-can="'{{ .Model.Name }}Import'"/>
+      <ActionExport v-can="'{{ .Model.Name }}Download'"/>
       <ActionRefresh @click="fetchData" />
       <ActionDensity v-model:size="size" />
       <ActionColumn
@@ -41,6 +41,7 @@
           :reload="fetchData"
           edit="{{ .Model.Name }}Edit"
           view="{{ .Model.Name }}View"
+          remove="{{ .Model.Name }}Delete"
           :params="{ id: record.id }"
           :deleteAction="delete{{ .Model.Name }}Item"
         />

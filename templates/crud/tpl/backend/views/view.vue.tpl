@@ -1,9 +1,9 @@
 <template>
   <div>
     <PageHeader subtitle="{{ .Vars.moduleTitle }}" :back="true" :loading="loading">
-      <a-button type="primary" @click="$router.push({ name: '{{ .Model.Name }}Edit', params: { id: route.params.id } })">编辑</a-button>
+      <a-button v-can="'{{ .Model.Name }}Edit'" type="primary" @click="$router.push({ name: '{{ .Model.Name }}Edit', params: { id: route.params.id } })">编辑</a-button>
 
-      <a-popconfirm content="确认删除？" type="warning" :ok-loading="deleting" @ok="handleConfirmDelete" position="lt">
+      <a-popconfirm v-can="'{{ .Model.Name }}Delete'" content="确认删除？" type="warning" :ok-loading="deleting" @ok="handleConfirmDelete" position="lt">
         <a-tooltip content="删除">
           <a-button type="outline" status="danger">删除</a-button>
         </a-tooltip>
@@ -31,14 +31,14 @@ const title=ref<string>("Title")
 
 const { loading, setLoading } = useLoading();
 const renderData = ref<DescData[]>([]);
-const userInfo = ref<{{ .Model.Name }}Item>({});
+const itemInfo = ref<{{ .Model.Name }}Item>({});
 const labels = table{{ .Model.Name }}Labels();
 
 const fetchData = async () => {
   try {
     setLoading(true);
     const { data: profile } = await get{{ .Model.Name }}Item(Number(route.params.id))
-    userInfo.value = profile
+    itemInfo.value = profile
 
     let items:DescData[] = [];
     for (const key in profile) {
