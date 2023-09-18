@@ -11,7 +11,7 @@ var Files = map[string]string{
 	"common/consts/consts.go.tpl":          "common/consts/consts.go",
 	"common/data_structures.go.tpl":        "common/data_structures.go",
 	"common/dao.go.tpl":                    "common/dao.go",
-	"common/table.go.tpl":                  "common/table.go",
+	"common/jwt.go.tpl":                    "common/jwt.go",
 	"database/migrations/migration.go.tpl": "database/migrations/migrations.go",
 	"database/seeders/seeder.go.tpl":       "database/seeders/seeders.go",
 	"database/models/model.go.tpl":         "database/models/models.go",
