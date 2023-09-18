@@ -17,10 +17,11 @@ type {{ .Model.Name }}Service struct {
 }
 
 func (svc *{{ .Model.Name }}Service) DecorateItem(model *models.{{ .Model.Name }}, id int) *dto.{{ .Model.Name }}Item {
-	var dtoItem *dto.{{ .Model.Name }}Item
-	_ = copier.Copy(dtoItem, model)
-
-	return dtoItem
+	return &dto.{{ .Model.Name }}Item{
+	{{- range .Model.Fields }}
+		{{ .Name }}: model.{{ .Name }},
+	{{- end }}
+	}
 }
 
 func (svc *{{ .Model.Name }}Service) GetByID(ctx context.Context, id {{ .Model.IntType }}) (*models.{{ .Model.Name }}, error) {
