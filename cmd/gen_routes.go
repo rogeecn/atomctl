@@ -144,7 +144,7 @@ func genRoutes(cmd *cobra.Command, args []string) error {
 		//
 		_, _ = f.WriteString("func route" + route.Name + "(engine fiber.Router, controller *controller." + route.Name + ") {\n")
 
-		_, _ = f.WriteString("\tbasePath := \"/\"+engine.(*fiber.Group).Prefix\n")
+		_, _ = f.WriteString("\tgroupPrefix := \"/\"+strings.TrimLeft(engine.(*fiber.Group).Prefix,\"/\")\n")
 		for _, action := range route.Actions {
 			_, _ = f.WriteString("\t")
 			_, _ = f.WriteString(fmt.Sprintf(`engine.%s(strings.TrimPrefix(%q, basePath), `, strcase.ToCamel(strings.ToLower(action.Method)), formatRoute(action.Route)))
