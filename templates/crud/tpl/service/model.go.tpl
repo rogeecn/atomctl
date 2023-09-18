@@ -19,7 +19,10 @@ type {{ .Model.Name }}Service struct {
 func (svc *{{ .Model.Name }}Service) DecorateItem(model *models.{{ .Model.Name }}, id int) *dto.{{ .Model.Name }}Item {
 	return &dto.{{ .Model.Name }}Item{
 	{{- range .Model.Fields }}
+	{{- if eq .Name "DeletedAt" }}
+	{{- else }}
 		{{ .Name }}: model.{{ .Name }},
+	{{- end }}
 	{{- end }}
 	}
 }
