@@ -1,6 +1,10 @@
 package common
 
-import "strings"
+import (
+	"strings"
+
+	"github.com/samber/lo"
+)
 
 type SortQueryFilter struct {
 	Asc  *string `json:"asc" form:"asc"`
@@ -19,6 +23,21 @@ func (s *SortQueryFilter) DescFields() []string {
 		return nil
 	}
 	return strings.Split(*s.Desc, ",")
+}
+
+func (s *SortQueryFilter) DescID() *SortQueryFilter {
+	if s.Desc == nil {
+		s.Desc = lo.ToPtr("id")
+	}
+
+	items := s.DescFields()
+	if lo.Contains(items, "id") {
+		return s
+	}
+
+	items = append(items, "id")
+	s.Desc = lo.ToPtr(strings.Join(items, ","))
+	return s
 }
 
 type PageDataResponse struct {

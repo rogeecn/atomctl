@@ -58,7 +58,7 @@ func (c *{{ .Model.Name }}Controller) List(
 	pageFilter *common.PageQueryFilter, 
 	sortFilter *common.SortQueryFilter,
 ) (*common.PageDataResponse, error) {
-	items, total, err := c.{{ .Model.CamelName }}Svc.PageByQueryFilter(ctx.Context(), {{ range $i, $field := .Model.PathFields }} {{ $field.Name}},{{ end }}queryFilter, pageFilter, sortFilter)
+	items, total, err := c.{{ .Model.CamelName }}Svc.PageByQueryFilter(ctx.Context(), {{ range $i, $field := .Model.PathFields }} {{ $field.Name}},{{ end }}queryFilter, pageFilter, sortFilter.DescID())
 	if err != nil {
 		return nil, err
 	}
