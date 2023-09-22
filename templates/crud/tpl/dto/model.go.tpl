@@ -57,7 +57,7 @@ func {{ .Model.Name }}ItemFillWith(item interface{}) *{{ .Model.Name }}Item{
 	return m
 }
 
-type (m *{{ .Model.Name }}Item) Fill(item interface{}) error {
+func (m *{{ .Model.Name }}Item) Fill(item interface{}) error {
 	if reflect.ValueOf(item).Kind() == reflect.Ptr {
 		return copier.Copy(&m, item)
 	}
