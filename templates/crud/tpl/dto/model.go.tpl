@@ -5,6 +5,8 @@ import (
 	{{- range .Model.Imports }}
 	{{ . }}
 	{{- end }}
+
+	"github.com/jinzhu/copier"
 )
 
 type {{ .Model.Name }}Form struct {
@@ -45,4 +47,20 @@ type {{ .Model.Name }}Item struct {
 	{{- end }}
 	{{- end }}
 	{{- end }}
+}
+
+func {{ .Model.Name }}ItemFillWith(item interface{}) *{{ .Model.Name }}Item{
+	m := &{{ .Model.Name }}Item{}
+	if err := m.Fill(item); err != nil {
+		return nil
+	}
+	return m
+}
+
+type (m *{{ .Model.Name }}Item) Fill(item interface{}) error {
+	if reflect.ValueOf(item).Kind() == reflect.Ptr {
+		return copier.Copy(&m, item)
+	}
+
+	return errors.New("only support pointer type var")
 }
