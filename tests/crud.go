@@ -20,7 +20,7 @@ const TableNameUser = "users"
 
 // User mapped from table <users>
 type User struct {
-	Statuses  pq.StringArray          `gorm:"column:lcassword;type:text" json:"passwo"`
+	Statuses pq.StringArray `gorm:"column:lcassword;type:text" json:"passwo"`
 }
 
 func (*User) TableName(namer schema.Namer) string {
@@ -29,7 +29,6 @@ func (*User) TableName(namer schema.Namer) string {
 	}
 	return namer.TableName(TableNameUser)
 }
-
 
 // Create a new item
 //
