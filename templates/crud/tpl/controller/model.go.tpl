@@ -27,7 +27,7 @@ type {{ .Model.Name }}Controller struct {
 //	@Success		200	{object}	dto.{{ .Model.Name }}Item
 //	@Router			/{{ .Model.RouteName }}/{id} [get]
 func (c *{{ .Model.Name }}Controller) Show(ctx *fiber.Ctx,{{ range $i, $field := .Model.PathFields }} {{ $field.Name}} {{ $field.Type }}, {{end}} id {{ .Model.IntType }}) (*dto.{{ .Model.Name }}Item, error) {
-	item, err := c.{{ .Model.CamelName }}Svc.GetByID(ctx.Context(), id)
+	item, err := c.{{ .Model.CamelName }}Svc.FirstByID(ctx.Context(), id)
 	if err != nil{
 		return nil, err
 	}
@@ -58,7 +58,7 @@ func (c *{{ .Model.Name }}Controller) List(
 	pageFilter *common.PageQueryFilter, 
 	sortFilter *common.SortQueryFilter,
 ) (*common.PageDataResponse, error) {
-	items, total, err := c.{{ .Model.CamelName }}Svc.PageByQueryFilter(ctx.Context(), {{ range $i, $field := .Model.PathFields }} {{ $field.Name}},{{ end }}queryFilter, pageFilter, sortFilter.DescID())
+	items, total, err := c.{{ .Model.CamelName }}Svc.PageByFilter(ctx.Context(), {{ range $i, $field := .Model.PathFields }} {{ $field.Name}},{{ end }}queryFilter, pageFilter, sortFilter.DescID())
 	if err != nil {
 		return nil, err
 	}

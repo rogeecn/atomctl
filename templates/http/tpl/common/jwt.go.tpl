@@ -8,14 +8,15 @@ import (
 )
 
 func GetJwtToken(ctx *fiber.Ctx) (string, error) {
-	token, ok := ctx.GetReqHeaders()[jwt.HttpHeader]
+	headers, ok := ctx.GetReqHeaders()[jwt.HttpHeader]
 	if !ok {
 		return "", ctx.SendStatus(fiber.StatusUnauthorized)
 	}
-
-	if !strings.HasPrefix(token, jwt.TokenPrefix) {
+	if len(headers) == 0 {
 		return "", ctx.SendStatus(fiber.StatusUnauthorized)
 	}
+	token := headers[0]
+
 	token = token[len(jwt.TokenPrefix):]
 	return token, nil
 }

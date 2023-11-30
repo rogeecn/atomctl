@@ -13,6 +13,7 @@ import (
 	dbProvider "github.com/atom-providers/database-sqlite"
 	{{- end }}
 	"github.com/atom-providers/log"
+	"github.com/atom-providers/app"
 
 	"github.com/rogeecn/atom"
 	"github.com/rogeecn/atom/container"
@@ -36,6 +37,7 @@ type GenQueryGenerator struct {
 func main() {
 	providers := container.Providers{
 		log.DefaultProvider(),
+		app.DefaultProvider(),
 		dbProvider.DefaultProvider(),
 	}
 
