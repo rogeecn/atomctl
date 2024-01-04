@@ -8,8 +8,9 @@ import (
 )
 
 func Provide(...opt.Option) error {
-	return container.Container.Provide(func(db *gorm.DB) {
+	return container.Container.Provide(func(db *gorm.DB) *Query {
 		SetDefault(db)
+		return Q
 	}, atom.GroupInitial)
 }
 func DefaultProvider() container.ProviderContainer {
