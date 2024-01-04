@@ -1,4 +1,4 @@
-package service
+package {{ .ModuleName }}
 
 import (
 	"context"
@@ -6,9 +6,7 @@ import (
 	"{{ .PkgName }}/common"
 	"{{ .PkgName }}/database/query"
 	"{{ .PkgName }}/database/models"
-	"{{ .PkgName }}/{{ .Module }}/dto"
 
-	"github.com/jinzhu/copier"
 	"github.com/jinzhu/copier"
 	"gorm.io/gen/field"
 )
@@ -16,8 +14,8 @@ import (
 // @provider
 type {{ .Model.Name }}Service struct { }
 
-func (svc *{{ .Model.Name }}Service) DecorateItem(model *models.{{ .Model.Name }}, id int) *dto.{{ .Model.Name }}Item {
-	return &dto.{{ .Model.Name }}Item{
+func (svc *{{ .Model.Name }}Service) DecorateItem(model *models.{{ .Model.Name }}, id int) *{{ .Model.Name }}Item {
+	return &{{ .Model.Name }}Item{
 	{{- range .Model.Fields }}
 	{{- if eq .Name "DeletedAt" }}
 	{{- else }}
@@ -38,7 +36,7 @@ func (svc *{{ .Model.Name }}Service) FindByIDs(ctx context.Context, id []uint64)
 }
 
 // Create
-func (svc *{{ .Model.Name }}Service) Create(ctx context.Context, body *dto.{{ .Model.Name }}Form) error {
+func (svc *{{ .Model.Name }}Service) Create(ctx context.Context, body *{{ .Model.Name }}Form) error {
 	model := &models.{{ .Model.Name }}{}
 	_ = copier.Copy(model, body)
 
@@ -52,7 +50,7 @@ func (svc *{{ .Model.Name }}Service) CreateFromModel(ctx context.Context, model 
 }
 
 // Update
-func (svc *{{ .Model.Name }}Service) Update(ctx context.Context, id uint64, body *dto.{{ .Model.Name }}Form) error {
+func (svc *{{ .Model.Name }}Service) Update(ctx context.Context, id uint64, body *{{ .Model.Name }}Form) error {
 	model, err := svc.FirstByID(ctx, id)
 	if err != nil {
 		return err
@@ -89,8 +87,8 @@ func (dao *{{ .Model.Name }}Service) DeletePermanently(ctx context.Context, id u
 {{- range .Model.Fields }}
 {{ if eq .Name "DeletedAt" }}
 func (dao *{{ $.Model.Name }}Service) Restore(ctx context.Context, id uint64) error {
-	t, q := query.{{ $.Model.Name }}, query.{{ $.Model.Name }}.WithContext(ctx)
-	_, err := q.Unscoped().Where(t.ID.Eq(id)).UpdateSimple(t.DeletedAt.Null())
+	t, q := query.{{ $.Model.Name }}, query.{{ $.Model.Name }}.WithContext(ctx).Unscoped()
+	_, err := q.Where(t.ID.Eq(id)).UpdateSimple(t.DeletedAt.Null())
 	return err
 }
 {{- end }}
@@ -98,7 +96,7 @@ func (dao *{{ $.Model.Name }}Service) Restore(ctx context.Context, id uint64) er
 
 func (svc *{{ .Model.Name }}Service) FindByFilter(
 	ctx context.Context,
-	queryFilter *dto.{{ .Model.Name }}ListQueryFilter,
+	queryFilter *{{ .Model.Name }}ListQueryFilter,
 	sortFilter *common.SortQueryFilter,
 ) ([]*models.{{ .Model.Name }}, error) {
 	_, q := query.{{ .Model.Name }}, query.{{ .Model.Name }}.WithContext(ctx)
@@ -110,7 +108,7 @@ func (svc *{{ .Model.Name }}Service) FindByFilter(
 
 func (svc *{{ .Model.Name }}Service) PageByFilter(
 	ctx context.Context,
-	queryFilter *dto.{{ .Model.Name }}ListQueryFilter,
+	queryFilter *{{ .Model.Name }}ListQueryFilter,
 	pageFilter *common.PageQueryFilter,
 	sortFilter *common.SortQueryFilter,
 ) ([]*models.{{ .Model.Name }}, int64, error) {
@@ -141,7 +139,7 @@ func (svc *{{ .Model.Name }}Service) decorateSortQueryFilter(q query.I{{ .Model.
 	return q.Order(orderExprs...)
 }
 
-func (dao *{{ .Model.Name }}Service) decorateQueryFilter(q query.I{{ .Model.Name }}Do, queryFilter *dto.{{ .Model.Name }}ListQueryFilter) query.I{{ .Model.Name }}Do {
+func (dao *{{ .Model.Name }}Service) decorateQueryFilter(q query.I{{ .Model.Name }}Do, queryFilter *{{ .Model.Name }}ListQueryFilter) query.I{{ .Model.Name }}Do {
 	if queryFilter == nil {
 		return q
 	}

@@ -54,6 +54,7 @@ var genCrudCmd = &cobra.Command{
 		}
 		pkgName := getPackage()
 		modulePath, _ := dotToModule(args[1])
+		moduleName, _ := lo.Last(strings.Split(args[1], "."))
 		modelFile := fmt.Sprintf("database/models/%s.gen.go", args[0])
 
 		modelInfo, err := genCrud(pkgName, modelFile, modulePath)
@@ -75,9 +76,10 @@ var genCrudCmd = &cobra.Command{
 		// render go files
 		if !onlyBackend {
 			render := CrudRenderParams{
-				PkgName: pkgName,
-				Module:  modulePath,
-				Model:   modelInfo,
+				PkgName:    pkgName,
+				Module:     modulePath,
+				ModuleName: moduleName,
+				Model:      modelInfo,
 			}
 			generateFiles, err := render.prepareFiles(crud.Files, args[0], flagForce)
 			if err != nil {
@@ -238,6 +240,7 @@ type CrudRenderParams struct {
 	Model       *ModelInfo
 	Title       string
 	ModuleTitle string
+	ModuleName  string
 	Vars        map[string]string
 }
 

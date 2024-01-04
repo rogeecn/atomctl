@@ -23,6 +23,7 @@ var Files = map[string]string{
 	"docs/swagger.json.tpl":                "docs/swagger.json",
 	"config.toml":                          "config.toml",
 	"main.go.tpl":                          "main.go",
+	"dev.go.tpl":                           "dev.go",
 	"Makefile":                             "Makefile",
 	"go.mod.tpl":                           "go.mod",
 	"gitignore":                            ".gitignore",

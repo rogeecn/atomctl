@@ -5,6 +5,7 @@ import (
 
 	"{{ .Pkg }}/database/migrations"
 
+	"github.com/atom-providers/app"
 	"github.com/go-gormigrate/gormigrate/v2"
 	{{- if eq .Driver "mysql" }}
 	dbProvider "github.com/atom-providers/database-mysql"
@@ -37,6 +38,7 @@ func main() {
 
 	providers := container.Providers{
 		log.DefaultProvider(),
+		app.DefaultProvider(),
 		dbProvider.DefaultProvider(),
 	}
 

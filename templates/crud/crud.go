@@ -8,9 +8,9 @@ import (
 var Templates embed.FS
 
 var Files = map[string]string{
-	"dto/model.go.tpl":        "dto/{filename}.go",
-	"controller/model.go.tpl": "controller/{filename}.go",
-	"service/model.go.tpl":    "service/{filename}.go",
+	"model_dto.go.tpl":        "{filename}_dto.go",
+	"model_controller.go.tpl": "{filename}_controller.go",
+	"model_service.go.tpl":    "{filename}_service.go",
 }
 
 var BackendFiles = map[string]string{

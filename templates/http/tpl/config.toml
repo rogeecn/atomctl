@@ -1,8 +1,19 @@
 [Http]
 Port = 9800
 
+[App]
+Mode = "development"
+
 [SQLite]
 File = "sqlite.db"
+
+
+[MySQL]
+Host = "localhost"
+Port = 3306
+Database = "test"
+Username = "root"
+Password = "admin"
 
 [Swagger]
 BaseRoute = "doc"

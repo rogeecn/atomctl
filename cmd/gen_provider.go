@@ -208,7 +208,7 @@ func astParseProviders(projectPkg, source string) []Provider {
 		if group != "" {
 			provider.ProviderGroup = group
 		}
-		// fmt.Println(mode, returnType, group, provider.ProviderGroup)
+		fmt.Println(mode, returnType, group, provider.ProviderGroup)
 
 		if returnType == "#" {
 			provider.ReturnType = "*" + provider.StructName
@@ -409,6 +409,10 @@ func renderFile(filename string, conf []Provider) error {
 func parseDoc(doc string) (string, string, string) {
 	// @provider:[except|only] [returnType] [group]
 	doc = strings.TrimLeft(doc[len("@provider"):], ":")
+	if !strings.HasPrefix(doc, "except") && !strings.HasPrefix(doc, "only") {
+		doc = "except " + doc
+	}
+
 	doc = strings.ReplaceAll(doc, "\t", " ")
 	cmds := strings.Split(doc, " ")
 	cmds = lo.Filter(cmds, func(item string, idx int) bool {

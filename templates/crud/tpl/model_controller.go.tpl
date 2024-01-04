@@ -1,9 +1,7 @@
-package controller
+package {{ .ModuleName }}
 
 import (
 	"{{ .PkgName }}/common"
-	"{{ .PkgName }}/{{ .Module }}/dto"
-	"{{ .PkgName }}/{{ .Module }}/service"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/samber/lo"
@@ -11,7 +9,7 @@ import (
 
 // @provider
 type {{ .Model.Name }}Controller struct {
-	{{ .Model.CamelName }}Svc *service.{{ .Model.Name }}Service
+	{{ .Model.CamelName }}Svc *{{ .Model.Name }}Service
 }
 
 // Show get single item info
@@ -24,9 +22,9 @@ type {{ .Model.Name }}Controller struct {
 //	@Param			{{ $field.Name }}	path		{{ $field.Type }}	true	"{{ $field.Comment }}"
 {{- end}}
 //	@Param			id	path		int	true	"{{ .Model.Name }}ID"
-//	@Success		200	{object}	dto.{{ .Model.Name }}Item
+//	@Success		200	{object}	{{ .Model.Name }}Item
 //	@Router			/{{ .Model.RouteName }}/{id} [get]
-func (c *{{ .Model.Name }}Controller) Show(ctx *fiber.Ctx,{{ range $i, $field := .Model.PathFields }} {{ $field.Name}} {{ $field.Type }}, {{end}} id {{ .Model.IntType }}) (*dto.{{ .Model.Name }}Item, error) {
+func (c *{{ .Model.Name }}Controller) Show(ctx *fiber.Ctx,{{ range $i, $field := .Model.PathFields }} {{ $field.Name}} {{ $field.Type }}, {{end}} id {{ .Model.IntType }}) (*{{ .Model.Name }}Item, error) {
 	item, err := c.{{ .Model.CamelName }}Svc.FirstByID(ctx.Context(), id)
 	if err != nil{
 		return nil, err
@@ -44,18 +42,18 @@ func (c *{{ .Model.Name }}Controller) Show(ctx *fiber.Ctx,{{ range $i, $field :=
 {{- range $i, $field := .Model.PathFields }}
 //	@Param			{{ $field.Name }}	path		{{ $field.Type }}	true	"{{ $field.Comment }}"
 {{- end}}
-//	@Param			queryFilter	query		dto.{{ .Model.Name }}ListQueryFilter	true	"{{ .Model.Name }}ListQueryFilter"
+//	@Param			queryFilter	query		{{ .Model.Name }}ListQueryFilter	true	"{{ .Model.Name }}ListQueryFilter"
 //	@Param			pageFilter	query		common.PageQueryFilter	true	"PageQueryFilter"
 //	@Param			sortFilter	query		common.SortQueryFilter	true	"SortQueryFilter"
-//	@Success		200			{object}	common.PageDataResponse{list=dto.{{ .Model.Name }}Item}
+//	@Success		200			{object}	common.PageDataResponse{list={{ .Model.Name }}Item}
 //	@Router			/{{ .Model.RouteName }} [get]
 func (c *{{ .Model.Name }}Controller) List(
-	ctx *fiber.Ctx, 
-{{- range $i, $field := .Model.PathFields }} 
-	{{ $field.Name}} {{ $field.Type }}, 
+	ctx *fiber.Ctx,
+{{- range $i, $field := .Model.PathFields }}
+	{{ $field.Name}} {{ $field.Type }},
 {{- end}}
-	queryFilter *dto.{{ .Model.Name }}ListQueryFilter,
-	pageFilter *common.PageQueryFilter, 
+	queryFilter *{{ .Model.Name }}ListQueryFilter,
+	pageFilter *common.PageQueryFilter,
 	sortFilter *common.SortQueryFilter,
 ) (*common.PageDataResponse, error) {
 	items, total, err := c.{{ .Model.CamelName }}Svc.PageByFilter(ctx.Context(), {{ range $i, $field := .Model.PathFields }} {{ $field.Name}},{{ end }}queryFilter, pageFilter, sortFilter.DescID())
@@ -79,10 +77,10 @@ func (c *{{ .Model.Name }}Controller) List(
 {{- range $i, $field := .Model.PathFields }}
 //	@Param			{{ $field.Name }}	path		{{ $field.Type }}	true	"{{ $field.Comment }}"
 {{- end}}
-//	@Param			body	body		dto.{{ .Model.Name }}Form	true	"{{ .Model.Name }}Form"
+//	@Param			body	body		{{ .Model.Name }}Form	true	"{{ .Model.Name }}Form"
 //	@Success		200		{string}	{{ .Model.Name }}ID
 //	@Router			/{{ .Model.RouteName }} [post]
-func (c *{{ .Model.Name }}Controller) Create(ctx *fiber.Ctx,{{ range $i, $field := .Model.PathFields }} {{ $field.Name}} {{ $field.Type }}, {{end}} body *dto.{{ .Model.Name }}Form) error {
+func (c *{{ .Model.Name }}Controller) Create(ctx *fiber.Ctx,{{ range $i, $field := .Model.PathFields }} {{ $field.Name}} {{ $field.Type }}, {{end}} body *{{ .Model.Name }}Form) error {
 	return c.{{ .Model.CamelName }}Svc.Create(ctx.Context(), {{ range $i, $field := .Model.PathFields }} {{ $field.Name}},{{ end }}body)
 }
 
@@ -96,10 +94,10 @@ func (c *{{ .Model.Name }}Controller) Create(ctx *fiber.Ctx,{{ range $i, $field 
 //	@Param			{{ $field.Name }}	path		{{ $field.Type }}	true	"{{ $field.Comment }}"
 {{- end}}
 //	@Param			id		path		int				true	"{{ .Model.Name }}ID"
-//	@Param			body	body		dto.{{ .Model.Name }}Form	true	"{{ .Model.Name }}Form"
+//	@Param			body	body		{{ .Model.Name }}Form	true	"{{ .Model.Name }}Form"
 //	@Success		200		{string}	{{ .Model.Name }}ID
 //	@Router			/{{ .Model.RouteName }}/{id} [put]
-func (c *{{ .Model.Name }}Controller) Update(ctx *fiber.Ctx,{{ range $i, $field := .Model.PathFields }} {{ $field.Name}} {{ $field.Type }}, {{end}}id {{ .Model.IntType }}, body *dto.{{ .Model.Name }}Form) error {
+func (c *{{ .Model.Name }}Controller) Update(ctx *fiber.Ctx,{{ range $i, $field := .Model.PathFields }} {{ $field.Name}} {{ $field.Type }}, {{end}}id {{ .Model.IntType }}, body *{{ .Model.Name }}Form) error {
 	return c.{{ .Model.CamelName }}Svc.Update(ctx.Context(), {{ range $i, $field := .Model.PathFields }} {{ $field.Name}},{{ end }}id, body)
 }
 
