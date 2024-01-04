@@ -306,7 +306,7 @@ func astParseProviders(projectPkg, source string) []Provider {
 		}
 
 		provider.PkgName = node.Name.Name
-		provider.ProviderFile = filepath.Join(filepath.Dir(source), "_provider.go")
+		provider.ProviderFile = filepath.Join(filepath.Dir(source), "provider.gen.go")
 
 		providers = append(providers, provider)
 

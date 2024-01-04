@@ -84,7 +84,7 @@ func genRoutes(cmd *cobra.Command, args []string) error {
 	})
 
 	for key, routes := range routeGroups {
-		routePath := filepath.Join(key, "_routes.go")
+		routePath := filepath.Join(key, "routes.gen.go")
 
 		imports := lo.FlatMap(routes, func(item RouteDefinition, index int) []string {
 			return lo.Map(item.Imports, func(item string, index int) string {
