@@ -25,8 +25,8 @@ var modelGenerator = &ModelGenerator{}
 
 func init() {
 	genCmd.AddCommand(genModelCmd)
-	genCrudCmd.Flags().StringVarP(&modelGenerator.Driver, "driver", "D", "mysql", "define driver: postgres/mysql/sqlite")
-	genCrudCmd.Flags().StringVarP(&modelGenerator.AppName, "app", "A", "", "app name")
+	genModelCmd.Flags().StringVarP(&modelGenerator.Driver, "driver", "D", "mysql", "define driver: postgres/mysql/sqlite")
+	genModelCmd.Flags().StringVarP(&modelGenerator.AppName, "app", "A", "", "app name")
 }
 
 var genModelCmd = &cobra.Command{
