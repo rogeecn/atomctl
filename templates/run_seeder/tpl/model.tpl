@@ -11,6 +11,7 @@ import (
 	dbProvider "github.com/atom-providers/database-sqlite"
 	{{- end }}
 	"github.com/atom-providers/faker"
+	"github.com/atom-providers/app"
 
 	"github.com/brianvoe/gofakeit/v6"
 	"github.com/rogeecn/atom"
@@ -40,6 +41,7 @@ func main() {
 
 	providers := container.Providers{
 		log.DefaultProvider(),
+		app.DefaultProvider(),
 		faker.DefaultProvider(),
 		dbProvider.DefaultProvider(),
 	}
