@@ -1,0 +1,92 @@
+package http
+
+import (
+	"errors"
+	"fmt"
+	"runtime/debug"
+	"time"
+
+	"git.ipao.vip/rogeecn/atom/container"
+	"git.ipao.vip/rogeecn/atom/utils/opt"
+	log "github.com/sirupsen/logrus"
+
+	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v3/middleware/logger"
+	"github.com/gofiber/fiber/v3/middleware/recover"
+)
+
+func DefaultProvider() container.ProviderContainer {
+	return container.ProviderContainer{
+		Provider: Provide,
+		Options: []opt.Option{
+			opt.Prefix(DefaultPrefix),
+		},
+	}
+}
+
+type Service struct {
+	conf   *Config
+	Engine *fiber.App
+}
+
+func (svc *Service) Serve() error {
+	listenConfig := fiber.ListenConfig{
+		EnablePrintRoutes: true,
+		OnShutdownSuccess: func() {
+			log.Info("http server shutdown success")
+		},
+		OnShutdownError: func(err error) {
+			log.Error("http server shutdown error: ", err)
+		},
+
+		// DisableStartupMessage: true,
+	}
+
+	if svc.conf.Tls != nil {
+		if svc.conf.Tls.Cert == "" || svc.conf.Tls.Key == "" {
+			return errors.New("tls cert or key is empty")
+		}
+		listenConfig.CertFile = svc.conf.Tls.Cert
+		listenConfig.CertKeyFile = svc.conf.Tls.Key
+	}
+	container.AddCloseAble(func() {
+		svc.Engine.Shutdown()
+	})
+
+	return svc.Engine.Listen(svc.conf.Address(), listenConfig)
+}
+
+func Provide(opts ...opt.Option) error {
+	o := opt.New(opts...)
+	var config Config
+	if err := o.UnmarshalConfig(&config); err != nil {
+		return err
+	}
+
+	return container.Container.Provide(func() (*Service, error) {
+		engine := fiber.New(fiber.Config{
+			StrictRouting: true,
+		})
+		engine.Use(recover.New(recover.Config{
+			EnableStackTrace: true,
+			StackTraceHandler: func(c fiber.Ctx, e any) {
+				log.WithError(e.(error)).Error(fmt.Sprintf("panic: %v\n%s\n", e, debug.Stack()))
+			},
+		}))
+
+		if config.StaticRoute != nil && config.StaticPath != nil {
+			engine.Use(config.StaticRoute, config.StaticPath)
+		}
+
+		engine.Use(logger.New(logger.Config{
+			Format:     `[${ip}:${port}] - [${time}] - ${method} - ${status} - ${path} ${latency} "${ua}"` + "\n",
+			TimeFormat: time.RFC1123,
+			TimeZone:   "Asia/Shanghai",
+		}))
+
+		return &Service{
+			Engine: engine,
+			conf:   &config,
+		}, nil
+	}, o.DiOptions()...)
+}
