@@ -1,6 +1,8 @@
 package gomod
 
 import (
+	"bufio"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -40,7 +42,7 @@ func Parse(modPath string) error {
 	goMod = &GoMod{file: f, modules: make(map[string]ModuleInfo)}
 
 	for _, require := range f.Require {
-		if !require.Indirect {
+		if require.Indirect {
 			continue
 		}
 
@@ -94,22 +96,33 @@ func getPackageName(pkg, version string) (string, error) {
 		return "", err
 	}
 
-	packagePattern := regexp.MustCompile(`package\s+(\w+)`)
+	packagePattern := regexp.MustCompile(`^package\s+(\w+)$`)
+	getFilePackageName := func(file string) (string, error) {
+		// 读取文件内容
+		f, err := os.Open(file)
+		if err != nil {
+			return "", err
+		}
+		defer f.Close()
+
+		scanner := bufio.NewScanner(f)
+		for scanner.Scan() {
+			line := scanner.Text()
+			if matches := packagePattern.FindStringSubmatch(line); matches != nil {
+				return matches[1], nil
+			}
+		}
+		return "", errors.New("no match")
+	}
+
 	if len(files) > 0 {
 		for _, file := range files {
 			if strings.HasSuffix(file, "_test.go") {
 				continue
 			}
-			// 读取文件内容
 
-			content, err := os.ReadFile(file)
-			if err != nil {
-				return "", err
-			}
-
-			packageName := packagePattern.FindStringSubmatch(string(content))
-			if len(packageName) == 2 {
-				return packageName[1], nil
+			if name, err := getFilePackageName(file); err == nil {
+				return name, nil
 			}
 		}
 	}

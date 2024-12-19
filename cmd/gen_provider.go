@@ -370,8 +370,15 @@ func renderFile(filename string, conf []Provider) error {
 		for k, v := range item.Imports {
 			// 如果是当前包的引用，直接使用包名
 			if strings.HasSuffix(k, "/"+v) {
-				v = ""
+				imports[k] = ""
+				continue
 			}
+
+			if gomod.GetPackageModuleName(k) == v {
+				imports[k] = ""
+				continue
+			}
+
 			imports[k] = v
 		}
 	})
