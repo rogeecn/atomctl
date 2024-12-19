@@ -22,19 +22,19 @@ func isValidGoPackageName(name string) bool {
 	return goPackageRegexp.MatchString(name)
 }
 
-func CommandNew(root *cobra.Command) {
+func CommandInit(root *cobra.Command) {
 	cmd := &cobra.Command{
-		Use:   "new [project]",
-		Short: "Create new project",
+		Use:   "init [project]",
+		Short: "init new project",
 		Args:  cobra.ExactArgs(1),
-		RunE:  commandNewE,
+		RunE:  commandInitE,
 	}
 
-	cmd.Flags().BoolP("force", "f", false, "Force create project if exists")
+	cmd.Flags().BoolP("force", "f", false, "Force init project if exists")
 	root.AddCommand(cmd)
 }
 
-func commandNewE(cmd *cobra.Command, args []string) error {
+func commandInitE(cmd *cobra.Command, args []string) error {
 	moduleName := args[0]
 	if !isValidGoPackageName(moduleName) {
 		return fmt.Errorf("invalid module name: %s, should be a valid go package name", moduleName)

@@ -13,7 +13,7 @@ func main() {
 	}
 
 	cmds := []func(*cobra.Command){
-		cmd.CommandNew,
+		cmd.CommandInit,
 		cmd.CommandMigrate,
 	}
 
