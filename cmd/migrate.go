@@ -33,7 +33,7 @@ func commandMigrate(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	db, err := postgres.GetDB(cmd.Flag("config").Value.String())
+	db, _, err := postgres.GetDB(cmd.Flag("config").Value.String())
 	if err != nil {
 		return errors.Wrap(err, "get db")
 	}

@@ -15,6 +15,7 @@ func main() {
 	cmds := []func(*cobra.Command){
 		cmd.CommandInit,
 		cmd.CommandMigrate,
+		cmd.CommandGen,
 	}
 
 	for _, c := range cmds {
