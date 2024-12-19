@@ -12,7 +12,14 @@ func main() {
 		Short: "atom framework command line tool",
 	}
 
-	cmd.CommandNew(rootCmd)
+	cmds := []func(*cobra.Command){
+		cmd.CommandNew,
+		cmd.CommandMigrate,
+	}
+
+	for _, c := range cmds {
+		c(rootCmd)
+	}
 
 	if err := rootCmd.Execute(); err != nil {
 		log.Fatal(err)
