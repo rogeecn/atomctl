@@ -10,14 +10,9 @@ GOPATH:=$(shell go env GOPATH)
 tidy:
 	@go mod tidy
 
-.PHONY: dist
-dist:
-	@go build -ldflags=${flags} -o bin/debug/atom{{.ProjectName}}
-	@cp config.toml bin/debug/
-
 .PHONY: release
 release:
-	@CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o bin/release/{{.ProjectName}} .
+	@CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build  -ldflags=${flags} -o bin/release/{{.ProjectName}} .
 	@cp config.toml bin/release/
 
 .PHONY: test
@@ -27,24 +22,3 @@ test:
 .PHONY: lint
 lint:
 	@golangci-lint run
-
-.PHONY: proto
-proto:
-	@buf generate
-
-.PHONY: fresh
-fresh:
-	@go run . migrate down
-	@go run . migrate up
-
-.PHONY: mup
-mup:
-	@go run . migrate up
-
-.PHONY: mdown
-mdown:
-	@go run . migrate down
-
-.PHONY: model
-model:
-	go test -run ^Test_GenModel
