@@ -22,27 +22,24 @@ func isValidGoPackageName(name string) bool {
 	return goPackageRegexp.MatchString(name)
 }
 
-func CommandInit(root *cobra.Command) {
+func CommandNewProject(root *cobra.Command) {
 	cmd := &cobra.Command{
-		Use:   "init [project]",
-		Short: "init new project",
+		Use:   "project",
+		Short: "new project",
 		Args:  cobra.ExactArgs(1),
-		RunE:  commandInitE,
+		RunE:  commandNewProjectE,
 	}
 
-	cmd.Flags().BoolP("force", "f", false, "Force init project if exists")
 	root.AddCommand(cmd)
 }
 
-func commandInitE(cmd *cobra.Command, args []string) error {
+func commandNewProjectE(cmd *cobra.Command, args []string) error {
 	moduleName := args[0]
 	if !isValidGoPackageName(moduleName) {
 		return fmt.Errorf("invalid module name: %s, should be a valid go package name", moduleName)
 	}
 
 	log.Info("创建项目: ", moduleName)
-
-	force, _ := cmd.Flags().GetBool("force")
 
 	var projectInfo struct {
 		ModuleName  string
@@ -54,6 +51,7 @@ func commandInitE(cmd *cobra.Command, args []string) error {
 	projectInfo.ProjectName = moduleSplitInfo[len(moduleSplitInfo)-1]
 
 	// 检查目录是否存在
+	force, _ := cmd.Flags().GetBool("force")
 	if _, err := os.Stat(projectInfo.ProjectName); err == nil {
 		if !force {
 			return fmt.Errorf("project directory %s already exists", projectInfo.ProjectName)
