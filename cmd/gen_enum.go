@@ -44,7 +44,8 @@ func commandGenEnumE(cmd *cobra.Command, args []string) error {
 			return nil
 		}
 
-		content, err := os.ReadFile(path)
+		var content []byte
+		content, err = os.ReadFile(path)
 		if err != nil {
 			return err
 		}

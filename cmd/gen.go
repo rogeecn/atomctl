@@ -10,6 +10,7 @@ func CommandGen(root *cobra.Command) {
 	cmd.PersistentFlags().StringP("config", "c", "config.toml", "database config file")
 
 	cmds := []func(*cobra.Command){
+		CommandGenProvider,
 		CommandGenModel,
 		CommandGenEnum,
 	}
