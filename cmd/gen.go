@@ -11,6 +11,7 @@ func CommandGen(root *cobra.Command) {
 
 	cmds := []func(*cobra.Command){
 		CommandGenModel,
+		CommandGenEnum,
 	}
 
 	for _, c := range cmds {
