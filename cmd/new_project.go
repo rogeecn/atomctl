@@ -26,7 +26,6 @@ func CommandNewProject(root *cobra.Command) {
 	cmd := &cobra.Command{
 		Use:   "project",
 		Short: "new project",
-		Args:  cobra.ExactArgs(1),
 		RunE:  commandNewProjectE,
 	}
 

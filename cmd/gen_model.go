@@ -40,7 +40,7 @@ func commandGenModelE(cmd *cobra.Command, args []string) error {
 
 	v := viper.New()
 	v.SetConfigType("yaml")
-	v.SetConfigFile("database/.transform.yaml")
+	v.SetConfigFile("database/transform.yaml")
 
 	if err := v.ReadInConfig(); err != nil {
 		return err
