@@ -31,6 +31,7 @@ func commandNewModuleE(cmd *cobra.Command, args []string) error {
 	module := lo.Filter(strings.Split(args[0], "."), func(s string, _ int) bool {
 		return s != ""
 	})
+	module = append([]string{"app/http"}, module...)
 
 	pwd, err := os.Getwd()
 	if err != nil {
@@ -42,12 +43,8 @@ func commandNewModuleE(cmd *cobra.Command, args []string) error {
 		return errors.New("parse go.mod file failed")
 	}
 
-	modulePath := module[0]
-	if len(module) > 1 {
-		modulePath = strings.Join(module, "/modules/")
-	}
 	moduleName := module[len(module)-1]
-	modulePath = filepath.Join("app/http", modulePath)
+	modulePath := filepath.Join(module...)
 	log.Infof("new module: %s", modulePath)
 
 	force, _ := cmd.Flags().GetBool("force")
