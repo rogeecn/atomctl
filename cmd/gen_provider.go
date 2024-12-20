@@ -28,8 +28,9 @@ func getTypePkgName(typ string) string {
 
 func CommandGenProvider(root *cobra.Command) {
 	cmd := &cobra.Command{
-		Use:   "provider",
-		Short: "Generate providers",
+		Use:     "provider",
+		Aliases: []string{"p"},
+		Short:   "Generate providers",
 		Long: `
 //  @provider
 //  @provider:[except|only] [returnType] [group]

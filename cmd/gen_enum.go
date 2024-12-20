@@ -16,9 +16,10 @@ import (
 
 func CommandGenEnum(root *cobra.Command) {
 	cmd := &cobra.Command{
-		Use:   "enum",
-		Short: "Generate enums",
-		RunE:  commandGenEnumE,
+		Use:     "enum",
+		Aliases: []string{"e"},
+		Short:   "Generate enums",
+		RunE:    commandGenEnumE,
 	}
 
 	cmd.Flags().BoolP("flag", "f", true, "Flag enum values")

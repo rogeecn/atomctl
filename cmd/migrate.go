@@ -14,8 +14,9 @@ import (
 // migrate
 func CommandMigrate(root *cobra.Command) {
 	cmd := &cobra.Command{
-		Use:  "migrate [up|up-by-one|up-to|create|down|down-to|fix|redo|reset|status|version]",
-		RunE: commandMigrate,
+		Use:     "migrate [up|up-by-one|up-to|create|down|down-to|fix|redo|reset|status|version]",
+		Aliases: []string{"m"},
+		RunE:    commandMigrate,
 	}
 	cmd.Flags().StringP("config", "c", "config.toml", "database config file")
 

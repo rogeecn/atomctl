@@ -5,13 +5,13 @@ import (
 	"database/sql"
 	"fmt"
 
-	"{{.ModuleName}}/pkg/consts"
-
 	"github.com/go-jet/jet/v2/qrm"
 )
 
+const CtxDB = "__db__tx:"
+
 func FromContext(ctx context.Context, db *sql.DB) qrm.DB {
-	if tx, ok := ctx.Value(consts.CtxKeyTx).(*sql.Tx); ok {
+	if tx, ok := ctx.Value(CtxDB).(*sql.Tx); ok {
 		return tx
 	}
 	return db

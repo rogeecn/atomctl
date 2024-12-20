@@ -18,10 +18,11 @@ import (
 
 func CommandNewModule(root *cobra.Command) {
 	cmd := &cobra.Command{
-		Use:   "module",
-		Short: "new module",
-		Args:  cobra.ExactArgs(1),
-		RunE:  commandNewModuleE,
+		Use:     "module",
+		Aliases: []string{"m"},
+		Short:   "new module",
+		Args:    cobra.ExactArgs(1),
+		RunE:    commandNewModuleE,
 	}
 
 	root.AddCommand(cmd)

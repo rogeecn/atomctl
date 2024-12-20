@@ -24,9 +24,10 @@ func isValidGoPackageName(name string) bool {
 
 func CommandNewProject(root *cobra.Command) {
 	cmd := &cobra.Command{
-		Use:   "project",
-		Short: "new project",
-		RunE:  commandNewProjectE,
+		Use:     "project",
+		Aliases: []string{"p"},
+		Short:   "new project",
+		RunE:    commandNewProjectE,
 	}
 
 	root.AddCommand(cmd)

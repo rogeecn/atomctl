@@ -19,9 +19,10 @@ import (
 
 func CommandGenModel(root *cobra.Command) {
 	cmd := &cobra.Command{
-		Use:   "model",
-		Short: "Generate jet models",
-		RunE:  commandGenModelE,
+		Use:     "model",
+		Aliases: []string{"m"},
+		Short:   "Generate jet models",
+		RunE:    commandGenModelE,
 	}
 
 	root.AddCommand(cmd)
