@@ -1,5 +1,7 @@
 package requests
 
+import "github.com/samber/lo"
+
 type Pager struct {
 	Pagination `json:",inline"`
 	Total      int64       `json:"total"`
@@ -7,25 +9,22 @@ type Pager struct {
 }
 
 type Pagination struct {
-	Page  int `json:"page" form:"page"`
-	Limit int `json:"limit" form:"limit"`
+	Page  int `json:"page" form:"page" query:"page"`
+	Limit int `json:"limit" form:"limit" query:"limit"`
 }
 
-func (filter *PageQueryFilter) Offset() int {
+func (filter *Pagination) Offset() int {
 	return (filter.Page - 1) * filter.Limit
 }
 
-func (filter *PageQueryFilter) Format() *PageQueryFilter {
+func (filter *Pagination) Format() *Pagination {
 	if filter.Page <= 0 {
 		filter.Page = 1
 	}
 
-	if filter.Limit <= 0 {
+	if !lo.Contains([]int{10, 20, 50, 100}, filter.Limit) {
 		filter.Limit = 10
 	}
 
-	if filter.Limit > 50 {
-		filter.Limit = 50
-	}
 	return filter
 }
