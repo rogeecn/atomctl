@@ -12,8 +12,8 @@
             "program": "${workspaceFolder}",
             "args": [
                 "gen",
-                "provider",
-                "/projects/mp-qvyun/backend",
+                "route",
+                "/projects/atom_starter",
             ]
         }
     ]

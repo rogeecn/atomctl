@@ -11,6 +11,7 @@ func CommandGen(root *cobra.Command) {
 
 	cmds := []func(*cobra.Command){
 		CommandGenProvider,
+		CommandGenRoute,
 		CommandGenModel,
 		CommandGenEnum,
 	}
