@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 	"io/fs"
 	"os"
@@ -8,6 +9,7 @@ import (
 	"strings"
 	"text/template"
 
+	"git.ipao.vip/rogeecn/atomctl/pkg/utils/gomod"
 	"git.ipao.vip/rogeecn/atomctl/templates"
 	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
@@ -30,6 +32,16 @@ func commandNewModuleE(cmd *cobra.Command, args []string) error {
 		return s != ""
 	})
 
+	pwd, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+
+	modFile := filepath.Join(pwd, "go.mod")
+	if err := gomod.Parse(modFile); err != nil {
+		return errors.New("parse go.mod file failed")
+	}
+
 	modulePath := module[0]
 	if len(module) > 1 {
 		modulePath = strings.Join(module, "/modules/")
@@ -49,7 +61,7 @@ func commandNewModuleE(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	err := os.MkdirAll(modulePath, os.ModePerm)
+	err = os.MkdirAll(modulePath, os.ModePerm)
 	if err != nil {
 		return err
 	}
@@ -86,7 +98,8 @@ func commandNewModuleE(cmd *cobra.Command, args []string) error {
 		defer destFile.Close()
 
 		return tmpl.Execute(destFile, map[string]string{
-			"ModuleName": moduleName,
+			"ModuleName":    moduleName,
+			"ProjectModule": gomod.GetModuleName(),
 		})
 	})
 
