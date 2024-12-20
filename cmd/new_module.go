@@ -35,7 +35,7 @@ func commandNewModuleE(cmd *cobra.Command, args []string) error {
 		modulePath = strings.Join(module, "/modules/")
 	}
 	moduleName := module[len(module)-1]
-	modulePath = filepath.Join("modules", modulePath)
+	modulePath = filepath.Join("app/http", modulePath)
 	log.Infof("new module: %s", modulePath)
 
 	force, _ := cmd.Flags().GetBool("force")
