@@ -26,3 +26,15 @@ func TruncateAllTables(ctx context.Context, db *sql.DB, tableName ...string) err
 	}
 	return nil
 }
+
+func WrapLike(v string) string {
+	return "%" + v + "%"
+}
+
+func WrapLikeLeft(v string) string {
+	return "%" + v
+}
+
+func WrapLikeRight(v string) string {
+	return "%" + v
+}
