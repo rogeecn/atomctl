@@ -1,10 +1,12 @@
 package http
 
 import (
+	_ "{{.ModuleName}}/docs"
 	"{{.ModuleName}}/pkg/service"
 	"{{.ModuleName}}/providers/app"
 	"{{.ModuleName}}/providers/hashids"
 	"{{.ModuleName}}/providers/http"
+	"{{.ModuleName}}/providers/http/swagger"
 	"{{.ModuleName}}/providers/jwt"
 	"{{.ModuleName}}/providers/postgres"
 
@@ -48,6 +50,8 @@ func Serve(cmd *cobra.Command, args []string) error {
 	return container.Container.Invoke(func(http Http) error {
 		if http.App.Mode == app.AppModeDevelopment {
 			log.SetLevel(log.DebugLevel)
+
+			http.Service.Engine.Get("/swagger/*", swagger.HandlerDefault)
 		}
 
 		http.Service.Engine.Use(favicon.New(favicon.Config{
