@@ -1,8 +1,6 @@
 package req
 
 import (
-	"{{.ModuleName}}/providers/http"
-
 	"git.ipao.vip/rogeecn/atom/container"
 	"git.ipao.vip/rogeecn/atom/utils/opt"
 )
@@ -13,7 +11,7 @@ func DefaultProvider() container.ProviderContainer {
 	return container.ProviderContainer{
 		Provider: Provide,
 		Options: []opt.Option{
-			opt.Prefix(http.DefaultPrefix),
+			opt.Prefix(DefaultPrefix),
 		},
 	}
 }

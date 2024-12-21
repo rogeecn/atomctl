@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"{{.ModuleName}}/providers/httpclient/cookiejar"
+	"{{.ModuleName}}/providers/req/cookiejar"
 
 	"git.ipao.vip/rogeecn/atom/container"
 	"git.ipao.vip/rogeecn/atom/utils/opt"
