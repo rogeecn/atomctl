@@ -18,6 +18,7 @@ func main() {
 		cmd.CommandGen,
 		cmd.CommandSwag,
 		cmd.CommandFmt,
+		cmd.CommandBuf,
 	}
 
 	for _, c := range cmds {
