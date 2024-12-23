@@ -34,6 +34,7 @@ func commandBufE(cmd *cobra.Command, args []string) error {
 	}
 
 	log.Info("buf 命令已存在，正在运行 buf generate...")
+	log.Info("PROTOBUF GUIDE: https://buf.build/docs/best-practices/style-guide/")
 	generateCmd := exec.Command("buf", "generate")
 	if err := generateCmd.Run(); err != nil {
 		return fmt.Errorf("运行 buf generate 失败: %v", err)
