@@ -1,8 +1,8 @@
 package cmd
 
 import (
+	"git.ipao.vip/rogeecn/atomctl/pkg/swag/format"
 	"github.com/spf13/cobra"
-	"github.com/swaggo/swag/format"
 )
 
 func CommandSwagFmt(root *cobra.Command) {

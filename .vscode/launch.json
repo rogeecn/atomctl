@@ -11,9 +11,9 @@
             "mode": "auto",
             "program": "${workspaceFolder}",
             "args": [
-                "gen",
-                "route",
-                "/projects/atom_starter",
+                "swag",
+                "init",
+                "/projects/tt",
             ]
         }
     ]

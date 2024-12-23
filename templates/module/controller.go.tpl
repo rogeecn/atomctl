@@ -27,4 +27,4 @@ func (c *Controller) Prepare() error {
 //	@Param			pageFilter	query		common.PageQueryFilter	true	"PageQueryFilter"
 //	@Param			sortFilter	query		common.SortQueryFilter	true	"SortQueryFilter"
 //	@Success		200			{object}	common.PageDataResponse{list=dto.AlarmItem}
-//	@Router			/v1/test//{id} [get]
+//	@Router			/v1/test/:id<int> [get]

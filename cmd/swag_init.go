@@ -1,10 +1,13 @@
 package cmd
 
 import (
+	"os"
+	"path/filepath"
+
+	"git.ipao.vip/rogeecn/atomctl/pkg/swag"
+	"git.ipao.vip/rogeecn/atomctl/pkg/swag/gen"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"github.com/swaggo/swag"
-	"github.com/swaggo/swag/gen"
 )
 
 func CommandSwagInit(root *cobra.Command) {
@@ -19,15 +22,23 @@ func CommandSwagInit(root *cobra.Command) {
 }
 
 func commandSwagInitE(cmd *cobra.Command, args []string) error {
+	pwd, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+	if len(args) > 0 {
+		pwd = args[0]
+	}
+
 	leftDelim, rightDelim := "{{", "}}"
 
 	return gen.New().Build(&gen.Config{
-		SearchDir:           "./",
+		SearchDir:           pwd,
 		Excludes:            "",
 		ParseExtension:      "",
 		MainAPIFile:         "main.go",
 		PropNamingStrategy:  swag.CamelCase,
-		OutputDir:           "./docs",
+		OutputDir:           filepath.Join(pwd, "docs"),
 		OutputTypes:         []string{"go", "json", "yaml"},
 		ParseVendor:         false,
 		ParseDependency:     0,

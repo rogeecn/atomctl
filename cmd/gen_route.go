@@ -24,7 +24,7 @@ func CommandGenRoute(root *cobra.Command) {
 	root.AddCommand(cmd)
 }
 
-// https://github.com/swaggo/swag?tab=readme-ov-file#api-operation
+// https://git.ipao.vip/rogeecn/atomctl/pkg/swag?tab=readme-ov-file#api-operation
 func commandGenRouteE(cmd *cobra.Command, args []string) error {
 	var err error
 	var path string

@@ -3,7 +3,7 @@ package docs
 import (
 	_ "embed"
 
-	_ "github.com/swaggo/swag"
+	_ "git.ipao.vip/rogeecn/atomctl/pkg/swag"
 )
 
 //go:embed swagger.json
