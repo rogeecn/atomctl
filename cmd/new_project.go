@@ -16,7 +16,7 @@ import (
 )
 
 // 验证包名是否合法：支持域名、路径分隔符和常见字符
-var goPackageRegexp = regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9-_.]*[a-zA-Z0-9](/[a-zA-Z0-9][a-zA-Z0-9-_.]*[a-zA-Z0-9])*$`)
+var goPackageRegexp = regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9-_.]*[a-zA-Z0-9](/[a-zA-Z0-9][a-zA-Z0-9-_.]*)*$`)
 
 func isValidGoPackageName(name string) bool {
 	return goPackageRegexp.MatchString(name)
