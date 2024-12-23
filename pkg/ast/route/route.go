@@ -5,12 +5,9 @@ import (
 	"go/ast"
 	"go/parser"
 	"go/token"
-	"path/filepath"
-	"regexp"
 	"strings"
 
 	"git.ipao.vip/rogeecn/atomctl/pkg/utils/gomod"
-	"github.com/iancoleman/strcase"
 	"github.com/pkg/errors"
 	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
@@ -229,34 +226,6 @@ func parseRouteComment(line string) (string, string, error) {
 	}
 
 	return parts[1], parts[2], nil
-}
-
-func getPackageRoute(mod, path string) string {
-	paths := strings.SplitN(path, "modules", 2)
-	pkg := paths[1]
-	// path可能值为
-	// /test/user_controller.go
-	// /test/modules/user_controller.go
-
-	return strings.TrimLeft(filepath.Dir(pkg), "/")
-}
-
-func formatRoute(route string) string {
-	pattern := regexp.MustCompile(`(?mi)\{(.*?)\}`)
-	if !pattern.MatchString(route) {
-		return route
-	}
-
-	items := pattern.FindAllStringSubmatch(route, -1)
-	for _, item := range items {
-		param := strcase.ToLowerCamel(item[1])
-		route = strings.ReplaceAll(route, item[0], fmt.Sprintf("{%s}", param))
-	}
-
-	route = pattern.ReplaceAllString(route, ":$1")
-	route = strings.ReplaceAll(route, "/:id", "/:id<int>")
-	route = strings.ReplaceAll(route, "Id/", "Id<int>/")
-	return route
 }
 
 func parseRouteBind(bind string) ParamDefinition {
