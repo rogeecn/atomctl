@@ -27,6 +27,10 @@ func (r *Routes) Prepare() error {
 	return nil
 }
 
+func (r *Routes) Name() string {
+	return "{{.PackageName}}"
+}
+
 func (r *Routes) Register(router fiber.Router) {
 {{- range $key, $value := .Routes }}
 	// 注册路由组: {{$key}}
