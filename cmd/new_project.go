@@ -117,6 +117,13 @@ func commandNewProjectE(cmd *cobra.Command, args []string) error {
 			return tmpl.Execute(f, projectInfo)
 		}
 
+		// 处理模板文件
+		if strings.HasSuffix(path, ".raw") {
+			// 创建目标文件（去除.tpl后缀）
+			targetPath = strings.TrimSuffix(targetPath, ".raw")
+			log.Infof("创建文件: %s", targetPath)
+		}
+
 		// 复制非模板文件
 		return os.WriteFile(targetPath, content, 0o644)
 	}); err != nil {
