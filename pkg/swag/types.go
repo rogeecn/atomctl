@@ -106,7 +106,7 @@ func (t *TypeSpecDef) SetSchemaName() {
 
 // AstFileInfo information of an ast.File.
 type AstFileInfo struct {
-	//FileSet the FileSet object which is used to parse this go source file
+	// FileSet the FileSet object which is used to parse this go source file
 	FileSet *token.FileSet
 
 	// File ast.File

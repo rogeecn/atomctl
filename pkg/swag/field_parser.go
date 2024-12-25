@@ -85,7 +85,7 @@ func (ps *tagBaseFieldParser) FieldNames() ([]string, error) {
 			return nil, nil
 		}
 	}
-	var names = make([]string, 0, len(ps.field.Names))
+	names := make([]string, 0, len(ps.field.Names))
 	for _, name := range ps.field.Names {
 		switch ps.p.PropNamingStrategy {
 		case SnakeCase:
@@ -247,7 +247,7 @@ func (ps *tagBaseFieldParser) ComplementSchema(schema *spec.Schema) error {
 	}
 
 	if IsRefSchema(schema) {
-		var newSchema = spec.Schema{}
+		newSchema := spec.Schema{}
 		err := ps.complementSchema(&newSchema, types)
 		if err != nil {
 			return err
@@ -658,9 +658,11 @@ const (
 // These code copy from
 // https://github.com/go-playground/validator/blob/d4271985b44b735c6f76abc7a06532ee997f9476/baked_in.go#L207
 // ---.
-var oneofValsCache = map[string][]string{}
-var oneofValsCacheRWLock = sync.RWMutex{}
-var splitParamsRegex = regexp.MustCompile(`'[^']*'|\S+`)
+var (
+	oneofValsCache       = map[string][]string{}
+	oneofValsCacheRWLock = sync.RWMutex{}
+	splitParamsRegex     = regexp.MustCompile(`'[^']*'|\S+`)
+)
 
 func parseOneOfParam2(param string) []string {
 	oneofValsCacheRWLock.RLock()

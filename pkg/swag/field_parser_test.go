@@ -680,7 +680,8 @@ func TestValidTags(t *testing.T) {
 				Names: []*ast.Ident{{Name: "Test"}},
 				Tag: &ast.BasicLit{
 					Value: `json:"test" validate:"required,oneof=one two"`,
-				}},
+				},
+			},
 		).ComplementSchema(&schema)
 		assert.NoError(t, err)
 		assert.Empty(t, schema.Enum)
@@ -695,7 +696,8 @@ func TestValidTags(t *testing.T) {
 				Names: []*ast.Ident{{Name: "Test"}},
 				Tag: &ast.BasicLit{
 					Value: `form:"test[]"`,
-				}},
+				},
+			},
 		).FieldNames()
 		assert.NoError(t, err)
 		assert.Equal(t, "test", filednames[0])
@@ -706,7 +708,8 @@ func TestValidTags(t *testing.T) {
 				Names: []*ast.Ident{{Name: "Test"}},
 				Tag: &ast.BasicLit{
 					Value: `form:"test"`,
-				}},
+				},
+			},
 		).FieldNames()
 		assert.NoError(t, err)
 		assert.Equal(t, "test", filednames[0])

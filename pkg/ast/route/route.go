@@ -136,8 +136,7 @@ func ParseFile(file string) []RouteDefinition {
 			}
 
 			if strings.HasPrefix(line, "@Bind") {
-				//@Bind name query key() table() model()
-				//@Bind name query
+				//@Bind name [uri|query|path|body|header|cookie] [key()] [table()] [model()]
 				bindParams = append(bindParams, parseRouteBind(line))
 			}
 		}

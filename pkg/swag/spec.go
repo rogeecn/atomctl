@@ -33,7 +33,7 @@ func (i *Spec) ReadDoc() string {
 		},
 		"escape": func(v interface{}) string {
 			// escape tabs
-			var str = strings.ReplaceAll(v.(string), "\t", "\\t")
+			str := strings.ReplaceAll(v.(string), "\t", "\\t")
 			// replace " with \", and if that results in \\", replace that with \\\"
 			str = strings.ReplaceAll(str, "\"", "\\\"")
 

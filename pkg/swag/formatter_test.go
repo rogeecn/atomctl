@@ -227,7 +227,6 @@ func Test_AlignAttribute(t *testing.T) {
 `
 
 	testFormat(t, "align.go", contents, want)
-
 }
 
 func Test_SyntaxError(t *testing.T) {

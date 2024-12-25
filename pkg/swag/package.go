@@ -100,16 +100,16 @@ func (pkg *PackageDefinitions) evaluateConstValue(file *ast.File, iota int, expr
 				valueExpr.Value = strings.Replace(valueExpr.Value, "_", "", -1)
 			}
 			if len(valueExpr.Value) >= 2 && valueExpr.Value[0] == '0' {
-				var start, base = 2, 8
+				start, base := 2, 8
 				switch valueExpr.Value[1] {
 				case 'x', 'X':
-					//hex
+					// hex
 					base = 16
 				case 'b', 'B':
-					//binary
+					// binary
 					base = 2
 				default:
-					//octet
+					// octet
 					start = 1
 				}
 				if x, err := strconv.ParseInt(valueExpr.Value[start:], base, 64); err == nil {
@@ -121,7 +121,7 @@ func (pkg *PackageDefinitions) evaluateConstValue(file *ast.File, iota int, expr
 				}
 			}
 
-			//a basic literal integer is int type in default, or must have an explicit converting type in front
+			// a basic literal integer is int type in default, or must have an explicit converting type in front
 			if x, err := strconv.ParseInt(valueExpr.Value, 10, 64); err == nil {
 				return int(x), nil
 			} else if x, err := strconv.ParseUint(valueExpr.Value, 10, 64); err == nil {
@@ -153,7 +153,7 @@ func (pkg *PackageDefinitions) evaluateConstValue(file *ast.File, iota int, expr
 	case *ast.ParenExpr:
 		return pkg.evaluateConstValue(file, iota, valueExpr.X, globalEvaluator, recursiveStack)
 	case *ast.CallExpr:
-		//data conversion
+		// data conversion
 		if len(valueExpr.Args) != 1 {
 			return nil, nil
 		}

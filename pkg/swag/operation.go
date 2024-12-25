@@ -598,7 +598,7 @@ func setCollectionFormatParam(param *spec.Parameter, name, schemaType, attr, com
 	return fmt.Errorf("%s is attribute to set to an array. comment=%s got=%s", name, commentLine, schemaType)
 }
 
-func setDefault(param *spec.Parameter, schemaType string, value string) error {
+func setDefault(param *spec.Parameter, schemaType, value string) error {
 	val, err := defineType(schemaType, value)
 	if err != nil {
 		return nil // Don't set a default value if it's not valid
@@ -609,7 +609,7 @@ func setDefault(param *spec.Parameter, schemaType string, value string) error {
 	return nil
 }
 
-func setSchemaExample(param *spec.Parameter, schemaType string, value string) error {
+func setSchemaExample(param *spec.Parameter, schemaType, value string) error {
 	val, err := defineType(schemaType, value)
 	if err != nil {
 		return nil // Don't set a example value if it's not valid
@@ -630,7 +630,7 @@ func setSchemaExample(param *spec.Parameter, schemaType string, value string) er
 	return nil
 }
 
-func setExample(param *spec.Parameter, schemaType string, value string) error {
+func setExample(param *spec.Parameter, schemaType, value string) error {
 	val, err := defineType(schemaType, value)
 	if err != nil {
 		return nil // Don't set a example value if it's not valid
@@ -642,7 +642,7 @@ func setExample(param *spec.Parameter, schemaType string, value string) error {
 }
 
 // defineType enum value define the type (object and array unsupported).
-func defineType(schemaType string, value string) (v interface{}, err error) {
+func defineType(schemaType, value string) (v interface{}, err error) {
 	schemaType = TransToValidSchemeType(schemaType)
 
 	switch schemaType {
@@ -1187,7 +1187,7 @@ func (operation *Operation) AddResponse(code int, response *spec.Response) {
 }
 
 // createParameter returns swagger spec.Parameter for given  paramType, description, paramName, schemaType, required.
-func createParameter(paramType, description, paramName, objectType, schemaType string, format string, required bool, enums []interface{}, collectionFormat string) spec.Parameter {
+func createParameter(paramType, description, paramName, objectType, schemaType, format string, required bool, enums []interface{}, collectionFormat string) spec.Parameter {
 	// //five possible parameter types. 	query, path, body, header, form
 	result := spec.Parameter{
 		ParamProps: spec.ParamProps{
@@ -1223,7 +1223,7 @@ func createParameter(paramType, description, paramName, objectType, schemaType s
 	return result
 }
 
-func getCodeExampleForSummary(summaryName string, dirPath string) ([]byte, error) {
+func getCodeExampleForSummary(summaryName, dirPath string) ([]byte, error) {
 	dirEntries, err := os.ReadDir(dirPath)
 	if err != nil {
 		return nil, err

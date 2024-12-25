@@ -1,8 +1,9 @@
 package swag
 
 import (
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestFieldsByAnySpace(t *testing.T) {
@@ -15,14 +16,16 @@ func TestFieldsByAnySpace(t *testing.T) {
 		args args
 		want []string
 	}{
-		{"test1",
+		{
+			"test1",
 			args{
 				"	aa	bb	cc dd 		ff",
 				2,
 			},
 			[]string{"aa", "bb\tcc dd \t\tff"},
 		},
-		{"test2",
+		{
+			"test2",
 			args{
 				`	aa	"bb	cc dd 		ff"`,
 				2,

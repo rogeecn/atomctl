@@ -367,7 +367,7 @@ func ParseUsingGoList(enabled bool) func(parser *Parser) {
 }
 
 // ParseAPI parses general api info for given searchDir and mainAPIFile.
-func (parser *Parser) ParseAPI(searchDir string, mainAPIFile string, parseDepth int) error {
+func (parser *Parser) ParseAPI(searchDir, mainAPIFile string, parseDepth int) error {
 	return parser.ParseAPIMultiSearchDir([]string{searchDir}, mainAPIFile, parseDepth)
 }
 
@@ -902,7 +902,7 @@ func isGeneralAPIComment(comments []string) bool {
 	return true
 }
 
-func getMarkdownForTag(tagName string, dirPath string) ([]byte, error) {
+func getMarkdownForTag(tagName, dirPath string) ([]byte, error) {
 	if tagName == "" {
 		// this happens when parsing the @description.markdown attribute
 		// it will be called properly another time with tagName="api"
@@ -970,7 +970,6 @@ func getTagsFromComment(comment string) (tags []string) {
 		}
 	}
 	return
-
 }
 
 func (parser *Parser) matchTag(tag string) bool {
@@ -1342,8 +1341,8 @@ func (parser *Parser) ParseDefinition(typeSpecDef *TypeSpecDef) (*Schema, error)
 
 	if len(typeSpecDef.Enums) > 0 {
 		var varnames []string
-		var enumComments = make(map[string]string)
-		var enumDescriptions = make([]string, 0, len(typeSpecDef.Enums))
+		enumComments := make(map[string]string)
+		enumDescriptions := make([]string, 0, len(typeSpecDef.Enums))
 		for _, value := range typeSpecDef.Enums {
 			definition.Enum = append(definition.Enum, value.Value)
 			varnames = append(varnames, value.key)
@@ -1409,8 +1408,7 @@ func (parser *Parser) fillDefinitionDescription(definition *spec.Schema, file *a
 			if typeSpec.Name != nil {
 				typeName = typeSpec.Name.Name
 			}
-			definition.Description, err =
-				parser.extractDeclarationDescription(typeName, typeSpec.Doc, typeSpec.Comment, generalDeclaration.Doc)
+			definition.Description, err = parser.extractDeclarationDescription(typeName, typeSpec.Doc, typeSpec.Comment, generalDeclaration.Doc)
 			if err != nil {
 				return
 			}

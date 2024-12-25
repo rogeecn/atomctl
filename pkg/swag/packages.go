@@ -272,7 +272,6 @@ func (pkgDefs *PackagesDefinitions) parseFunctionScopedTypesFromFile(astFile *as
 								}
 							}
 						}
-
 					}
 				}
 			}
@@ -420,7 +419,7 @@ func (pkgDefs *PackagesDefinitions) removeAllNotUniqueTypes() {
 	}
 }
 
-func (pkgDefs *PackagesDefinitions) findTypeSpec(pkgPath string, typeName string) *TypeSpecDef {
+func (pkgDefs *PackagesDefinitions) findTypeSpec(pkgPath, typeName string) *TypeSpecDef {
 	if pkgDefs.packages == nil {
 		return nil
 	}

@@ -57,7 +57,7 @@ func TestFormat_DefaultExcludes(t *testing.T) {
 func TestFormat_ParseError(t *testing.T) {
 	fx := setup(t)
 	os.WriteFile(filepath.Join(fx.basedir, "parse_error.go"), []byte(`package main
-		func invalid() {`), 0644)
+		func invalid() {`), 0o644)
 	assert.Error(t, New().Build(&Config{SearchDir: fx.basedir}))
 }
 
@@ -69,9 +69,9 @@ func TestFormat_ReadError(t *testing.T) {
 
 func TestFormat_WriteError(t *testing.T) {
 	fx := setup(t)
-	os.Chmod(fx.basedir, 0555)
+	os.Chmod(fx.basedir, 0o555)
 	assert.Error(t, New().Build(&Config{SearchDir: fx.basedir}))
-	os.Chmod(fx.basedir, 0755)
+	os.Chmod(fx.basedir, 0o755)
 }
 
 func TestFormat_InvalidSearchDir(t *testing.T) {
@@ -91,10 +91,10 @@ func setup(t *testing.T) *fixture {
 	}
 	for filename, contents := range testFiles {
 		fullpath := filepath.Join(fx.basedir, filepath.Clean(filename))
-		if err := os.MkdirAll(filepath.Dir(fullpath), 0755); err != nil {
+		if err := os.MkdirAll(filepath.Dir(fullpath), 0o755); err != nil {
 			t.Fatal(err)
 		}
-		if err := os.WriteFile(fullpath, contents, 0644); err != nil {
+		if err := os.WriteFile(fullpath, contents, 0o644); err != nil {
 			t.Fatal(err)
 		}
 	}
