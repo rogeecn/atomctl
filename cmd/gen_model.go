@@ -97,8 +97,8 @@ func commandGenModelE(cmd *cobra.Command, args []string) error {
 									typeName := splits[len(splits)-1]
 
 									pkg := splits[0]
-									if strings.HasPrefix(pkg, "/") {
-										pkg = gomod.GetModuleName() + pkg
+									if strings.HasPrefix(pkg, "~") {
+										pkg = strings.Replace(pkg, "~", gomod.GetModuleName(), 1)
 									}
 
 									pkgSplits := strings.Split(splits[0], "/")
