@@ -93,21 +93,14 @@ func commandGenModelE(cmd *cobra.Command, args []string) error {
 										return defaultTableModelField
 									}
 
-									splits := strings.SplitN(toType, ".", 2)
-									typeName := splits[len(splits)-1]
-
-									pkg := splits[0]
-									if strings.HasPrefix(pkg, "~") {
-										pkg = strings.Replace(pkg, "~", gomod.GetModuleName(), 1)
+									if strings.Contains(toType, "[") && strings.HasSuffix(toType, "]") {
+										toType = strings.Replace(toType, "[", "[fields.", 1)
 									}
-
-									pkgSplits := strings.Split(splits[0], "/")
-									typePkg := pkgSplits[len(pkgSplits)-1]
 
 									defaultTableModelField = defaultTableModelField.
 										UseType(template.Type{
-											Name:       fmt.Sprintf("%s.%s", typePkg, typeName),
-											ImportPath: pkg,
+											Name:       fmt.Sprintf("fields.%s", toType),
+											ImportPath: fmt.Sprintf("%s/database/fields", gomod.GetModuleName()),
 										})
 
 									log.Infof("Convert table %s field %s type to : %s", table.Name, column.Name, toType)

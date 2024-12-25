@@ -1,4 +1,5 @@
 # ignores: [] # ignore tables
 # types:
 #   users: # table name
-#     meta: ~/database/fields.UserMeta
+#     meta: UserMeta
+#     meta: Json[UserMeta]
