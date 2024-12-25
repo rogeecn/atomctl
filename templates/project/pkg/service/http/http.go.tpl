@@ -1,6 +1,7 @@
 package http
 
 import (
+	"{{.ModuleName}}/app/errorx"
 	_ "{{.ModuleName}}/docs"
 	"{{.ModuleName}}/pkg/service"
 	"{{.ModuleName}}/providers/app"
@@ -48,18 +49,19 @@ type Http struct {
 
 func Serve(cmd *cobra.Command, args []string) error {
 	return container.Container.Invoke(func(http Http) error {
+		log.SetFormatter(&log.JSONFormatter{})
+
 		if http.App.Mode == app.AppModeDevelopment {
 			log.SetLevel(log.DebugLevel)
 
 			http.Service.Engine.Get("/swagger/*", swagger.HandlerDefault)
 		}
-
+		http.Service.Engine.Use(errorx.Middleware)
 		http.Service.Engine.Use(favicon.New(favicon.Config{
 			Data: []byte{},
 		}))
 
-		group := http.Service.Engine.Group("/v1")
-
+		group := http.Service.Engine.Group("")
 		for _, route := range http.Routes {
 			route.Register(group)
 		}

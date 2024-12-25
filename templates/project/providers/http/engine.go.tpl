@@ -70,7 +70,7 @@ func Provide(opts ...opt.Option) error {
 		engine.Use(recover.New(recover.Config{
 			EnableStackTrace: true,
 			StackTraceHandler: func(c fiber.Ctx, e any) {
-				log.WithError(e.(error)).Error(fmt.Sprintf("panic: %v\n%s\n", e, debug.Stack()))
+				log.Error(fmt.Sprintf("panic: %v\n%s\n", e, debug.Stack()))
 			},
 		}))
 

@@ -10,7 +10,7 @@ func DataFunc[T any](
 	return func(ctx fiber.Ctx) error {
 		data, err := f(ctx)
 		if err != nil {
-			return nil
+			return err
 		}
 		return ctx.JSON(data)
 	}
@@ -23,12 +23,12 @@ func DataFunc1[T any, P1 any](
 	return func(ctx fiber.Ctx) error {
 		p, err := pf1(ctx)
 		if err != nil {
-			return nil
+			return err
 		}
 
 		data, err := f(ctx, p)
 		if err != nil {
-			return nil
+			return err
 		}
 		return ctx.JSON(data)
 	}
@@ -42,15 +42,15 @@ func DataFunc2[T any, P1 any, P2 any](
 	return func(ctx fiber.Ctx) error {
 		p1, err := pf1(ctx)
 		if err != nil {
-			return nil
+			return err
 		}
 		p2, err := pf2(ctx)
 		if err != nil {
-			return nil
+			return err
 		}
 		data, err := f(ctx, p1, p2)
 		if err != nil {
-			return nil
+			return err
 		}
 		return ctx.JSON(data)
 	}
@@ -65,19 +65,19 @@ func DataFunc3[T any, P1 any, P2 any, P3 any](
 	return func(ctx fiber.Ctx) error {
 		p1, err := pf1(ctx)
 		if err != nil {
-			return nil
+			return err
 		}
 		p2, err := pf2(ctx)
 		if err != nil {
-			return nil
+			return err
 		}
 		p3, err := pf3(ctx)
 		if err != nil {
-			return nil
+			return err
 		}
 		data, err := f(ctx, p1, p2, p3)
 		if err != nil {
-			return nil
+			return err
 		}
 		return ctx.JSON(data)
 	}
@@ -93,23 +93,23 @@ func DataFunc4[T any, P1 any, P2 any, P3 any, P4 any](
 	return func(ctx fiber.Ctx) error {
 		p1, err := pf1(ctx)
 		if err != nil {
-			return nil
+			return err
 		}
 		p2, err := pf2(ctx)
 		if err != nil {
-			return nil
+			return err
 		}
 		p3, err := pf3(ctx)
 		if err != nil {
-			return nil
+			return err
 		}
 		p4, err := pf4(ctx)
 		if err != nil {
-			return nil
+			return err
 		}
 		data, err := f(ctx, p1, p2, p3, p4)
 		if err != nil {
-			return nil
+			return err
 		}
 		return ctx.JSON(data)
 	}
@@ -126,27 +126,27 @@ func DataFunc5[T any, P1 any, P2 any, P3 any, P4 any, P5 any](
 	return func(ctx fiber.Ctx) error {
 		p1, err := pf1(ctx)
 		if err != nil {
-			return nil
+			return err
 		}
 		p2, err := pf2(ctx)
 		if err != nil {
-			return nil
+			return err
 		}
 		p3, err := pf3(ctx)
 		if err != nil {
-			return nil
+			return err
 		}
 		p4, err := pf4(ctx)
 		if err != nil {
-			return nil
+			return err
 		}
 		p5, err := pf5(ctx)
 		if err != nil {
-			return nil
+			return err
 		}
 		data, err := f(ctx, p1, p2, p3, p4, p5)
 		if err != nil {
-			return nil
+			return err
 		}
 		return ctx.JSON(data)
 	}
@@ -164,31 +164,31 @@ func DataFunc6[T any, P1 any, P2 any, P3 any, P4 any, P5 any, P6 any](
 	return func(ctx fiber.Ctx) error {
 		p1, err := pf1(ctx)
 		if err != nil {
-			return nil
+			return err
 		}
 		p2, err := pf2(ctx)
 		if err != nil {
-			return nil
+			return err
 		}
 		p3, err := pf3(ctx)
 		if err != nil {
-			return nil
+			return err
 		}
 		p4, err := pf4(ctx)
 		if err != nil {
-			return nil
+			return err
 		}
 		p5, err := pf5(ctx)
 		if err != nil {
-			return nil
+			return err
 		}
 		p6, err := pf6(ctx)
 		if err != nil {
-			return nil
+			return err
 		}
 		data, err := f(ctx, p1, p2, p3, p4, p5, p6)
 		if err != nil {
-			return nil
+			return err
 		}
 		return ctx.JSON(data)
 	}
@@ -207,35 +207,35 @@ func DataFunc7[T any, P1 any, P2 any, P3 any, P4 any, P5 any, P6 any, P7 any](
 	return func(ctx fiber.Ctx) error {
 		p1, err := pf1(ctx)
 		if err != nil {
-			return nil
+			return err
 		}
 		p2, err := pf2(ctx)
 		if err != nil {
-			return nil
+			return err
 		}
 		p3, err := pf3(ctx)
 		if err != nil {
-			return nil
+			return err
 		}
 		p4, err := pf4(ctx)
 		if err != nil {
-			return nil
+			return err
 		}
 		p5, err := pf5(ctx)
 		if err != nil {
-			return nil
+			return err
 		}
 		p6, err := pf6(ctx)
 		if err != nil {
-			return nil
+			return err
 		}
 		p7, err := pf7(ctx)
 		if err != nil {
-			return nil
+			return err
 		}
 		data, err := f(ctx, p1, p2, p3, p4, p5, p6, p7)
 		if err != nil {
-			return nil
+			return err
 		}
 		return ctx.JSON(data)
 	}
@@ -255,39 +255,39 @@ func DataFunc8[T any, P1 any, P2 any, P3 any, P4 any, P5 any, P6 any, P7 any, P8
 	return func(ctx fiber.Ctx) error {
 		p1, err := pf1(ctx)
 		if err != nil {
-			return nil
+			return err
 		}
 		p2, err := pf2(ctx)
 		if err != nil {
-			return nil
+			return err
 		}
 		p3, err := pf3(ctx)
 		if err != nil {
-			return nil
+			return err
 		}
 		p4, err := pf4(ctx)
 		if err != nil {
-			return nil
+			return err
 		}
 		p5, err := pf5(ctx)
 		if err != nil {
-			return nil
+			return err
 		}
 		p6, err := pf6(ctx)
 		if err != nil {
-			return nil
+			return err
 		}
 		p7, err := pf7(ctx)
 		if err != nil {
-			return nil
+			return err
 		}
 		p8, err := pf8(ctx)
 		if err != nil {
-			return nil
+			return err
 		}
 		data, err := f(ctx, p1, p2, p3, p4, p5, p6, p7, p8)
 		if err != nil {
-			return nil
+			return err
 		}
 		return ctx.JSON(data)
 	}
@@ -308,43 +308,43 @@ func DataFunc9[T any, P1 any, P2 any, P3 any, P4 any, P5 any, P6 any, P7 any, P8
 	return func(ctx fiber.Ctx) error {
 		p1, err := pf1(ctx)
 		if err != nil {
-			return nil
+			return err
 		}
 		p2, err := pf2(ctx)
 		if err != nil {
-			return nil
+			return err
 		}
 		p3, err := pf3(ctx)
 		if err != nil {
-			return nil
+			return err
 		}
 		p4, err := pf4(ctx)
 		if err != nil {
-			return nil
+			return err
 		}
 		p5, err := pf5(ctx)
 		if err != nil {
-			return nil
+			return err
 		}
 		p6, err := pf6(ctx)
 		if err != nil {
-			return nil
+			return err
 		}
 		p7, err := pf7(ctx)
 		if err != nil {
-			return nil
+			return err
 		}
 		p8, err := pf8(ctx)
 		if err != nil {
-			return nil
+			return err
 		}
 		p9, err := pf9(ctx)
 		if err != nil {
-			return nil
+			return err
 		}
 		data, err := f(ctx, p1, p2, p3, p4, p5, p6, p7, p8, p9)
 		if err != nil {
-			return nil
+			return err
 		}
 		return ctx.JSON(data)
 	}
@@ -366,47 +366,47 @@ func DataFunc10[T any, P1 any, P2 any, P3 any, P4 any, P5 any, P6 any, P7 any, P
 	return func(ctx fiber.Ctx) error {
 		p1, err := pf1(ctx)
 		if err != nil {
-			return nil
+			return err
 		}
 		p2, err := pf2(ctx)
 		if err != nil {
-			return nil
+			return err
 		}
 		p3, err := pf3(ctx)
 		if err != nil {
-			return nil
+			return err
 		}
 		p4, err := pf4(ctx)
 		if err != nil {
-			return nil
+			return err
 		}
 		p5, err := pf5(ctx)
 		if err != nil {
-			return nil
+			return err
 		}
 		p6, err := pf6(ctx)
 		if err != nil {
-			return nil
+			return err
 		}
 		p7, err := pf7(ctx)
 		if err != nil {
-			return nil
+			return err
 		}
 		p8, err := pf8(ctx)
 		if err != nil {
-			return nil
+			return err
 		}
 		p9, err := pf9(ctx)
 		if err != nil {
-			return nil
+			return err
 		}
 		p10, err := pf10(ctx)
 		if err != nil {
-			return nil
+			return err
 		}
 		data, err := f(ctx, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10)
 		if err != nil {
-			return nil
+			return err
 		}
 		return ctx.JSON(data)
 	}
