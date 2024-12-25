@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	pgDatabase "git.ipao.vip/rogeecn/atomctl/pkg/postgres"
+	"git.ipao.vip/rogeecn/atomctl/pkg/utils/gomod"
 	"github.com/go-jet/jet/v2/generator/metadata"
 	"github.com/go-jet/jet/v2/generator/postgres"
 	"github.com/go-jet/jet/v2/generator/template"
@@ -29,6 +30,10 @@ func CommandGenModel(root *cobra.Command) {
 }
 
 func commandGenModelE(cmd *cobra.Command, args []string) error {
+	if err := gomod.Parse("go.mod"); err != nil {
+		return errors.Wrap(err, "parse go.mod")
+	}
+
 	_, dbConf, err := pgDatabase.GetDB(cmd.Flag("config").Value.String())
 	if err != nil {
 		return errors.Wrap(err, "get db")
@@ -91,13 +96,18 @@ func commandGenModelE(cmd *cobra.Command, args []string) error {
 									splits := strings.Split(toType, ".")
 									typeName := splits[len(splits)-1]
 
+									pkg := splits[0]
+									if strings.HasPrefix(pkg, "/") {
+										pkg = gomod.GetModuleName() + pkg
+									}
+
 									pkgSplits := strings.Split(splits[0], "/")
 									typePkg := pkgSplits[len(pkgSplits)-1]
 
 									defaultTableModelField = defaultTableModelField.
 										UseType(template.Type{
 											Name:       fmt.Sprintf("%s.%s", typePkg, typeName),
-											ImportPath: splits[0],
+											ImportPath: pkg,
 										})
 
 									log.Infof("Convert table %s field %s type to : %s", table.Name, column.Name, toType)
