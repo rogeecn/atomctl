@@ -1,5 +1,4 @@
-// ignores: [] # ignore tables
-// types:
-//   users: # table name
-//     meta: ~/database/fields.UserMeta
-
+# ignores: [] # ignore tables
+# types:
+#   users: # table name
+#     meta: ~/database/fields.UserMeta
