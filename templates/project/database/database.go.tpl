@@ -21,7 +21,7 @@ func FromContext(ctx context.Context, db *sql.DB) qrm.DB {
 	return db
 }
 
-func TruncateAllTables(ctx context.Context, db *sql.DB, tableName ...string) error {
+func Truncate(ctx context.Context, db *sql.DB, tableName ...string) error {
 	for _, name := range tableName {
 		sql := fmt.Sprintf("TRUNCATE TABLE %s RESTART IDENTITY", name)
 		if _, err := db.ExecContext(ctx, sql); err != nil {

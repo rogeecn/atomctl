@@ -4,14 +4,18 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"errors"
-
-	"github.com/samber/lo"
 )
 
 // implement sql.Scanner interface
-type field struct{}
+type Json[T any] struct {
+	Data T `json:",inline"`
+}
 
-func (x *field) Scan(value interface{}) (err error) {
+func ToJson[T any](data T) Json[T] {
+	return Json[T]{Data: data}
+}
+
+func (x *Json[T]) Scan(value interface{}) (err error) {
 	switch v := value.(type) {
 	case string:
 		return json.Unmarshal([]byte(v), &x)
@@ -23,10 +27,19 @@ func (x *field) Scan(value interface{}) (err error) {
 	return errors.New("Unknown type for ")
 }
 
-func (x field) Value() (driver.Value, error) {
-	return json.Marshal(x)
+func (x Json[T]) Value() (driver.Value, error) {
+	return json.Marshal(x.Data)
 }
 
-func (x field) MustValue() driver.Value {
-	return lo.Must(json.Marshal(x))
+func (x Json[T]) MarshalJSON() ([]byte, error) {
+	return json.Marshal(x.Data)
+}
+
+func (x *Json[T]) UnmarshalJSON(data []byte) error {
+	var value T
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	x.Data = value
+	return nil
 }

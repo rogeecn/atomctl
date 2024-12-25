@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"runtime"
+	"strings"
 
 	"github.com/go-jet/jet/v2/qrm"
 	"github.com/gofiber/fiber/v3"
@@ -31,6 +32,7 @@ type Response struct {
 	StatusCode int    `json:"-" xml:"-"`
 	Code       int    `json:"code" xml:"code"`
 	Message    string `json:"message" xml:"message"`
+	Data       any    `json:"data,omitempty" xml:"data"`
 }
 
 func New(code, statusCode int, message string) *Response {
@@ -44,6 +46,13 @@ func New(code, statusCode int, message string) *Response {
 
 func (r *Response) Sql(sql string) *Response {
 	r.sql = sql
+	return r
+}
+
+func (r *Response) from(err *Response) *Response {
+	r.Code = err.Code
+	r.Message = err.Message
+	r.StatusCode = err.StatusCode
 	return r
 }
 
@@ -62,12 +71,15 @@ func Wrap(err error) *Response {
 	return &Response{err: err}
 }
 
+func (r *Response) Wrap(err error) *Response {
+	r.err = err
+	return r
+}
+
 func (r *Response) format() {
 	r.isFormat = true
 	if errors.Is(r.err, qrm.ErrNoRows) {
-		r.Code = RecordNotExists.Code
-		r.Message = RecordNotExists.Message
-		r.StatusCode = RecordNotExists.StatusCode
+		r.from(RecordNotExists)
 		return
 	}
 
@@ -77,6 +89,19 @@ func (r *Response) format() {
 		r.StatusCode = e.Code
 		return
 	}
+
+	if r.err != nil {
+		msg := r.err.Error()
+		if strings.Contains(msg, "duplicate key value") || strings.Contains(msg, "unique constraint") {
+			r.from(RecordDuplicated)
+			return
+		}
+
+		r.Code = http.StatusInternalServerError
+		r.StatusCode = http.StatusInternalServerError
+		r.Message = msg
+	}
+	return
 }
 
 func (r *Response) Error() string {
@@ -95,7 +120,12 @@ func (r *Response) Response(ctx fiber.Ctx) error {
 	contentType := utils.ToLower(utils.UnsafeString(ctx.Context().Request.Header.ContentType()))
 	contentType = binder.FilterFlags(utils.ParseVendorSpecificContentType(contentType))
 
-	log.WithError(r.err).WithField("file", r.file).WithField("params", r.params).Errorf("response error: %+v", r)
+	log.
+		WithError(r.err).
+		WithField("file", r.file).
+		WithField("sql", r.sql).
+		WithField("params", r.params).
+		Errorf("response error: %+v", r)
 
 	// Parse body accordingly
 	switch contentType {
@@ -104,13 +134,14 @@ func (r *Response) Response(ctx fiber.Ctx) error {
 	case fiber.MIMETextHTML, fiber.MIMETextPlain:
 		return ctx.Status(r.StatusCode).SendString(r.Message)
 	default:
-		return ctx.Status(r.StatusCode).JSON(r.Message)
+		return ctx.Status(r.StatusCode).JSON(r)
 	}
 }
 
 var (
-	RecordNotExists = New(http.StatusNotFound, http.StatusNotFound, "记录不存在")
-	BadRequest      = New(http.StatusBadRequest, http.StatusBadRequest, "请求错误")
-	Unauthorized    = New(http.StatusUnauthorized, http.StatusUnauthorized, "未授权")
-	InternalErr     = New(http.StatusInternalServerError, http.StatusInternalServerError, "内部错误")
+	RecordDuplicated = New(1001, http.StatusBadRequest, "记录重复")
+	RecordNotExists  = New(http.StatusNotFound, http.StatusNotFound, "记录不存在")
+	BadRequest       = New(http.StatusBadRequest, http.StatusBadRequest, "请求错误")
+	Unauthorized     = New(http.StatusUnauthorized, http.StatusUnauthorized, "未授权")
+	InternalErr      = New(http.StatusInternalServerError, http.StatusInternalServerError, "内部错误")
 )

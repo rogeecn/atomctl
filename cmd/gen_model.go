@@ -93,7 +93,7 @@ func commandGenModelE(cmd *cobra.Command, args []string) error {
 										return defaultTableModelField
 									}
 
-									splits := strings.Split(toType, ".")
+									splits := strings.SplitN(toType, ".", 2)
 									typeName := splits[len(splits)-1]
 
 									pkg := splits[0]
