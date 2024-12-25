@@ -69,13 +69,14 @@ func commandGenModelE(cmd *cobra.Command, args []string) error {
 						template.
 							DefaultModel().
 							UseTable(func(table metadata.Table) template.TableModel {
+								tbl := template.DefaultTableModel(table)
 								if lo.Contains(conf.Ignores, table.Name) {
-									table := template.DefaultTableModel(table)
-									table.Skip = true
-									return table
+									tbl.Skip = true
+									log.Infof("Skip table %s", table.Name)
+									return tbl
 								}
 
-								return template.DefaultTableModel(table).UseField(func(column metadata.Column) template.TableModelField {
+								return tbl.UseField(func(column metadata.Column) template.TableModelField {
 									defaultTableModelField := template.DefaultTableModelField(column)
 									defaultTableModelField = defaultTableModelField.UseTags(fmt.Sprintf(`json:"%s"`, column.Name))
 

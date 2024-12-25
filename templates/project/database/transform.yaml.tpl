@@ -1,4 +1,5 @@
-# ignores: [] # ignore tables
+# ignores:
+#   - migrations
 # types:
 #   users: # table name
 #     meta: UserMeta
