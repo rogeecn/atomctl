@@ -1,10 +1,6 @@
 package {{.Name}}
 
 import (
-	"time"
-
-	log "github.com/sirupsen/logrus"
-
 	"git.ipao.vip/rogeecn/atom/container"
 	"git.ipao.vip/rogeecn/atom/utils/opt"
 )

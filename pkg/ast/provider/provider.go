@@ -49,6 +49,7 @@ type InjectParam struct {
 type Provider struct {
 	StructName      string
 	ReturnType      string
+	Mode            string
 	ProviderGroup   string
 	NeedPrepareFunc bool
 	InjectParams    map[string]InjectParam
@@ -140,20 +141,47 @@ func Parse(source string) []Provider {
 		if !strings.HasPrefix(docMark, "@provider") {
 			continue
 		}
-		mode, returnType, group := parseDoc(docMark)
-		if group != "" {
-			provider.ProviderGroup = group
-		}
-		// log.Infof("mode: %s, returnType: %s, group: %s", mode, returnType, group)
 
-		if returnType == "#" {
+		// mode, returnType, group := parseDoc(docMark)
+		// // log.Infof("mode: %s, returnType: %s, group: %s", mode, returnType, group)
+
+		// if returnType == "#" {
+		// 	provider.ReturnType = "*" + provider.StructName
+		// } else {
+		// 	provider.ReturnType = returnType
+		// }
+
+		// onlyMode := mode == "only"
+		// exceptMode := mode == "except"
+		// log.Infof("[%s] %s => ONLY: %+v, EXCEPT: %+v, Type: %s, Group: %s", source, declType.Name.Name, onlyMode, exceptMode, provider.ReturnType, provider.ProviderGroup)
+
+		providerDoc := parseProvider(docMark)
+		log.Infof("[%s] %s %+v", source, declType.Name.Name, providerDoc)
+		provider.ProviderGroup = providerDoc.Group
+		provider.ReturnType = providerDoc.ReturnType
+		if provider.ReturnType == "" {
 			provider.ReturnType = "*" + provider.StructName
-		} else {
-			provider.ReturnType = returnType
 		}
-		onlyMode := mode == "only"
-		exceptMode := mode == "except"
-		log.Infof("[%s] %s => ONLY: %+v, EXCEPT: %+v, Type: %s, Group: %s", source, declType.Name.Name, onlyMode, exceptMode, provider.ReturnType, provider.ProviderGroup)
+
+		if providerDoc.Mode == "job" {
+			provider.Mode = "job"
+
+			jobPkg := gomod.GetModuleName() + "/providers/job"
+
+			provider.Imports["git.ipao.vip/rogeecn/atom/contracts"] = ""
+			provider.Imports["github.com/riverqueue/river"] = ""
+			provider.Imports[jobPkg] = ""
+
+			provider.ProviderGroup = "atom.GroupInitial"
+			provider.ReturnType = "contracts.Initial"
+
+			provider.InjectParams["__job"] = InjectParam{
+				Star:         "*",
+				Type:         "Job",
+				Package:      jobPkg,
+				PackageAlias: "job",
+			}
+		}
 
 		for _, field := range structType.Fields.List {
 			if field.Names == nil {
@@ -164,13 +192,11 @@ func Parse(source string) []Provider {
 				provider.NeedPrepareFunc = true
 			}
 
-			if onlyMode {
+			if providerDoc.IsOnly {
 				if field.Tag == nil || !strings.Contains(field.Tag.Value, `inject:"true"`) {
 					continue
 				}
-			}
-
-			if exceptMode {
+			} else {
 				if field.Tag != nil && strings.Contains(field.Tag.Value, `inject:"false"`) {
 					continue
 				}
@@ -251,30 +277,62 @@ func Parse(source string) []Provider {
 	return providers
 }
 
-func parseDoc(doc string) (string, string, string) {
-	// @provider:[except|only] [returnType] [group]
-	doc = strings.TrimLeft(doc[len("@provider"):], ":")
-	if !strings.HasPrefix(doc, "except") && !strings.HasPrefix(doc, "only") {
-		doc = "except " + doc
+// @provider(mode):[except|only] [returnType] [group]
+type ProviderDescribe struct {
+	IsOnly     bool
+	Mode       string // job
+	ReturnType string
+	Group      string
+}
+
+func (p ProviderDescribe) String() {
+	// log.Infof("[%s] %s => ONLY: %+v, EXCEPT: %+v, Type: %s, Group: %s", source, declType.Name.Name, onlyMode, exceptMode, provider.ReturnType, provider.ProviderGroup)
+}
+
+// @provider
+// @provider(job)
+// @provider(job):except
+// @provider:except
+// @provider:only
+// @provider returnType
+// @provider returnType group
+// @provider(job) returnType group
+func parseProvider(doc string) ProviderDescribe {
+	result := ProviderDescribe{IsOnly: false}
+
+	// Remove @provider prefix
+	doc = strings.TrimSpace(strings.TrimPrefix(doc, "@provider"))
+
+	// Handle empty case
+	if doc == "" {
+		return result
 	}
 
-	doc = strings.ReplaceAll(doc, "\t", " ")
-	cmds := strings.Split(doc, " ")
-	cmds = lo.Filter(cmds, func(item string, idx int) bool {
-		return strings.TrimSpace(item) != ""
-	})
-
-	if len(cmds) == 0 {
-		return "except", "#", ""
+	// Handle :except and :only
+	if strings.Contains(doc, ":except") {
+		result.IsOnly = false
+		doc = strings.Replace(doc, ":except", "", 1)
+	} else if strings.Contains(doc, ":only") {
+		result.IsOnly = true
+		doc = strings.Replace(doc, ":only", "", 1)
 	}
 
-	if len(cmds) == 1 {
-		return cmds[0], "#", ""
+	// Handle mode in parentheses
+	if strings.Contains(doc, "(") && strings.Contains(doc, ")") {
+		start := strings.Index(doc, "(")
+		end := strings.Index(doc, ")")
+		result.Mode = doc[start+1 : end]
+		doc = doc[:start] + doc[end+1:]
 	}
 
-	if len(cmds) == 2 {
-		return cmds[0], cmds[1], ""
+	// Handle remaining parts (returnType and group)
+	parts := strings.Fields(strings.TrimSpace(doc))
+	if len(parts) >= 1 {
+		result.ReturnType = parts[0]
+	}
+	if len(parts) >= 2 {
+		result.Group = parts[1]
 	}
 
-	return cmds[0], cmds[1], cmds[2]
+	return result
 }

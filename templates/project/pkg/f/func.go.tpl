@@ -22,7 +22,7 @@ func Func1[P1 any](
 	}
 }
 
-func Func2[P1 any, P2 any](
+func Func2[P1, P2 any](
 	f func(fiber.Ctx, P1, P2) error,
 	pf1 func(fiber.Ctx) (P1, error),
 	pf2 func(fiber.Ctx) (P2, error),
@@ -42,7 +42,7 @@ func Func2[P1 any, P2 any](
 	}
 }
 
-func Func3[P1 any, P2 any, P3 any](
+func Func3[P1, P2, P3 any](
 	f func(fiber.Ctx, P1, P2, P3) error,
 	pf1 func(fiber.Ctx) (P1, error),
 	pf2 func(fiber.Ctx) (P2, error),
@@ -66,7 +66,7 @@ func Func3[P1 any, P2 any, P3 any](
 	}
 }
 
-func Func4[P1 any, P2 any, P3 any, P4 any](
+func Func4[P1, P2, P3, P4 any](
 	f func(fiber.Ctx, P1, P2, P3, P4) error,
 	pf1 func(fiber.Ctx) (P1, error),
 	pf2 func(fiber.Ctx) (P2, error),
@@ -98,7 +98,7 @@ func Func4[P1 any, P2 any, P3 any, P4 any](
 	}
 }
 
-func Func5[P1 any, P2 any, P3 any, P4 any, P5 any](
+func Func5[P1, P2, P3, P4, P5 any](
 	f func(fiber.Ctx, P1, P2, P3, P4, P5) error,
 	pf1 func(fiber.Ctx) (P1, error),
 	pf2 func(fiber.Ctx) (P2, error),
@@ -131,7 +131,7 @@ func Func5[P1 any, P2 any, P3 any, P4 any, P5 any](
 	}
 }
 
-func Func6[P1 any, P2 any, P3 any, P4 any, P5 any, P6 any](
+func Func6[P1, P2, P3, P4, P5, P6 any](
 	f func(fiber.Ctx, P1, P2, P3, P4, P5, P6) error,
 	pf1 func(fiber.Ctx) (P1, error),
 	pf2 func(fiber.Ctx) (P2, error),
@@ -169,7 +169,7 @@ func Func6[P1 any, P2 any, P3 any, P4 any, P5 any, P6 any](
 	}
 }
 
-func Func7[P1 any, P2 any, P3 any, P4 any, P5 any, P6 any, P7 any](
+func Func7[P1, P2, P3, P4, P5, P6, P7 any](
 	f func(fiber.Ctx, P1, P2, P3, P4, P5, P6, P7) error,
 	pf1 func(fiber.Ctx) (P1, error),
 	pf2 func(fiber.Ctx) (P2, error),
@@ -212,7 +212,7 @@ func Func7[P1 any, P2 any, P3 any, P4 any, P5 any, P6 any, P7 any](
 	}
 }
 
-func Func8[P1 any, P2 any, P3 any, P4 any, P5 any, P6 any, P7 any, P8 any](
+func Func8[P1, P2, P3, P4, P5, P6, P7, P8 any](
 	f func(fiber.Ctx, P1, P2, P3, P4, P5, P6, P7, P8) error,
 	pf1 func(fiber.Ctx) (P1, error),
 	pf2 func(fiber.Ctx) (P2, error),
@@ -260,7 +260,7 @@ func Func8[P1 any, P2 any, P3 any, P4 any, P5 any, P6 any, P7 any, P8 any](
 	}
 }
 
-func Func9[P1 any, P2 any, P3 any, P4 any, P5 any, P6 any, P7 any, P8 any, P9 any](
+func Func9[P1, P2, P3, P4, P5, P6, P7, P8, P9 any](
 	f func(fiber.Ctx, P1, P2, P3, P4, P5, P6, P7, P8, P9) error,
 	pf1 func(fiber.Ctx) (P1, error),
 	pf2 func(fiber.Ctx) (P2, error),
@@ -313,7 +313,7 @@ func Func9[P1 any, P2 any, P3 any, P4 any, P5 any, P6 any, P7 any, P8 any, P9 an
 	}
 }
 
-func Func10[P1 any, P2 any, P3 any, P4 any, P5 any, P6 any, P7 any, P8 any, P9 any, P10 any](
+func Func10[P1, P2, P3, P4, P5, P6, P7, P8, P9, P10 any](
 	f func(fiber.Ctx, P1, P2, P3, P4, P5, P6, P7, P8, P9, P10) error,
 	pf1 func(fiber.Ctx) (P1, error),
 	pf2 func(fiber.Ctx) (P2, error),

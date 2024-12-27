@@ -5,7 +5,19 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Launch Package",
+            "name": "provider",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}",
+            "args": [
+                "gen",
+                "provider",
+                "/projects/learn/demo01",
+            ]
+        },
+        {
+            "name": "swag",
             "type": "go",
             "request": "launch",
             "mode": "auto",

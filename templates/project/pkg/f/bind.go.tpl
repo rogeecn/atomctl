@@ -56,4 +56,3 @@ func Header[T any](name string) func(fiber.Ctx) (*T, error) {
 		return p, nil
 	}
 }
-

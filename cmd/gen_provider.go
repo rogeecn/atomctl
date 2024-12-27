@@ -18,12 +18,10 @@ func CommandGenProvider(root *cobra.Command) {
 		Use:     "provider",
 		Aliases: []string{"p"},
 		Short:   "Generate providers",
-		Long: `
-//  @provider
+		Long: `//  @provider
 //  @provider:[except|only] [returnType] [group]
 //  when except add tag: inject:"false"
-//  when only add tag: inject:"true"
-		`,
+//  when only add tag: inject:"true"`,
 		RunE: commandGenProviderE,
 	}
 

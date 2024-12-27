@@ -19,11 +19,19 @@ func Provide(opts ...opt.Option) error {
 	) ({{.ReturnType}}, error) {
 		obj := &{{.StructName}}{
 		{{- range $key, $param := .InjectParams }}
+			{{- if ne $key "__job"}}
 			{{$key}}: {{$key}},
+			{{- end}}
 		{{- end }}
 		}
 		{{- if .NeedPrepareFunc }}
 		if err := obj.Prepare(); err != nil {
+			return nil, err
+		}
+		{{- end }}
+
+		{{- if eq .Mode "job"}}
+		if err := river.AddWorkerSafely(__job.Workers, obj); err != nil {
 			return nil, err
 		}
 		{{- end }}
