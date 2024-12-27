@@ -3,6 +3,7 @@ package job
 import (
 	"git.ipao.vip/rogeecn/atom/container"
 	"git.ipao.vip/rogeecn/atom/utils/opt"
+	"github.com/riverqueue/river"
 )
 
 const DefaultPrefix = "Job"
@@ -19,7 +20,14 @@ func DefaultProvider() container.ProviderContainer {
 type Config struct{}
 
 const (
-	PriorityHigh    = "high"
-	PriorityDefault = "default"
-	PriorityLow     = "low"
+	PriorityDefault = river.PriorityDefault
+	PriorityLow     = 2
+	PriorityMiddle  = 3
+	PriorityHigh    = 3
+)
+
+const (
+	QueueHigh    = "high"
+	QueueDefault = "default"
+	QueueLow     = "low"
 )
