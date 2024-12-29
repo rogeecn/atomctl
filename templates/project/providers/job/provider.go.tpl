@@ -4,7 +4,7 @@ import (
 	"context"
 	"sync"
 
-	"demo01/providers/postgres"
+	"{{.ModuleName}}/providers/postgres"
 
 	"git.ipao.vip/rogeecn/atom/container"
 	"git.ipao.vip/rogeecn/atom/utils/opt"
@@ -71,9 +71,9 @@ func (q *Job) Client() (*river.Client[pgx.Tx], error) {
 		q.client, err = river.NewClient(q.Driver, &river.Config{
 			Workers: q.Workers,
 			Queues: map[string]river.QueueConfig{
-				PriorityHigh:    {MaxWorkers: 10},
-				PriorityDefault: {MaxWorkers: 10},
-				PriorityLow:     {MaxWorkers: 10},
+				QueueHigh:    {MaxWorkers: 10},
+				QueueDefault: {MaxWorkers: 10},
+				QueueLow:     {MaxWorkers: 10},
 			},
 		})
 		if err != nil {
