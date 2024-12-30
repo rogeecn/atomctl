@@ -68,17 +68,19 @@ func Serve(cmd *cobra.Command, args []string) error {
 				WithField("duration", cronJob.Periodic().Seconds()).
 				Info("registering cron job")
 
-			client.PeriodicJobs().Add(river.NewPeriodicJob(
-				river.PeriodicInterval(cronJob.Periodic()),
-				func() (river.JobArgs, *river.InsertOpts) {
-					return cronJob.JobArgs(), cronJob.InsertOpts()
-				},
-				&river.PeriodicJobOpts{
-					RunOnStart: cronJob.RunOnStart(),
-				},
-			),
-			)
-
+			for _, jobArgs := range cronJob.JobArgs() {
+				client.PeriodicJobs().Add(
+					river.NewPeriodicJob(
+						river.PeriodicInterval(cronJob.Periodic()),
+						func() (river.JobArgs, *river.InsertOpts) {
+							return jobArgs, cronJob.InsertOpts()
+						},
+						&river.PeriodicJobOpts{
+							RunOnStart: cronJob.RunOnStart(),
+						},
+					),
+				)
+			}
 		}
 
 		if err := client.Start(ctx); err != nil {
