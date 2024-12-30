@@ -31,9 +31,11 @@ func (cron *CronJob) InsertOpts() *river.InsertOpts {
 }
 
 // JobArgs implements contracts.CronJob.
-func (cron *CronJob) JobArgs() river.JobArgs {
-	return SortArgs{
-		Strings: []string{"a", "c", "b", "d"},
+func (cron *CronJob) JobArgs() []river.JobArgs {
+	return []river.JobArgs{
+		SortArgs{
+			Strings: []string{"a", "c", "b", "d"},
+		},
 	}
 }
 
