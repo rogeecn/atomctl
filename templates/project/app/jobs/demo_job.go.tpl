@@ -25,7 +25,7 @@ type SortArgs struct {
 // InsertOpts implements JobArgsWithInsertOpts.
 func (s SortArgs) InsertOpts() InsertOpts {
 	return InsertOpts{
-		Queue:    "high_priority",
+		Queue:    QueueDefault,
 		Priority: PriorityDefault,
 	}
 }
