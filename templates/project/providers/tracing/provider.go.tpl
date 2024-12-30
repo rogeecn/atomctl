@@ -34,8 +34,8 @@ func Provide(opts ...opt.Option) error {
 			},
 			Reporter: &config.ReporterConfig{
 				LogSpans:            true,
-				LocalAgentHostPort:  "127.0.0.1:6831",
-				CollectorEndpoint:   "http://127.0.0.1:14268/api/traces",
+				LocalAgentHostPort:  conf.Reporter_LocalAgentHostPort,
+				CollectorEndpoint:   conf.Reporter_CollectorEndpoint,
 				BufferFlushInterval: 100 * time.Millisecond,
 				QueueSize:           1000,
 			},

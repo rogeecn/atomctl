@@ -28,6 +28,6 @@ const (
 
 const (
 	QueueHigh    = "high"
-	QueueDefault = "default"
+	QueueDefault = river.QueueDefault
 	QueueLow     = "low"
 )

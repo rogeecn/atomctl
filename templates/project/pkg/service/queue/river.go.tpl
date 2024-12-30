@@ -12,6 +12,7 @@ import (
 	"git.ipao.vip/rogeecn/atom"
 	"git.ipao.vip/rogeecn/atom/container"
 	"git.ipao.vip/rogeecn/atom/contracts"
+	"github.com/riverqueue/river"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"go.uber.org/dig"
@@ -44,6 +45,7 @@ type Service struct {
 	App      *app.Config
 	Job      *job.Job
 	Initials []contracts.Initial `group:"initials"`
+	CronJobs []contracts.CronJob `group:"cron_jobs"`
 }
 
 func Serve(cmd *cobra.Command, args []string) error {
@@ -57,6 +59,26 @@ func Serve(cmd *cobra.Command, args []string) error {
 		client, err := svc.Job.Client()
 		if err != nil {
 			return err
+		}
+
+		for _, cronJob := range svc.CronJobs {
+			log.
+				WithField("module", "cron").
+				WithField("name", cronJob.Description()).
+				WithField("duration", cronJob.Periodic().Seconds()).
+				Info("registering cron job")
+
+			client.PeriodicJobs().Add(river.NewPeriodicJob(
+				river.PeriodicInterval(cronJob.Periodic()),
+				func() (river.JobArgs, *river.InsertOpts) {
+					return cronJob.JobArgs(), cronJob.InsertOpts()
+				},
+				&river.PeriodicJobOpts{
+					RunOnStart: cronJob.RunOnStart(),
+				},
+			),
+			)
+
 		}
 
 		if err := client.Start(ctx); err != nil {

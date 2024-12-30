@@ -2,6 +2,7 @@ package http
 
 import (
 	"{{.ModuleName}}/app/errorx"
+	"{{.ModuleName}}/app/jobs"
 	_ "{{.ModuleName}}/docs"
 	"{{.ModuleName}}/pkg/service"
 	"{{.ModuleName}}/providers/app"
@@ -26,6 +27,7 @@ func defaultProviders() container.Providers {
 		postgres.DefaultProvider(),
 		jwt.DefaultProvider(),
 		hashids.DefaultProvider(),
+		job.DefaultProvider(),
 	}...)
 }
 
@@ -34,7 +36,12 @@ func Command() atom.Option {
 		atom.Name("serve"),
 		atom.Short("run http server"),
 		atom.RunE(Serve),
-		atom.Providers(defaultProviders()),
+		atom.Providers(
+			defaultProviders().
+				With(
+					jobs.Provide,
+				),
+		),
 	)
 }
 
@@ -42,6 +49,7 @@ type Http struct {
 	dig.In
 
 	App      *app.Config
+	Job      *job.Job
 	Service  *http.Service
 	Initials []contracts.Initial   `group:"initials"`
 	Routes   []contracts.HttpRoute `group:"routes"`

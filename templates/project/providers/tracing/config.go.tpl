@@ -44,4 +44,8 @@ func (c *Config) format() {
 	if c.Reporter_CollectorEndpoint == "" {
 		c.Reporter_CollectorEndpoint = "http://127.0.0.1:14268/api/traces"
 	}
+
+	if c.Name == "" {
+		c.Name = "default"
+	}
 }
