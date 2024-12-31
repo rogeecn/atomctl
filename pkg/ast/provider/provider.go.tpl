@@ -19,7 +19,7 @@ func Provide(opts ...opt.Option) error {
 	) ({{.ReturnType}}, error) {
 		obj := &{{.StructName}}{
 		{{- range $key, $param := .InjectParams }}
-			{{- if and (ne $key "__job") (ne $key "__event")}}
+			{{- if and (ne $key "__job") (ne $key "__event") (ne $key "__grpc")}}
 			{{$key}}: {{$key}},
 			{{- end}}
 		{{- end }}
@@ -28,6 +28,10 @@ func Provide(opts ...opt.Option) error {
 		if err := obj.Prepare(); err != nil {
 			return nil, err
 		}
+		{{- end }}
+
+		{{- if eq .Mode "grpc"}}
+		userv1.RegisterUserServiceServer(__grpc.Server, obj)
 		{{- end }}
 
 		{{- if eq .Mode "event"}}
@@ -39,6 +43,7 @@ func Provide(opts ...opt.Option) error {
 			return nil, err
 		}
 		{{- end }}
+
 		return obj, nil
 	}{{if .ProviderGroup}}, {{.ProviderGroup}}{{end}}); err != nil {
 		return err

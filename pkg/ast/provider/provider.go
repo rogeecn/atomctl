@@ -163,45 +163,6 @@ func Parse(source string) []Provider {
 			provider.ReturnType = "*" + provider.StructName
 		}
 
-		if providerDoc.Mode == "event" {
-			provider.Mode = "event"
-
-			modePkg := gomod.GetModuleName() + "/providers/events"
-
-			provider.Imports["git.ipao.vip/rogeecn/atom/contracts"] = ""
-			provider.Imports[modePkg] = ""
-
-			provider.ProviderGroup = "atom.GroupInitial"
-			provider.ReturnType = "contracts.Initial"
-
-			provider.InjectParams["__event"] = InjectParam{
-				Star:         "*",
-				Type:         "PubSub",
-				Package:      modePkg,
-				PackageAlias: "events",
-			}
-		}
-
-		if providerDoc.Mode == "job" {
-			provider.Mode = "job"
-
-			modePkg := gomod.GetModuleName() + "/providers/job"
-
-			provider.Imports["git.ipao.vip/rogeecn/atom/contracts"] = ""
-			provider.Imports["github.com/riverqueue/river"] = ""
-			provider.Imports[modePkg] = ""
-
-			provider.ProviderGroup = "atom.GroupInitial"
-			provider.ReturnType = "contracts.Initial"
-
-			provider.InjectParams["__job"] = InjectParam{
-				Star:         "*",
-				Type:         "Job",
-				Package:      modePkg,
-				PackageAlias: "job",
-			}
-		}
-
 		for _, field := range structType.Fields.List {
 			if field.Names == nil {
 				continue
@@ -288,6 +249,64 @@ func Parse(source string) []Provider {
 
 		provider.PkgName = node.Name.Name
 		provider.ProviderFile = filepath.Join(filepath.Dir(source), "provider.gen.go")
+
+		if providerDoc.Mode == "grpc" {
+			provider.Mode = "grpc"
+
+			modePkg := gomod.GetModuleName() + "/providers/grpc"
+
+			provider.Imports["git.ipao.vip/rogeecn/atom/contracts"] = ""
+			provider.Imports[modePkg] = ""
+
+			provider.ProviderGroup = "atom.GroupInitial"
+			provider.ReturnType = "contracts.Initial"
+
+			provider.InjectParams["__grpc"] = InjectParam{
+				Star:         "*",
+				Type:         "Grpc",
+				Package:      modePkg,
+				PackageAlias: "grpc",
+			}
+		}
+
+		if providerDoc.Mode == "event" {
+			provider.Mode = "event"
+
+			modePkg := gomod.GetModuleName() + "/providers/events"
+
+			provider.Imports["git.ipao.vip/rogeecn/atom/contracts"] = ""
+			provider.Imports[modePkg] = ""
+
+			provider.ProviderGroup = "atom.GroupInitial"
+			provider.ReturnType = "contracts.Initial"
+
+			provider.InjectParams["__event"] = InjectParam{
+				Star:         "*",
+				Type:         "PubSub",
+				Package:      modePkg,
+				PackageAlias: "events",
+			}
+		}
+
+		if providerDoc.Mode == "job" {
+			provider.Mode = "job"
+
+			modePkg := gomod.GetModuleName() + "/providers/job"
+
+			provider.Imports["git.ipao.vip/rogeecn/atom/contracts"] = ""
+			provider.Imports["github.com/riverqueue/river"] = ""
+			provider.Imports[modePkg] = ""
+
+			provider.ProviderGroup = "atom.GroupInitial"
+			provider.ReturnType = "contracts.Initial"
+
+			provider.InjectParams["__job"] = InjectParam{
+				Star:         "*",
+				Type:         "Job",
+				Package:      modePkg,
+				PackageAlias: "job",
+			}
+		}
 
 		providers = append(providers, provider)
 

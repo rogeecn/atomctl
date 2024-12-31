@@ -1,4 +1,6 @@
 version: v2
+inputs:
+  - directory: proto
 managed:
   enabled: true
   override:
@@ -6,24 +8,16 @@ managed:
       value: {{.ModuleName}}/pkg/proto
 
 plugins:
-  - remote: buf.build/protocolbuffers/go
-    out: gen/go
+  - local: protoc-gen-go
+    out: pkg/proto
     opt: paths=source_relative
-  - remote: buf.build/grpc/go
-    out: gen/go
-    opt: paths=source_relative,require_unimplemented_servers=false
-  - remote: buf.build/grpc-ecosystem/gateway
-    out: gen/go
+  - local: protoc-gen-grpc-gateway
+    out: pkg/proto
+    opt:
+      - paths=source_relative
+      - generate_unbound_methods=true
+  - local: protoc-gen-go-grpc
+    out: pkg/proto
     opt: paths=source_relative
-  # languages
-  - remote: buf.build/protocolbuffers/js
-    out: gen/js
-  - remote: buf.build/protocolbuffers/php
-    out: gen/php
-  # generate openapi documentation for api
-  - remote: buf.build/grpc-ecosystem/openapiv2
-    out: gen/openapiv2
-    opt: allow_merge=true,merge_file_name=services
-
-inputs:
-  - directory: proto
+  # - local: protoc-gen-openapiv2
+  #   out: docs/proto
