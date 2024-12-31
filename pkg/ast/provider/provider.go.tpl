@@ -19,7 +19,7 @@ func Provide(opts ...opt.Option) error {
 	) ({{.ReturnType}}, error) {
 		obj := &{{.StructName}}{
 		{{- range $key, $param := .InjectParams }}
-			{{- if ne $key "__job"}}
+			{{- if and (ne $key "__job") (ne $key "__event")}}
 			{{$key}}: {{$key}},
 			{{- end}}
 		{{- end }}
@@ -28,6 +28,10 @@ func Provide(opts ...opt.Option) error {
 		if err := obj.Prepare(); err != nil {
 			return nil, err
 		}
+		{{- end }}
+
+		{{- if eq .Mode "event"}}
+		__event.Handle("handler:{{.StructName}}", obj.Topic(), obj.PublishToTopic(), obj.Handler)
 		{{- end }}
 
 		{{- if eq .Mode "job"}}

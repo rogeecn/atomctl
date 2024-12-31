@@ -163,14 +163,33 @@ func Parse(source string) []Provider {
 			provider.ReturnType = "*" + provider.StructName
 		}
 
+		if providerDoc.Mode == "event" {
+			provider.Mode = "event"
+
+			modePkg := gomod.GetModuleName() + "/providers/events"
+
+			provider.Imports["git.ipao.vip/rogeecn/atom/contracts"] = ""
+			provider.Imports[modePkg] = ""
+
+			provider.ProviderGroup = "atom.GroupInitial"
+			provider.ReturnType = "contracts.Initial"
+
+			provider.InjectParams["__event"] = InjectParam{
+				Star:         "*",
+				Type:         "PubSub",
+				Package:      modePkg,
+				PackageAlias: "events",
+			}
+		}
+
 		if providerDoc.Mode == "job" {
 			provider.Mode = "job"
 
-			jobPkg := gomod.GetModuleName() + "/providers/job"
+			modePkg := gomod.GetModuleName() + "/providers/job"
 
 			provider.Imports["git.ipao.vip/rogeecn/atom/contracts"] = ""
 			provider.Imports["github.com/riverqueue/river"] = ""
-			provider.Imports[jobPkg] = ""
+			provider.Imports[modePkg] = ""
 
 			provider.ProviderGroup = "atom.GroupInitial"
 			provider.ReturnType = "contracts.Initial"
@@ -178,7 +197,7 @@ func Parse(source string) []Provider {
 			provider.InjectParams["__job"] = InjectParam{
 				Star:         "*",
 				Type:         "Job",
-				Package:      jobPkg,
+				Package:      modePkg,
 				PackageAlias: "job",
 			}
 		}
