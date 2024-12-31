@@ -46,3 +46,7 @@ func (g *Grpc) Serve() error {
 
 	return g.Server.Serve(l)
 }
+
+func (g *Grpc) ServeWithListener(ln net.Listener) error {
+	return g.Server.Serve(ln)
+}

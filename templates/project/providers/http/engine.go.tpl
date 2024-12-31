@@ -3,6 +3,7 @@ package http
 import (
 	"errors"
 	"fmt"
+	"net"
 	"runtime/debug"
 	"time"
 
@@ -29,7 +30,7 @@ type Service struct {
 	Engine *fiber.App
 }
 
-func (svc *Service) Serve() error {
+func (svc *Service) listenerConfig() fiber.ListenConfig {
 	listenConfig := fiber.ListenConfig{
 		EnablePrintRoutes: true,
 		OnShutdownSuccess: func() {
@@ -44,7 +45,7 @@ func (svc *Service) Serve() error {
 
 	if svc.conf.Tls != nil {
 		if svc.conf.Tls.Cert == "" || svc.conf.Tls.Key == "" {
-			return errors.New("tls cert or key is empty")
+			panic(errors.New("tls cert and key must be set"))
 		}
 		listenConfig.CertFile = svc.conf.Tls.Cert
 		listenConfig.CertKeyFile = svc.conf.Tls.Key
@@ -52,8 +53,15 @@ func (svc *Service) Serve() error {
 	container.AddCloseAble(func() {
 		svc.Engine.Shutdown()
 	})
+	return listenConfig
+}
 
-	return svc.Engine.Listen(svc.conf.Address(), listenConfig)
+func (svc *Service) Listener(ln net.Listener) error {
+	return svc.Engine.Listener(ln, svc.listenerConfig())
+}
+
+func (svc *Service) Serve() error {
+	return svc.Engine.Listen(svc.conf.Address(), svc.listenerConfig())
 }
 
 func Provide(opts ...opt.Option) error {
