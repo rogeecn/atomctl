@@ -17,7 +17,7 @@ func Provide(opts ...opt.Option) error {
 	if err := o.UnmarshalConfig(&config); err != nil {
 		return err
 	}
-	return container.Container.Provide(func(http http.Service, grpc *grpc.Grpc) (*CMux, error) {
+	return container.Container.Provide(func(http *http.Service, grpc *grpc.Grpc) (*CMux, error) {
 		l, err := net.Listen("tcp", config.Address())
 		if err != nil {
 			return nil, err

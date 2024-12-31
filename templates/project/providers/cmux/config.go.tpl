@@ -36,7 +36,7 @@ func (h *Config) Address() string {
 }
 
 type CMux struct {
-	Http http.Service
+	Http *http.Service
 	Grpc *grpc.Grpc
 	Mux  cmux.CMux
 }
