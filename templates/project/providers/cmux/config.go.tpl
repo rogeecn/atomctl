@@ -2,7 +2,6 @@ package cmux
 
 import (
 	"fmt"
-
 	"qq/providers/grpc"
 	"qq/providers/http"
 
@@ -42,9 +41,11 @@ type CMux struct {
 }
 
 func (c *CMux) Serve() error {
-	grpcL := c.Mux.Match(cmux.HTTP2HeaderField("content-type", "application/grpc"))
+	// grpcL := c.Mux.Match(cmux.HTTP2HeaderField("content-type", "application/grpc"))
 	// httpL := c.Mux.Match(cmux.HTTP1Fast())
-	httpL := c.Mux.Match(cmux.Any())
+	// httpL := c.Mux.Match(cmux.Any())
+	httpL := c.Mux.Match(cmux.HTTP1Fast())
+	grpcL := c.Mux.Match(cmux.Any())
 
 	var eg errgroup.Group
 	eg.Go(func() error {
