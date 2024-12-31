@@ -2,12 +2,12 @@ package event
 
 import (
 	"context"
-	"qq/app/events"
-	"qq/pkg/service"
-	"qq/providers/app"
-	"qq/providers/postgres"
 
-	providerEvents "qq/providers/events"
+	"{{.ModuleName}}/app/events"
+	"{{.ModuleName}}/app/service"
+	"{{.ModuleName}}/providers/app"
+	providerEvents "{{.ModuleName}}/providers/events"
+	"{{.ModuleName}}/providers/postgres"
 
 	"git.ipao.vip/rogeecn/atom"
 	"git.ipao.vip/rogeecn/atom/container"
