@@ -136,7 +136,7 @@ func (o *OTEL) initMeterProvider(ctx context.Context) (err error) {
 		sdkmetric.WithReader(
 			sdkmetric.NewPeriodicReader(exporter),
 		),
-		sdkmetric.WithResource(o.Resource),
+		sdkmetric.WithResource(o.resource),
 	)
 	otel.SetMeterProvider(meterProvider)
 
@@ -216,7 +216,7 @@ func (o *OTEL) initTracerProvider(ctx context.Context) error {
 	traceProvider := sdktrace.NewTracerProvider(
 		sdktrace.WithSampler(sdktrace.AlwaysSample()),
 		sdktrace.WithBatcher(exporter),
-		sdktrace.WithResource(o.Resource),
+		sdktrace.WithResource(o.resource),
 		sdktrace.WithSpanProcessor(sdktrace.NewBatchSpanProcessor(exporter)),
 	)
 	container.AddCloseAble(func() {
