@@ -18,19 +18,12 @@ import (
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
-	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/propagation"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.15.0"
-	"go.opentelemetry.io/otel/trace"
 	"google.golang.org/grpc/encoding/gzip"
-)
-
-var (
-	Tracer trace.Tracer
-	Meter  metric.Meter
 )
 
 func Provide(opts ...opt.Option) error {
@@ -41,7 +34,7 @@ func Provide(opts ...opt.Option) error {
 	}
 	config.format()
 	return container.Container.Provide(func(ctx context.Context) (contracts.Initial, error) {
-		o := &OTEL{
+		o := &builder{
 			config: &config,
 		}
 
@@ -57,20 +50,21 @@ func Provide(opts ...opt.Option) error {
 			return o, errors.Wrapf(err, "Failed to create OpenTelemetry tracer provider")
 		}
 
-		Tracer = otel.Tracer(config.ServiceName)
-		Meter = otel.Meter(config.ServiceName)
+		tracer = otel.Tracer(config.ServiceName)
+		meter = otel.Meter(config.ServiceName)
 
+		log.Info("otel provider init success")
 		return o, nil
 	}, o.DiOptions()...)
 }
 
-type OTEL struct {
+type builder struct {
 	config *Config
 
 	resource *resource.Resource
 }
 
-func (o *OTEL) initResource(ctx context.Context) (err error) {
+func (o *builder) initResource(ctx context.Context) (err error) {
 	hostName, _ := os.Hostname()
 
 	o.resource, err = resource.New(
@@ -91,7 +85,7 @@ func (o *OTEL) initResource(ctx context.Context) (err error) {
 	return
 }
 
-func (o *OTEL) initMeterProvider(ctx context.Context) (err error) {
+func (o *builder) initMeterProvider(ctx context.Context) (err error) {
 	exporterGrpcFunc := func(ctx context.Context) (sdkmetric.Exporter, error) {
 		opts := []otlpmetricgrpc.Option{
 			otlpmetricgrpc.WithEndpoint(o.config.EndpointGRPC),
@@ -160,7 +154,7 @@ func (o *OTEL) initMeterProvider(ctx context.Context) (err error) {
 	return
 }
 
-func (o *OTEL) initTracerProvider(ctx context.Context) error {
+func (o *builder) initTracerProvider(ctx context.Context) error {
 	exporterGrpcFunc := func(ctx context.Context) (*otlptrace.Exporter, error) {
 		opts := []otlptracegrpc.Option{
 			otlptracegrpc.WithCompressor(gzip.Name),
