@@ -16,6 +16,7 @@ import (
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
+	"go.opentelemetry.io/otel/metric"
 	"go.opentelemetry.io/otel/propagation"
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/resource"
@@ -33,7 +34,6 @@ func Provide(opts ...opt.Option) error {
 	}
 	return container.Container.Provide(func(ctx context.Context) (*OTEL, error) {
 		o := &OTEL{
-			Tracer: otel.Tracer(config.ServiceName),
 			config: &config,
 		}
 
@@ -50,6 +50,9 @@ func Provide(opts ...opt.Option) error {
 			return o, errors.Wrapf(err, "Failed to create OpenTelemetry tracer provider")
 		}
 
+		o.Tracer = otel.Tracer(config.ServiceName)
+		o.Meter = otel.Meter(config.ServiceName)
+
 		return o, nil
 	}, o.DiOptions()...)
 }
@@ -57,14 +60,16 @@ func Provide(opts ...opt.Option) error {
 type OTEL struct {
 	config *Config
 
-	Tracer   trace.Tracer
-	Resource *resource.Resource
+	Tracer trace.Tracer
+	Meter  metric.Meter
+
+	resource *resource.Resource
 }
 
 func (o *OTEL) initResource(ctx context.Context) (err error) {
 	hostName, _ := os.Hostname()
 
-	o.Resource, err = resource.New(
+	o.resource, err = resource.New(
 		ctx,
 		resource.WithFromEnv(),
 		resource.WithProcess(),
