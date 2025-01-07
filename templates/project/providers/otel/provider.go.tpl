@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"git.ipao.vip/rogeecn/atom/container"
+	"git.ipao.vip/rogeecn/atom/contracts"
 	"git.ipao.vip/rogeecn/atom/utils/opt"
 
 	"github.com/pkg/errors"
@@ -27,6 +28,11 @@ import (
 	"google.golang.org/grpc/encoding/gzip"
 )
 
+var (
+	Tracer trace.Tracer
+	Meter  metric.Meter
+)
+
 func Provide(opts ...opt.Option) error {
 	o := opt.New(opts...)
 	var config Config
@@ -34,7 +40,7 @@ func Provide(opts ...opt.Option) error {
 		return err
 	}
 	config.format()
-	return container.Container.Provide(func(ctx context.Context) (*OTEL, error) {
+	return container.Container.Provide(func(ctx context.Context) (contracts.Initial, error) {
 		o := &OTEL{
 			config: &config,
 		}
@@ -51,8 +57,8 @@ func Provide(opts ...opt.Option) error {
 			return o, errors.Wrapf(err, "Failed to create OpenTelemetry tracer provider")
 		}
 
-		o.Tracer = otel.Tracer(config.ServiceName)
-		o.Meter = otel.Meter(config.ServiceName)
+		Tracer = otel.Tracer(config.ServiceName)
+		Meter = otel.Meter(config.ServiceName)
 
 		return o, nil
 	}, o.DiOptions()...)
@@ -60,9 +66,6 @@ func Provide(opts ...opt.Option) error {
 
 type OTEL struct {
 	config *Config
-
-	Tracer trace.Tracer
-	Meter  metric.Meter
 
 	resource *resource.Resource
 }
