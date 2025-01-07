@@ -12,6 +12,7 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
@@ -37,9 +38,18 @@ func Provide(opts ...opt.Option) error {
 			return o, errors.Wrapf(err, "Failed to create OpenTelemetry resource")
 		}
 
-		o.Exporter, o.SpanProcessor, err = initGrpcExporterAndSpanProcessor(ctx, &config)
-		if err != nil {
-			return o, errors.Wrapf(err, "Failed to create OpenTelemetry trace exporter")
+		if config.EndpointHTTP != "" {
+			o.Exporter, o.SpanProcessor, err = initHTTPExporterAndSpanProcessor(ctx, &config)
+			if err != nil {
+				return o, errors.Wrapf(err, "Failed to create OpenTelemetry trace exporter")
+			}
+		} else if config.EndpointGRPC != "" {
+			o.Exporter, o.SpanProcessor, err = initGrpcExporterAndSpanProcessor(ctx, &config)
+			if err != nil {
+				return o, errors.Wrapf(err, "Failed to create OpenTelemetry trace exporter")
+			}
+		} else {
+			return o, errors.New("http or grpc endpoint is required")
 		}
 
 		traceProvider := sdktrace.NewTracerProvider(
@@ -93,6 +103,30 @@ func initResource(ctx context.Context, conf *Config) (*resource.Resource, error)
 		return nil, err
 	}
 	return r, nil
+}
+
+func initHTTPExporterAndSpanProcessor(ctx context.Context, conf *Config) (*otlptrace.Exporter, sdktrace.SpanProcessor, error) {
+	opts := []otlptracehttp.Option{
+		otlptracehttp.WithInsecure(),
+		otlptracehttp.WithCompression(1),
+	}
+
+	if conf.Token != "" {
+		opts = append(opts, otlptracehttp.WithURLPath(conf.Token))
+	}
+
+	if conf.EndpointHTTP != "" {
+		opts = append(opts, otlptracehttp.WithEndpoint(conf.EndpointHTTP))
+	}
+
+	traceExporter, err := otlptrace.New(ctx, otlptracehttp.NewClient(opts...))
+	if err != nil {
+		return nil, nil, err
+	}
+
+	batchSpanProcessor := sdktrace.NewBatchSpanProcessor(traceExporter)
+
+	return traceExporter, batchSpanProcessor, nil
 }
 
 func initGrpcExporterAndSpanProcessor(ctx context.Context, conf *Config) (*otlptrace.Exporter, sdktrace.SpanProcessor, error) {
