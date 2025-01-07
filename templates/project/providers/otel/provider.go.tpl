@@ -43,9 +43,9 @@ func Provide(opts ...opt.Option) error {
 			return o, errors.Wrapf(err, "Failed to create OpenTelemetry resource")
 		}
 
-		// if err := o.initMeterProvider(ctx); err != nil {
-		// 	return o, errors.Wrapf(err, "Failed to create OpenTelemetry metric provider")
-		// }
+		if err := o.initMeterProvider(ctx); err != nil {
+			return o, errors.Wrapf(err, "Failed to create OpenTelemetry metric provider")
+		}
 
 		if err := o.initTracerProvider(ctx); err != nil {
 			return o, errors.Wrapf(err, "Failed to create OpenTelemetry tracer provider")
