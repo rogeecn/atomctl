@@ -9,6 +9,7 @@ import (
 	"git.ipao.vip/rogeecn/atom/utils/opt"
 
 	"github.com/pkg/errors"
+	"go.opentelemetry.io/contrib/instrumentation/runtime"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp"
@@ -133,6 +134,11 @@ func (o *OTEL) initMeterProvider(ctx context.Context) (err error) {
 		sdkmetric.WithResource(o.Resource),
 	)
 	otel.SetMeterProvider(meterProvider)
+
+	err = runtime.Start(runtime.WithMinimumReadMemStatsInterval(time.Second * 5))
+	if err != nil {
+		return errors.Wrapf(err, "Failed to start runtime metrics")
+	}
 
 	container.AddCloseAble(func() {
 		if err := meterProvider.Shutdown(ctx); err != nil {
