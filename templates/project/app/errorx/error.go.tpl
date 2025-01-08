@@ -117,7 +117,7 @@ func (r *Response) Response(ctx fiber.Ctx) error {
 		r.format()
 	}
 
-	contentType := utils.ToLower(utils.UnsafeString(ctx.Context().Request.Header.ContentType()))
+	contentType := utils.ToLower(utils.UnsafeString(ctx.Request().Header.ContentType()))
 	contentType = binder.FilterFlags(utils.ParseVendorSpecificContentType(contentType))
 
 	log.
