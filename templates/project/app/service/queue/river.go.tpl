@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"{{.ModuleName}}/app/jobs"
-	"{{.ModuleName}}/pkg/service"
+	"{{.ModuleName}}/app/service"
 	"{{.ModuleName}}/providers/app"
 	"{{.ModuleName}}/providers/job"
 	"{{.ModuleName}}/providers/postgres"

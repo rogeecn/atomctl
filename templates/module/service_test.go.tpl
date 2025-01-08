@@ -3,7 +3,7 @@ package {{.ModuleName}}
 import (
 	"testing"
 
-	"{{.ProjectModule}}/pkg/service/testx"
+	"{{.ProjectModule}}/app/service/testx"
 
 	. "github.com/smartystreets/goconvey/convey"
 	"github.com/stretchr/testify/suite"

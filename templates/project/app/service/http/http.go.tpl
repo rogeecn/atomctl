@@ -3,8 +3,8 @@ package http
 import (
 	"{{.ModuleName}}/app/errorx"
 	"{{.ModuleName}}/app/jobs"
+	"{{.ModuleName}}/app/service"
 	_ "{{.ModuleName}}/docs"
-	"{{.ModuleName}}/pkg/service"
 	"{{.ModuleName}}/providers/app"
 	"{{.ModuleName}}/providers/hashids"
 	"{{.ModuleName}}/providers/http"

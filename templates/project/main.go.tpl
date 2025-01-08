@@ -1,7 +1,7 @@
 package main
 
 import (
-	"{{.ModuleName}}/pkg/service/http"
+	"{{.ModuleName}}/app/service/http"
 
 	"git.ipao.vip/rogeecn/atom"
 	log "github.com/sirupsen/logrus"
