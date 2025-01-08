@@ -3,8 +3,8 @@ package cmux
 import (
 	"net"
 
-	"qq/providers/grpc"
-	"qq/providers/http"
+	"{{.ModuleName}}/providers/grpc"
+	"{{.ModuleName}}/providers/http"
 
 	"git.ipao.vip/rogeecn/atom/container"
 	"git.ipao.vip/rogeecn/atom/utils/opt"
