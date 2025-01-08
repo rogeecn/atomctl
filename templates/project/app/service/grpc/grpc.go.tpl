@@ -1,12 +1,12 @@
 package grpc
 
 import (
-	"qq/app/grpc/users"
-	"qq/app/service"
-	_ "qq/docs"
-	"qq/providers/app"
-	"qq/providers/grpc"
-	"qq/providers/postgres"
+	"{{.ModuleName}}/app/grpc/users"
+	"{{.ModuleName}}/app/service"
+	_ "{{.ModuleName}}/docs"
+	"{{.ModuleName}}/providers/app"
+	"{{.ModuleName}}/providers/grpc"
+	"{{.ModuleName}}/providers/postgres"
 
 	"git.ipao.vip/rogeecn/atom"
 	"git.ipao.vip/rogeecn/atom/container"
