@@ -47,15 +47,16 @@ type InjectParam struct {
 	PackageAlias string
 }
 type Provider struct {
-	StructName      string
-	ReturnType      string
-	Mode            string
-	ProviderGroup   string
-	NeedPrepareFunc bool
-	InjectParams    map[string]InjectParam
-	Imports         map[string]string
-	PkgName         string
-	ProviderFile    string
+	StructName       string
+	ReturnType       string
+	Mode             string
+	ProviderGroup    string
+	GrpcRegisterFunc string
+	NeedPrepareFunc  bool
+	InjectParams     map[string]InjectParam
+	Imports          map[string]string
+	PkgName          string
+	ProviderFile     string
 }
 
 func Parse(source string) []Provider {
@@ -255,10 +256,12 @@ func Parse(source string) []Provider {
 
 			modePkg := gomod.GetModuleName() + "/providers/grpc"
 
+			provider.Imports["git.ipao.vip/rogeecn/atom"] = ""
 			provider.Imports["git.ipao.vip/rogeecn/atom/contracts"] = ""
 			provider.Imports[modePkg] = ""
 
 			provider.ProviderGroup = "atom.GroupInitial"
+			provider.GrpcRegisterFunc = provider.ReturnType
 			provider.ReturnType = "contracts.Initial"
 
 			provider.InjectParams["__grpc"] = InjectParam{
@@ -274,6 +277,7 @@ func Parse(source string) []Provider {
 
 			modePkg := gomod.GetModuleName() + "/providers/events"
 
+			provider.Imports["git.ipao.vip/rogeecn/atom"] = ""
 			provider.Imports["git.ipao.vip/rogeecn/atom/contracts"] = ""
 			provider.Imports[modePkg] = ""
 
@@ -293,6 +297,7 @@ func Parse(source string) []Provider {
 
 			modePkg := gomod.GetModuleName() + "/providers/job"
 
+			provider.Imports["git.ipao.vip/rogeecn/atom"] = ""
 			provider.Imports["git.ipao.vip/rogeecn/atom/contracts"] = ""
 			provider.Imports["github.com/riverqueue/river"] = ""
 			provider.Imports[modePkg] = ""

@@ -13,7 +13,7 @@
             "args": [
                 "gen",
                 "provider",
-                "/projects/learn/demo01",
+                "/projects/learn/qq",
             ]
         },
         {
@@ -25,7 +25,7 @@
             "args": [
                 "swag",
                 "init",
-                "/projects/tt",
+                "/projects/learn/qq",
             ]
         },
         {
@@ -37,7 +37,7 @@
             "args": [
                 "gen",
                 "route",
-                "/projects/learn/go-demo",
+                "/projects/learn/qq",
             ]
         }
     ]

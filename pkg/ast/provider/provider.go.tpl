@@ -31,7 +31,7 @@ func Provide(opts ...opt.Option) error {
 		{{- end }}
 
 		{{- if eq .Mode "grpc"}}
-		userv1.RegisterUserServiceServer(__grpc.Server, obj)
+		{{ .GrpcRegisterFunc }}(__grpc.Server, obj)
 		{{- end }}
 
 		{{- if eq .Mode "event"}}
