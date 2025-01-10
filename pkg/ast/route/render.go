@@ -71,7 +71,7 @@ func Render(path string, routes []RouteDefinition) error {
 					case PositionURI:
 						return fmt.Sprintf(`URI[%s]("%s")`, item.Type, item.Name), true
 					case PositionQuery:
-						return fmt.Sprintf(`Query[%s]("%s")`, item.Type, item.Name), true
+						return fmt.Sprintf(`Query%s[%s]("%s")`, isScalarType(item.Type), item.Type, item.Name), true
 					case PositionHeader:
 						return fmt.Sprintf(`Header[%s]("%s")`, item.Type, item.Name), true
 					case PositionCookie:
@@ -107,4 +107,12 @@ func Render(path string, routes []RouteDefinition) error {
 		return err
 	}
 	return nil
+}
+
+func isScalarType(t string) string {
+	switch t {
+	case "string", "int", "int32", "int64", "float32", "float64", "bool":
+		return "Param"
+	}
+	return ""
 }

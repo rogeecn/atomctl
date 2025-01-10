@@ -275,7 +275,7 @@ func Parse(source string) []Provider {
 		if providerDoc.Mode == "event" {
 			provider.Mode = "event"
 
-			modePkg := gomod.GetModuleName() + "/providers/events"
+			modePkg := gomod.GetModuleName() + "/providers/event"
 
 			provider.Imports["git.ipao.vip/rogeecn/atom"] = ""
 			provider.Imports["git.ipao.vip/rogeecn/atom/contracts"] = ""
@@ -288,7 +288,7 @@ func Parse(source string) []Provider {
 				Star:         "*",
 				Type:         "PubSub",
 				Package:      modePkg,
-				PackageAlias: "events",
+				PackageAlias: "event",
 			}
 		}
 
