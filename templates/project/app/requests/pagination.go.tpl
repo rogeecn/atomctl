@@ -9,11 +9,11 @@ type Pager struct {
 }
 
 type Pagination struct {
-	Page  int `json:"page" form:"page" query:"page"`
-	Limit int `json:"limit" form:"limit" query:"limit"`
+	Page  int64 `json:"page" form:"page" query:"page"`
+	Limit int64 `json:"limit" form:"limit" query:"limit"`
 }
 
-func (filter *Pagination) Offset() int {
+func (filter *Pagination) Offset() int64 {
 	return (filter.Page - 1) * filter.Limit
 }
 
@@ -22,7 +22,7 @@ func (filter *Pagination) Format() *Pagination {
 		filter.Page = 1
 	}
 
-	if !lo.Contains([]int{10, 20, 50, 100}, filter.Limit) {
+	if !lo.Contains([]int64{10, 20, 50, 100}, filter.Limit) {
 		filter.Limit = 10
 	}
 
