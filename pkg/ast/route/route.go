@@ -53,6 +53,8 @@ func positionFromString(v string) Position {
 		return PositionHeader
 	case "cookie":
 		return PositionCookie
+	case "local":
+		return PositionLocal
 	}
 	panic("invalid position: " + v)
 }
@@ -64,6 +66,7 @@ const (
 	PositionBody   Position = "body"
 	PositionHeader Position = "header"
 	PositionCookie Position = "cookie"
+	PositionLocal  Position = "local"
 )
 
 func ParseFile(file string) []RouteDefinition {
@@ -175,11 +178,14 @@ func ParseFile(file string) []RouteDefinition {
 				usedImports[recvType] = append(usedImports[recvType], imports[pkgName[0]])
 			}
 
-			typ = strings.TrimPrefix(typ, "*")
-
 			for _, name := range param.Names {
 				for i, bindParam := range bindParams {
 					if bindParam.Name == name.Name {
+
+						if bindParams[i].Position != PositionLocal {
+							typ = strings.TrimPrefix(typ, "*")
+						}
+
 						bindParams[i].Type = typ
 						break
 					}

@@ -80,6 +80,12 @@ func Render(path string, routes []RouteDefinition) error {
 						return fmt.Sprintf(`Body[%s]("%s")`, item.Type, item.Name), true
 					case PositionPath:
 						return fmt.Sprintf(`Path[%s]("%s")`, item.Type, item.Name), true
+					case PositionLocal:
+						key := item.Name
+						if item.Key != "" {
+							key = item.Key
+						}
+						return fmt.Sprintf(`Local[%s]("%s")`, item.Type, key), true
 					}
 					return "", false
 				}),
