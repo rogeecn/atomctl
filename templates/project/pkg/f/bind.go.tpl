@@ -34,6 +34,13 @@ func Body[T any](name string) func(fiber.Ctx) (*T, error) {
 	}
 }
 
+func QueryParam[T fiber.GenericType](key string) func(fiber.Ctx) (T, error) {
+	return func(ctx fiber.Ctx) (T, error) {
+		v := fiber.Query[T](ctx, key)
+		return v, nil
+	}
+}
+
 func Query[T any](name string) func(fiber.Ctx) (*T, error) {
 	return func(ctx fiber.Ctx) (*T, error) {
 		p := new(T)

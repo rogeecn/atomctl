@@ -4,7 +4,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
-	"strings"
+	"regexp"
 
 	"git.ipao.vip/rogeecn/atomctl/pkg/ast/route"
 	"git.ipao.vip/rogeecn/atomctl/pkg/utils/gomod"
@@ -51,11 +51,13 @@ func commandGenRouteE(cmd *cobra.Command, args []string) error {
 		log.Fatal("modules dir not exist, ", modulePath)
 	}
 
+	controllerPattern := regexp.MustCompile(`controller(_?\w+)?\.go`)
 	err = filepath.WalkDir(modulePath, func(path string, d fs.DirEntry, err error) error {
 		if d.IsDir() {
 			return nil
 		}
-		if !strings.HasSuffix(path, "controller.go") {
+
+		if !controllerPattern.MatchString(d.Name()) {
 			return nil
 		}
 
