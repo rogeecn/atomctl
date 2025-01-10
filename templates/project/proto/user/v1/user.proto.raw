@@ -1,0 +1,40 @@
+syntax = "proto3";
+
+package user.v1;
+
+// User represents a user entity
+message User {
+  int64 id = 1;
+  string username = 2;
+  string email = 3;
+  string phone = 4;
+  string create_time = 5;
+  string update_time = 6;
+}
+
+message ListUsersRequest {
+  int32 page_size = 1;
+  int32 page_number = 2;
+}
+
+message ListUsersResponse {
+  repeated User users = 1;
+  int32 total = 2;
+}
+
+message GetUserRequest {
+  int64 id = 1;
+}
+
+message GetUserResponse {
+  User user = 1;
+}
+
+// UserService provides user-related operations
+service UserService {
+  // ListUsers returns a list of users with pagination
+  rpc ListUsers(ListUsersRequest) returns (ListUsersResponse) {}
+
+  // GetUser returns detailed information about a specific user
+  rpc GetUser(GetUserRequest) returns (GetUserResponse) {}
+}

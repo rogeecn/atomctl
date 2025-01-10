@@ -9,6 +9,7 @@ import (
 	"{{.ModuleName}}/providers/hashids"
 	"{{.ModuleName}}/providers/http"
 	"{{.ModuleName}}/providers/http/swagger"
+	"{{.ModuleName}}/providers/job"
 	"{{.ModuleName}}/providers/jwt"
 	"{{.ModuleName}}/providers/postgres"
 
