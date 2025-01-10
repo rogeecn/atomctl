@@ -68,18 +68,16 @@ func Render(path string, routes []RouteDefinition) error {
 				Func:       funcName,
 				Params: lo.FilterMap(action.Params, func(item ParamDefinition, _ int) (string, bool) {
 					switch item.Position {
-					case PositionURI:
-						return fmt.Sprintf(`URI[%s]("%s")`, item.Type, item.Name), true
 					case PositionQuery:
 						return fmt.Sprintf(`Query%s[%s]("%s")`, isScalarType(item.Type), item.Type, item.Name), true
 					case PositionHeader:
 						return fmt.Sprintf(`Header[%s]("%s")`, item.Type, item.Name), true
 					case PositionCookie:
-						return fmt.Sprintf(`Cookie[%s]("%s")`, item.Type, item.Name), true
+						return fmt.Sprintf(`Cookie%s[%s]("%s")`, isScalarType(item.Type), item.Type, item.Name), true
 					case PositionBody:
 						return fmt.Sprintf(`Body[%s]("%s")`, item.Type, item.Name), true
 					case PositionPath:
-						return fmt.Sprintf(`Path[%s]("%s")`, item.Type, item.Name), true
+						return fmt.Sprintf(`Path%s[%s]("%s")`, isScalarType(item.Type), item.Type, item.Name), true
 					case PositionLocal:
 						key := item.Name
 						if item.Key != "" {

@@ -43,8 +43,6 @@ func positionFromString(v string) Position {
 	switch v {
 	case "path":
 		return PositionPath
-	case "uri":
-		return PositionURI
 	case "query":
 		return PositionQuery
 	case "body":
@@ -61,7 +59,6 @@ func positionFromString(v string) Position {
 
 const (
 	PositionPath   Position = "path"
-	PositionURI    Position = "uri"
 	PositionQuery  Position = "query"
 	PositionBody   Position = "body"
 	PositionHeader Position = "header"
