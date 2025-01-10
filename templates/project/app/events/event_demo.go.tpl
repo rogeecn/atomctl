@@ -2,70 +2,51 @@ package events
 
 import (
 	"encoding/json"
-	"fmt"
-	"time"
 
 	"git.ipao.vip/rogeecn/atom/contracts"
-	"github.com/ThreeDotsLabs/watermill"
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/sirupsen/logrus"
 )
 
-var _ contracts.EventHandler = (*UserRegister)(nil)
-
-type Event struct {
-	ID int `json:"id"`
-}
-
-type ProcessedEvent struct {
-	ProcessedID int       `json:"processed_id"`
-	Time        time.Time `json:"time"`
-}
+var (
+	_ contracts.EventHandler   = (*UserRegister)(nil)
+	_ contracts.EventPublisher = (*UserRegister)(nil)
+)
 
 // @provider(event)
 type UserRegister struct {
-	log *logrus.Entry `inject:"false"`
+	log *logrus.Entry `inject:"false" json:"-"`
+	ID  int64         `json:"id"`
 }
 
-func (u *UserRegister) Prepare() error {
+func (e *UserRegister) Prepare() error {
 	return nil
 }
 
-// Handler implements contracts.EventHandler.
-func (u *UserRegister) Handler(msg *message.Message) ([]*message.Message, error) {
-	consumedPayload := Event{}
-	err := json.Unmarshal(msg.Payload, &consumedPayload)
-	if err != nil {
-		// When a handler returns an error, the default behavior is to send a Nack (negative-acknowledgement).
-		// The message will be processed again.
-		//
-		// You can change the default behaviour by using middlewares, like Retry or PoisonQueue.
-		// You can also implement your own middleware.
-		return nil, err
-	}
-
-	fmt.Printf("received event %+v\n", consumedPayload)
-
-	newPayload, err := json.Marshal(ProcessedEvent{
-		ProcessedID: consumedPayload.ID,
-		Time:        time.Now(),
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	newMessage := message.NewMessage(watermill.NewUUID(), newPayload)
-
-	return nil, nil
-	return []*message.Message{newMessage}, nil
+// Marshal implements contracts.EventPublisher.
+func (e *UserRegister) Marshal() ([]byte, error) {
+	return json.Marshal(e)
 }
 
 // PublishToTopic implements contracts.EventHandler.
-func (u *UserRegister) PublishToTopic() string {
-	return "event:processed"
+func (e *UserRegister) PublishToTopic() string {
+	return TopicProcessed.String()
 }
 
 // Topic implements contracts.EventHandler.
-func (u *UserRegister) Topic() string {
-	return "event:user-register"
+func (e *UserRegister) Topic() string {
+	return TopicUserRegister.String()
+}
+
+// Handler implements contracts.EventHandler.
+func (e *UserRegister) Handler(msg *message.Message) ([]*message.Message, error) {
+	var payload UserRegister
+	err := json.Unmarshal(msg.Payload, &payload)
+	if err != nil {
+		return nil, err
+	}
+
+	e.log.Infof("received event %+v\n", payload)
+
+	return nil, nil
 }

@@ -2,7 +2,7 @@ package service
 
 import (
 	"{{.ModuleName}}/providers/app"
-	"{{.ModuleName}}/providers/events"
+	"{{.ModuleName}}/providers/event"
 
 	"git.ipao.vip/rogeecn/atom/container"
 )
@@ -10,6 +10,6 @@ import (
 func Default(providers ...container.ProviderContainer) container.Providers {
 	return append(container.Providers{
 		app.DefaultProvider(),
-		events.DefaultProvider(),
+		event.DefaultProvider(),
 	}, providers...)
 }

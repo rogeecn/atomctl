@@ -1,33 +1,34 @@
-package events
+package event
 
 import (
+	sqlDB "database/sql"
+
 	"git.ipao.vip/rogeecn/atom/container"
 	"git.ipao.vip/rogeecn/atom/utils/opt"
-	"github.com/ThreeDotsLabs/watermill-kafka/v3/pkg/kafka"
+	"github.com/ThreeDotsLabs/watermill-sql/v3/pkg/sql"
 	"github.com/ThreeDotsLabs/watermill/message"
 )
 
-func ProvideKafka(opts ...opt.Option) error {
+func ProvideSQL(opts ...opt.Option) error {
 	o := opt.New(opts...)
 	var config Config
 	if err := o.UnmarshalConfig(&config); err != nil {
 		return err
 	}
 
-	return container.Container.Provide(func() (*PubSub, error) {
+	return container.Container.Provide(func(db *sqlDB.DB) (*PubSub, error) {
 		logger := LogrusAdapter()
 
-		publisher, err := kafka.NewPublisher(kafka.PublisherConfig{
-			Brokers:   config.Brokers,
-			Marshaler: kafka.DefaultMarshaler{},
+		publisher, err := sql.NewPublisher(db, sql.PublisherConfig{
+			SchemaAdapter:        sql.DefaultPostgreSQLSchema{},
+			AutoInitializeSchema: false,
 		}, logger)
 		if err != nil {
 			return nil, err
 		}
 
-		subscriber, err := kafka.NewSubscriber(kafka.SubscriberConfig{
-			Brokers:       config.Brokers,
-			Unmarshaler:   kafka.DefaultMarshaler{},
+		subscriber, err := sql.NewSubscriber(db, sql.SubscriberConfig{
+			SchemaAdapter: sql.DefaultPostgreSQLSchema{},
 			ConsumerGroup: config.ConsumerGroup,
 		}, logger)
 		if err != nil {

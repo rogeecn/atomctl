@@ -6,7 +6,7 @@ import (
 	"{{.ModuleName}}/app/events"
 	"{{.ModuleName}}/app/service"
 	"{{.ModuleName}}/providers/app"
-	providerEvents "{{.ModuleName}}/providers/events"
+	"{{.ModuleName}}/providers/event"
 	"{{.ModuleName}}/providers/postgres"
 
 	"git.ipao.vip/rogeecn/atom"
@@ -41,7 +41,7 @@ type Service struct {
 	dig.In
 
 	App      *app.Config
-	PubSub   *providerEvents.PubSub
+	PubSub   *event.PubSub
 	Initials []contracts.Initial `group:"initials"`
 }
 
