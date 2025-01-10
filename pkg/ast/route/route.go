@@ -150,6 +150,7 @@ func ParseFile(file string) []RouteDefinition {
 		log.WithField("file", file).WithField("action", decl.Name.Name).WithField("path", path).WithField("method", method).Info("get router")
 
 		// 拿参数列表去, 忽略 context.Context 参数
+		orderBindParams := []ParamDefinition{}
 		for _, param := range decl.Type.Params.List {
 			// paramsType, ok := param.Type.(*ast.SelectorExpr)
 
@@ -187,6 +188,8 @@ func ParseFile(file string) []RouteDefinition {
 						}
 
 						bindParams[i].Type = typ
+
+						orderBindParams = append(orderBindParams, bindParams[i])
 						break
 					}
 				}
@@ -198,7 +201,7 @@ func ParseFile(file string) []RouteDefinition {
 			Method:  strings.ToUpper(method),
 			Name:    decl.Name.Name,
 			HasData: len(decl.Type.Results.List) > 1,
-			Params:  bindParams,
+			Params:  orderBindParams,
 		})
 	}
 
