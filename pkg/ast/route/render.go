@@ -73,7 +73,16 @@ func Render(path string, routes []RouteDefinition) error {
 					case PositionHeader:
 						return fmt.Sprintf(`Header[%s]("%s")`, item.Type, item.Name), true
 					case PositionCookie:
-						return fmt.Sprintf(`Cookie%s[%s]("%s")`, isScalarType(item.Type), item.Type, item.Name), true
+						key := item.Name
+						if item.Key != "" {
+							key = item.Key
+						}
+
+						if item.Type == "string" {
+							return fmt.Sprintf(`CookieParam("%s")`, key), true
+						}
+
+						return fmt.Sprintf(`Cookie[%s]("%s")`, item.Type, key), true
 					case PositionBody:
 						return fmt.Sprintf(`Body[%s]("%s")`, item.Type, item.Name), true
 					case PositionPath:

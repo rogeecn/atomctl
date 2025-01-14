@@ -4,6 +4,8 @@ import (
 	"github.com/gofiber/fiber/v3"
 )
 
+var Func0 = Func
+
 func Func(f fiber.Handler) fiber.Handler {
 	return f
 }
