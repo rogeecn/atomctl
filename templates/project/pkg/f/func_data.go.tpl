@@ -4,7 +4,7 @@ import (
 	"github.com/gofiber/fiber/v3"
 )
 
-func DataFunc[T any](
+func DataFunc0[T any](
 	f func(fiber.Ctx) (T, error),
 ) fiber.Handler {
 	return func(ctx fiber.Ctx) error {
