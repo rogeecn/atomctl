@@ -10,3 +10,6 @@ var Module embed.FS
 
 //go:embed provider
 var Provider embed.FS
+
+//go:embed events
+var Events embed.FS
