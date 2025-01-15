@@ -8,37 +8,24 @@ import (
 )
 
 func Test_router(t *testing.T) {
-	routerPattern := regexp.MustCompile(`^(/[\w./\-{}\(\)+:$]*)[[:blank:]]+\[(\w+)]`)
-
 	Convey("Test routerPattern", t, func() {
-		Convey("Pattern 1", func() {
-			commentLine := "/api/v1/health [GET] # Check health status"
-			matches := routerPattern.FindStringSubmatch(commentLine)
-			t.Logf("matches: %v", matches)
-		})
+		jsonReg := regexp.MustCompile(`Json\[\[?\]?(\w+)\]`)
+		items := []string{
+			"Json[abc]",
+			"Json[[]abc]",
+		}
 
-		Convey("Pattern 2", func() {
-			commentLine := "/api/v1/:health [get] "
-			matches := routerPattern.FindStringSubmatch(commentLine)
-			t.Logf("matches: %v", matches)
-		})
+		types := []string{
+			"string",
+			"int", "int8", "int16", "int32", "int64", "uint", "uint8", "uint16", "uint32", "uint64",
+			"float32", "float64",
+			"bool",
+		}
+		for _, item := range items {
+			match := jsonReg.FindStringSubmatch(item)
+			if len(match) ==2 && !lo.Contains(types, match[1]) { {
 
-		Convey("Pattern 3", func() {
-			commentLine := "/api/v1/get_users-:id [get] "
-			pattern := regexp.MustCompile(`<.*?>`)
-			commentLine = pattern.ReplaceAllString(commentLine, "")
-
-			matches := routerPattern.FindStringSubmatch(commentLine)
-			t.Logf("matches: %v", matches)
-		})
-
-		Convey("Pattern 4", func() {
-			commentLine := "/api/v1/get_users-:id<int>/name/:name<string> [get] "
-			pattern := regexp.MustCompile(`:(\w+)(<.*?>)?`)
-			commentLine = pattern.ReplaceAllString(commentLine, "{$1}")
-
-			matches := routerPattern.FindStringSubmatch(commentLine)
-			t.Logf("matches: %v", matches)
-		})
+			}
+		}
 	})
 }

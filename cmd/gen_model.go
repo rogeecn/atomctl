@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 
 	pgDatabase "git.ipao.vip/rogeecn/atomctl/pkg/postgres"
@@ -57,6 +58,14 @@ func commandGenModelE(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	jsonReg := regexp.MustCompile(`Json\[\[?\]?(\w+)\]`)
+	builtinTypes := []string{
+		"string",
+		"int", "int8", "int16", "int32", "int64", "uint", "uint8", "uint16", "uint32", "uint64",
+		"float32", "float64",
+		"bool",
+	}
+
 	return postgres.GenerateDSN(
 		dbConf.DSN(),
 		dbConf.Schema,
@@ -94,8 +103,12 @@ func commandGenModelE(cmd *cobra.Command, args []string) error {
 										return defaultTableModelField
 									}
 
-									if strings.Contains(toType, "[") && strings.HasSuffix(toType, "]") {
-										toType = strings.Replace(toType, "[", "[fields.", 1)
+									// toType = jsonReg.ReplaceAllString(toType, "fields.$1")
+									if jsonReg.MatchString(toType) {
+										matches := jsonReg.FindStringSubmatch(toType)
+										if len(matches) == 2 && !lo.Contains(builtinTypes, matches[1]) {
+											toType = strings.Replace(toType, matches[1], "fields."+matches[1], 1)
+										}
 									}
 
 									defaultTableModelField = defaultTableModelField.
