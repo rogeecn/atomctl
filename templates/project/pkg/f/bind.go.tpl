@@ -1,9 +1,18 @@
 package f
 
 import (
+	"mime/multipart"
+
 	"github.com/gofiber/fiber/v3"
 	"github.com/pkg/errors"
 )
+
+func File[T any](key string) func(fiber.Ctx) (*multipart.FileHeader, error) {
+	return func(ctx fiber.Ctx) (*multipart.FileHeader, error) {
+		_ = new(T)
+		return ctx.FormFile(key)
+	}
+}
 
 func Local[T any](key string) func(fiber.Ctx) (T, error) {
 	return func(ctx fiber.Ctx) (T, error) {

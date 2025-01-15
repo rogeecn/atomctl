@@ -53,6 +53,8 @@ func positionFromString(v string) Position {
 		return PositionCookie
 	case "local":
 		return PositionLocal
+	case "file":
+		return PositionFile
 	}
 	panic("invalid position: " + v)
 }
@@ -64,6 +66,7 @@ const (
 	PositionHeader Position = "header"
 	PositionCookie Position = "cookie"
 	PositionLocal  Position = "local"
+	PositionFile   Position = "file"
 )
 
 func ParseFile(file string) []RouteDefinition {
