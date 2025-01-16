@@ -17,6 +17,7 @@ func CommandInit(root *cobra.Command) {
 		CommandNewModule,
 		CommandNewProvider,
 		CommandNewEvent,
+		CommandNewJob,
 	}
 
 	for _, c := range cmds {

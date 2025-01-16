@@ -13,3 +13,6 @@ var Provider embed.FS
 
 //go:embed events
 var Events embed.FS
+
+//go:embed jobs
+var Jobs embed.FS
