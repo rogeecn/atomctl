@@ -74,6 +74,17 @@ func commandGenModelE(cmd *cobra.Command, args []string) error {
 			UseSchema(func(schema metadata.Schema) template.Schema {
 				return template.
 					DefaultSchema(schema).
+					UseSQLBuilder(
+						template.DefaultSQLBuilder().UseTable(func(table metadata.Table) template.TableSQLBuilder {
+							tbl := template.DefaultTableSQLBuilder(table)
+
+							if lo.Contains(conf.Ignores, table.Name) {
+								tbl.Skip = true
+								log.Infof("Skip table %s", table.Name)
+							}
+							return tbl
+						}),
+					).
 					UseModel(
 						template.
 							DefaultModel().
