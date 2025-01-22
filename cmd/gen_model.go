@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 	"regexp"
 	"strings"
 
@@ -11,6 +12,7 @@ import (
 	"github.com/go-jet/jet/v2/generator/postgres"
 	"github.com/go-jet/jet/v2/generator/template"
 	pg "github.com/go-jet/jet/v2/postgres"
+	"github.com/jackc/pgconn"
 	_ "github.com/lib/pq"
 	"github.com/pkg/errors"
 	"github.com/samber/lo"
@@ -66,24 +68,34 @@ func commandGenModelE(cmd *cobra.Command, args []string) error {
 		"bool",
 	}
 
-	return postgres.GenerateDSN(
+	err = postgres.GenerateDSN(
 		dbConf.DSN(),
 		dbConf.Schema,
-		"database/models",
+		"database",
 		template.Default(pg.Dialect).
 			UseSchema(func(schema metadata.Schema) template.Schema {
 				return template.
 					DefaultSchema(schema).
 					UseSQLBuilder(
-						template.DefaultSQLBuilder().UseTable(func(table metadata.Table) template.TableSQLBuilder {
-							tbl := template.DefaultTableSQLBuilder(table)
+						template.
+							DefaultSQLBuilder().
+							UseTable(func(table metadata.Table) template.TableSQLBuilder {
+								tbl := template.DefaultTableSQLBuilder(table)
 
-							if lo.Contains(conf.Ignores, table.Name) {
-								tbl.Skip = true
-								log.Infof("Skip table %s", table.Name)
-							}
-							return tbl
-						}),
+								if lo.Contains(conf.Ignores, table.Name) {
+									tbl.Skip = true
+									log.Infof("Skip table %s", table.Name)
+								}
+								return tbl
+							}).
+							UseEnum(func(meta metadata.Enum) template.EnumSQLBuilder {
+								enum := template.DefaultEnumSQLBuilder(meta)
+								if lo.Contains(conf.Ignores, meta.Name) {
+									enum.Skip = true
+									log.Infof("Skip enum %s", meta.Name)
+								}
+								return enum
+							}),
 					).
 					UseModel(
 						template.
@@ -135,4 +147,23 @@ func commandGenModelE(cmd *cobra.Command, args []string) error {
 					)
 			}),
 	)
+	if err != nil {
+		return err
+	}
+
+	cfg, err := pgconn.ParseConfig(dbConf.DSN())
+	if err != nil {
+		return err
+	}
+
+	if err := os.RemoveAll("database/schemas"); err != nil {
+		return err
+	}
+
+	dataPath := fmt.Sprintf("database/%s", cfg.Database)
+	if err := os.Rename(dataPath, "database/schemas"); err != nil {
+		return err
+	}
+
+	return nil
 }
