@@ -3,10 +3,10 @@ package jobs
 import (
 	"time"
 
-	_ "git.ipao.vip/rogeecn/atom"
-	"git.ipao.vip/rogeecn/atom/contracts"
 	"github.com/riverqueue/river"
 	"github.com/sirupsen/logrus"
+	_ "{{.ModuleName}}/pkg/atom"
+	"{{.ModuleName}}/pkg/atom/contracts"
 )
 
 var _ contracts.CronJob = (*CronJob)(nil)

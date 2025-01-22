@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"git.ipao.vip/rogeecn/atomctl/pkg/swag/format"
+	"github.com/rogeecn/swag/format"
 	"github.com/spf13/cobra"
 )
 

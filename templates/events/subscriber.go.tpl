@@ -6,7 +6,7 @@ import (
 	"{{.ModuleName}}/app/events"
 	"{{.ModuleName}}/app/events/publishers"
 
-	"git.ipao.vip/rogeecn/atom/contracts"
+	"{{.ModuleName}}/pkg/atom/contracts"
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/sirupsen/logrus"
 )

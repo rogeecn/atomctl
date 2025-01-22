@@ -3,8 +3,8 @@ package main
 import (
 	"{{.ModuleName}}/app/service/http"
 
-	"git.ipao.vip/rogeecn/atom"
 	log "github.com/sirupsen/logrus"
+	"{{.ModuleName}}/pkg/atom"
 )
 
 // @title           ApiDoc

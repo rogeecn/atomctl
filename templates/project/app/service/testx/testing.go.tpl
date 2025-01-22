@@ -4,8 +4,9 @@ import (
 	"os"
 	"testing"
 
-	"git.ipao.vip/rogeecn/atom"
-	"git.ipao.vip/rogeecn/atom/container"
+	"{{.ModuleName}}/pkg/atom"
+	"{{.ModuleName}}/pkg/atom/container"
+
 	"github.com/rogeecn/fabfile"
 	. "github.com/smartystreets/goconvey/convey"
 )

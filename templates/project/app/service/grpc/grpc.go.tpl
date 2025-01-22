@@ -3,14 +3,13 @@ package grpc
 import (
 	"{{.ModuleName}}/app/grpc/users"
 	"{{.ModuleName}}/app/service"
-	_ "{{.ModuleName}}/docs"
+	"{{.ModuleName}}/pkg/atom"
+	"{{.ModuleName}}/pkg/atom/container"
+	"{{.ModuleName}}/pkg/atom/contracts"
 	"{{.ModuleName}}/providers/app"
 	"{{.ModuleName}}/providers/grpc"
 	"{{.ModuleName}}/providers/postgres"
 
-	"git.ipao.vip/rogeecn/atom"
-	"git.ipao.vip/rogeecn/atom/container"
-	"git.ipao.vip/rogeecn/atom/contracts"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"go.uber.org/dig"

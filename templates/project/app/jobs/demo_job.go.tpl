@@ -5,10 +5,10 @@ import (
 	"sort"
 	"time"
 
-	_ "git.ipao.vip/rogeecn/atom"
-	_ "git.ipao.vip/rogeecn/atom/contracts"
 	. "github.com/riverqueue/river"
 	log "github.com/sirupsen/logrus"
+	_ "{{.ModuleName}}/pkg/atom"
+	_ "{{.ModuleName}}/pkg/atom/contracts"
 )
 
 // provider:[except|only] [returnType] [group]

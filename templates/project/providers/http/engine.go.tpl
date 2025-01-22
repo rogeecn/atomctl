@@ -7,9 +7,9 @@ import (
 	"runtime/debug"
 	"time"
 
-	"git.ipao.vip/rogeecn/atom/container"
-	"git.ipao.vip/rogeecn/atom/utils/opt"
 	log "github.com/sirupsen/logrus"
+	"{{.ModuleName}}/pkg/atom/container"
+	"{{.ModuleName}}/pkg/atom/opt"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/logger"

@@ -4,8 +4,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"git.ipao.vip/rogeecn/atomctl/pkg/swag"
-	"git.ipao.vip/rogeecn/atomctl/pkg/swag/gen"
+	"github.com/rogeecn/swag"
+	"github.com/rogeecn/swag/gen"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )

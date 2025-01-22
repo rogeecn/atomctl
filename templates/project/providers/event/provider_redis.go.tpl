@@ -1,8 +1,9 @@
 package event
 
 import (
-	"git.ipao.vip/rogeecn/atom/container"
-	"git.ipao.vip/rogeecn/atom/utils/opt"
+	"{{.ModuleName}}/pkg/atom/container"
+	"{{.ModuleName}}/pkg/atom/opt"
+
 	"github.com/ThreeDotsLabs/watermill-redisstream/pkg/redisstream"
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/redis/go-redis/v9"

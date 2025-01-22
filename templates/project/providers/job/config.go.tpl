@@ -1,9 +1,9 @@
 package job
 
 import (
-	"git.ipao.vip/rogeecn/atom/container"
-	"git.ipao.vip/rogeecn/atom/utils/opt"
 	"github.com/riverqueue/river"
+	"{{.ModuleName}}/pkg/atom/container"
+	"{{.ModuleName}}/pkg/atom/opt"
 )
 
 const DefaultPrefix = "Job"

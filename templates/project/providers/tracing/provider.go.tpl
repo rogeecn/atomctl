@@ -4,12 +4,12 @@ import (
 	"io"
 	"time"
 
-	"git.ipao.vip/rogeecn/atom/container"
-	"git.ipao.vip/rogeecn/atom/utils/opt"
 	opentracing "github.com/opentracing/opentracing-go"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	config "github.com/uber/jaeger-client-go/config"
+	"{{.ModuleName}}/pkg/atom/container"
+	"{{.ModuleName}}/pkg/atom/opt"
 )
 
 func Provide(opts ...opt.Option) error {

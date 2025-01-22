@@ -3,10 +3,11 @@ package event
 import (
 	"context"
 
-	"git.ipao.vip/rogeecn/atom/container"
-	"git.ipao.vip/rogeecn/atom/utils/opt"
 	"github.com/ThreeDotsLabs/watermill"
 	"github.com/ThreeDotsLabs/watermill/message"
+	"{{.ModuleName}}/pkg/atom/container"
+	"{{.ModuleName}}/pkg/atom/contracts"
+	"{{.ModuleName}}/pkg/atom/opt"
 )
 
 const DefaultPrefix = "Events"

@@ -1,10 +1,9 @@
 package service
 
 import (
+	"{{.ModuleName}}/pkg/atom/container"
 	"{{.ModuleName}}/providers/app"
 	"{{.ModuleName}}/providers/event"
-
-	"git.ipao.vip/rogeecn/atom/container"
 )
 
 func Default(providers ...container.ProviderContainer) container.Providers {

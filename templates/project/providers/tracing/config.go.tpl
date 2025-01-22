@@ -1,9 +1,9 @@
 package tracing
 
 import (
-	"git.ipao.vip/rogeecn/atom/container"
-	"git.ipao.vip/rogeecn/atom/utils/opt"
 	"github.com/sirupsen/logrus"
+	"{{.ModuleName}}/pkg/atom/container"
+	"{{.ModuleName}}/pkg/atom/opt"
 )
 
 const DefaultPrefix = "Tracing"

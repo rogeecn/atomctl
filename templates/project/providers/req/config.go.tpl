@@ -1,8 +1,8 @@
 package req
 
 import (
-	"git.ipao.vip/rogeecn/atom/container"
-	"git.ipao.vip/rogeecn/atom/utils/opt"
+	"{{.ModuleName}}/pkg/atom/container"
+	"{{.ModuleName}}/pkg/atom/opt"
 )
 
 const DefaultPrefix = "HttpClient"

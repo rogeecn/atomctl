@@ -11,9 +11,9 @@ import (
 
 	"{{.ModuleName}}/providers/req/cookiejar"
 
-	"git.ipao.vip/rogeecn/atom/container"
-	"git.ipao.vip/rogeecn/atom/utils/opt"
 	"github.com/imroc/req/v3"
+	"{{.ModuleName}}/pkg/atom/container"
+	"{{.ModuleName}}/pkg/atom/opt"
 )
 
 type Client struct {

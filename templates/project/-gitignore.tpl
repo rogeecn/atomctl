@@ -7,7 +7,6 @@ build/*
 .idea
 tmp/
 docker-compose.yml
-atom
 sqlite.db
 go.work
 go.work.sum

@@ -6,9 +6,9 @@ import (
 	"{{.ModuleName}}/providers/grpc"
 	"{{.ModuleName}}/providers/http"
 
-	"git.ipao.vip/rogeecn/atom/container"
-	"git.ipao.vip/rogeecn/atom/utils/opt"
 	"github.com/soheilhy/cmux"
+	"{{.ModuleName}}/pkg/atom/container"
+	"{{.ModuleName}}/pkg/atom/opt"
 )
 
 func Provide(opts ...opt.Option) error {

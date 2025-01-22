@@ -4,9 +4,9 @@ import (
 	"context"
 	"time"
 
-	"git.ipao.vip/rogeecn/atom/container"
-	"git.ipao.vip/rogeecn/atom/utils/opt"
 	"github.com/redis/go-redis/v9"
+	"{{.ModuleName}}/pkg/atom/container"
+	"{{.ModuleName}}/pkg/atom/opt"
 )
 
 func Provide(opts ...opt.Option) error {

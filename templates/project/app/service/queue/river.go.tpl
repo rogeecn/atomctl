@@ -5,13 +5,13 @@ import (
 
 	"{{.ModuleName}}/app/jobs"
 	"{{.ModuleName}}/app/service"
+	"{{.ModuleName}}/pkg/atom"
+	"{{.ModuleName}}/pkg/atom/container"
+	"{{.ModuleName}}/pkg/atom/contracts"
 	"{{.ModuleName}}/providers/app"
 	"{{.ModuleName}}/providers/job"
 	"{{.ModuleName}}/providers/postgres"
 
-	"git.ipao.vip/rogeecn/atom"
-	"git.ipao.vip/rogeecn/atom/container"
-	"git.ipao.vip/rogeecn/atom/contracts"
 	"github.com/riverqueue/river"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"

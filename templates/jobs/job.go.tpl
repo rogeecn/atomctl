@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
-	_ "git.ipao.vip/rogeecn/atom"
-	_ "git.ipao.vip/rogeecn/atom/contracts"
+	_ "{{.ModuleName}}/pkg/atom"
+	_ "{{.ModuleName}}/pkg/atom/contracts"
 	. "github.com/riverqueue/river"
 )
 

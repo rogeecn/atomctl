@@ -3,9 +3,9 @@ package otel
 import (
 	"os"
 
-	"git.ipao.vip/rogeecn/atom"
-	"git.ipao.vip/rogeecn/atom/container"
-	"git.ipao.vip/rogeecn/atom/utils/opt"
+	"{{.ModuleName}}/pkg/atom"
+	"{{.ModuleName}}/pkg/atom/container"
+	"{{.ModuleName}}/pkg/atom/opt"
 )
 
 const DefaultPrefix = "OTEL"

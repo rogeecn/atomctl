@@ -5,9 +5,9 @@ import (
 	"os"
 	"time"
 
-	"git.ipao.vip/rogeecn/atom/container"
-	"git.ipao.vip/rogeecn/atom/contracts"
-	"git.ipao.vip/rogeecn/atom/utils/opt"
+	"{{.ModuleName}}/pkg/atom/container"
+	"{{.ModuleName}}/pkg/atom/contracts"
+	"{{.ModuleName}}/pkg/atom/opt"
 
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
