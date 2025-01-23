@@ -4,6 +4,7 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/samber/lo"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -23,8 +24,7 @@ func Test_router(t *testing.T) {
 		}
 		for _, item := range items {
 			match := jsonReg.FindStringSubmatch(item)
-			if len(match) ==2 && !lo.Contains(types, match[1]) { {
-
+			if len(match) == 2 && !lo.Contains(types, match[1]) {
 			}
 		}
 	})
