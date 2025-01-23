@@ -2,7 +2,7 @@ package templates
 
 import "embed"
 
-//go:embed project
+//go:embed project/* project/.*
 var Project embed.FS
 
 //go:embed module
