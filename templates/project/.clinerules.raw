@@ -295,6 +295,7 @@ func (svc *Service) Update(ctx context.Context, tenantID, userID, postID int64, 
 - `database/schemas` 目录下所有为件为 `atomctl gen model` 自动生成，不能进行任何修改！
 - migration SQL 中不要使用 `FOREIGN KEY` 约束，而是在业务中使用代码逻辑进行约束。
 - 数据库表需要按需要添加 `created_at` `updated_at` `deleted_at` 字段，并且这三个时间字段(`created_at` `updated_at` `deleted_at`)需要**直接**位于 id 字段后面, **中间不可以包含其它任何字段声明**。
+- ID 使用 `bigserial` 类型，数字类的使用 `int8`类型
 - 所有表不使用 `FOREIGN KEY` 约束，而是在业务中使用代码逻辑进行约束。
 - 所有字段需要添加中文字段 `comment`
 - 执行 `migrate up` 命令完成后你不需要再使用 `psql` 来验证是否创建成功
