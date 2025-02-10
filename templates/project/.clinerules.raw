@@ -169,8 +169,9 @@ func (c *PayController) Prepare() error {
 // actions ...
 }
 ```
+- controller 文件定义完成后运行 `atomctl gen provider` 来生成 provider
 
-- 一个 action 方法的定义
+- 一个 action 方法的定义， **@Router**不再使用swago的定义方式，替换为下面的定义方式，参数做用@Bind来进行声明，会自动注入，不需要业务内获取参数
 ```go
 // Orders show user orders
 // @swagger definitions
@@ -206,6 +207,7 @@ func (c *OrderController) List(ctx fiber.Ctx, claim *jwt.Claims,channel string, 
 - 你需要把第二行的 `@swagger definitions` 替换成你的swagger定义
 - @Bind 参数会有几个位置 path/query/body/header/cookie/local/file 会分别从 url/get query/post body/header/cookie/fiber.Local/file/中取出所需要的数据绑定到方法的请求参数中去。
 - controller 只负责数据的接收返回及相关数据装饰，具体的复杂逻辑实现需要在service文件中定义。
+- action 文件内容完成运行 `atomctl gen route` 来生成路由
 
 ## service
 
@@ -223,11 +225,12 @@ func (svc *Service) Prepare() error {
 	return nil
 }
 ```
+- service 文件定义完成后运行 `atomctl gen provider` 来生成 provider
 
 - service 中 model 数据查询的示例，需要注意table需要定义为一个短小的tblXXX以便代码展示简洁
 ```go
 // GetUserOrderByOrderID
-func (svc *Service) GetUserOrderByOrderID(ctx context.Context, orderID string, userID int64) (*model.Orders, error) {
+func (svc *Service) Get(ctx context.Context, orderID string, userID int64) (*model.Orders, error) {
 	_, span := otel.Start(ctx, "users.service.GetUserOrderByOrderID")
 	defer span.End()
 	span.SetAttributes(
@@ -248,7 +251,7 @@ span.RecordError(err)
 }
 
 // UpdateStage
-func (svc *Service) UpdateStage(ctx context.Context, tenantID, userID, postID int64, stage fields.PostStage) error {
+func (svc *Service) Update(ctx context.Context, tenantID, userID, postID int64, stage fields.PostStage) error {
 	_, span := otel.Start(ctx, "users.service.UpdateStage")
 	defer span.End()
 	span.SetAttributes(
@@ -256,14 +259,6 @@ func (svc *Service) UpdateStage(ctx context.Context, tenantID, userID, postID in
 		attribute.Int64("user.id", userID),
 		attribute.Int64("post.id", postID),
 	)
-
-	post, err := svc.ForceGetPostByID(ctx, postID)
-	if err != nil {
-		span.RecordError(err)
-		return err
-	}
-
-	post.Stage = stage
 
 	tbl := table.Posts
 	stmt := tbl.
@@ -288,76 +283,6 @@ func (svc *Service) UpdateStage(ctx context.Context, tenantID, userID, postID in
 
 	return svc.Update(ctx, tenantID, userID, postID, post)
 }
-```
-
-- 一个service_test定义，需要使用goconvey来对不同的case进行区分。如果需要注入其它模型，你需要在 With() 方法中进行添加。
-```go
-package auth
-
-import (
-	"testing"
-
-	"backend/app/service/testx"
-
-	. "github.com/smartystreets/goconvey/convey"
-	"github.com/stretchr/testify/suite"
-	"go.uber.org/dig"
-)
-
-type ServiceInjectParams struct {
-	dig.In
-	Svc *Service
-}
-
-type ServiceTestSuite struct {
-	suite.Suite
-	ServiceInjectParams
-}
-
-func Test_DiscoverMedias(t *testing.T) {
-	providers := testx.Default().With(
-		Provide,
-	)
-
-	testx.Serve(providers, t, func(params ServiceInjectParams) {
-		suite.Run(t, &ServiceTestSuite{ServiceInjectParams: params})
-	})
-}
-
-func (s *ServiceTestSuite) Test_Service() {
-	Convey("Test Service", s.T(), func() {
-		So(s.Svc, ShouldNotBeNil)
-	})
-}
-```
-
-## grpc
-
-- 一个 handler 的示例
-```
-import (
-	userv1 "go.ipao.vip/project/test01/pkg/proto/user/v1"
-)
-
-// @provider(grpc) userv1.RegisterUserServiceServer
-type Users struct {
-	userv1.UnimplementedUserServiceServer
-}
-
-func (u *Users) ListUsers(ctx context.Context, in *userv1.ListUsersRequest) (*userv1.ListUsersResponse, error) {
-	// userv1.UserServiceServer
-	return &userv1.ListUsersResponse{}, nil
-}
-
-// GetUser implements userv1.UserServiceServer
-func (u *Users) GetUser(ctx context.Context, in *userv1.GetUserRequest) (*userv1.GetUserResponse, error) {
-	return &userv1.GetUserResponse{
-		User: &userv1.User{
-			Id: in.Id,
-		},
-	}, nil
-}
-
 ```
 
 # 本项目说明
