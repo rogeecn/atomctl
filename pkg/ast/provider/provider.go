@@ -59,6 +59,14 @@ type Provider struct {
 	ProviderFile     string
 }
 
+func atomPackage(suffix string) string {
+	root := gomod.GetModuleName() + "/pkg/atom"
+	if suffix != "" {
+		return fmt.Sprintf("%s/%s", root, suffix)
+	}
+	return root
+}
+
 func Parse(source string) []Provider {
 	if strings.HasSuffix(source, "_test.go") {
 		return []Provider{}
@@ -256,8 +264,8 @@ func Parse(source string) []Provider {
 
 			modePkg := gomod.GetModuleName() + "/providers/grpc"
 
-			provider.Imports["git.ipao.vip/rogeecn/atom"] = ""
-			provider.Imports["git.ipao.vip/rogeecn/atom/contracts"] = ""
+			provider.Imports[atomPackage("")] = ""
+			provider.Imports[atomPackage("contracts")] = ""
 			provider.Imports[modePkg] = ""
 
 			provider.ProviderGroup = "atom.GroupInitial"
@@ -277,8 +285,8 @@ func Parse(source string) []Provider {
 
 			modePkg := gomod.GetModuleName() + "/providers/event"
 
-			provider.Imports["git.ipao.vip/rogeecn/atom"] = ""
-			provider.Imports["git.ipao.vip/rogeecn/atom/contracts"] = ""
+			provider.Imports[atomPackage("")] = ""
+			provider.Imports[atomPackage("contracts")] = ""
 			provider.Imports[modePkg] = ""
 
 			provider.ProviderGroup = "atom.GroupInitial"
@@ -297,8 +305,8 @@ func Parse(source string) []Provider {
 
 			modePkg := gomod.GetModuleName() + "/providers/job"
 
-			provider.Imports["git.ipao.vip/rogeecn/atom"] = ""
-			provider.Imports["git.ipao.vip/rogeecn/atom/contracts"] = ""
+			provider.Imports[atomPackage("")] = ""
+			provider.Imports[atomPackage("contracts")] = ""
 			provider.Imports["github.com/riverqueue/river"] = ""
 			provider.Imports[modePkg] = ""
 

@@ -3,7 +3,7 @@ package event
 import (
 	"context"
 
-	"{{.ModuleName}}/app/events"
+	"{{.ModuleName}}/app/events/subscribers"
 	"{{.ModuleName}}/app/service"
 	"{{.ModuleName}}/pkg/atom"
 	"{{.ModuleName}}/pkg/atom/container"
@@ -31,7 +31,7 @@ func Command() atom.Option {
 		atom.Providers(
 			defaultProviders().
 				With(
-					events.Provide,
+					subscribers.Provide,
 				),
 		),
 	)

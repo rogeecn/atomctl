@@ -167,13 +167,11 @@ github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec h1:W09IVJc94
 github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec/go.mod h1:qqbHyh8v60DhA7CoWK5oRCqLrMHRGoxYCSS9EjAz6Eo=
 github.com/rogeecn/fabfile v1.4.0 h1:Rw7/7OH8cV4aRPw79Oa4hHHFKaC/ol+sNmGcB/usHaQ=
 github.com/rogeecn/fabfile v1.4.0/go.mod h1:EPwX7TtVcIWSLJkJAqxSzYjM/aV1Q0wymcaXqnMgzas=
-github.com/rogeecn/swag v1.0.0 h1:PpoYWTywc/G4DR8MJKATCcxcz4D40J127XJjK0e3RUc=
-github.com/rogeecn/swag v1.0.0/go.mod h1:flG2NXERPxlRl2VdpU2VXTO8iBnQiERyowOXSkZVMOc=
 github.com/rogeecn/swag v1.0.1 h1:s1yxLgopqO1m8sqGjVmt6ocMBRubMPIh2JtIPG4xjQE=
 github.com/rogeecn/swag v1.0.1/go.mod h1:flG2NXERPxlRl2VdpU2VXTO8iBnQiERyowOXSkZVMOc=
 github.com/rogpeppe/go-internal v1.3.0/go.mod h1:M8bDsm7K2OlrFYOpmOWEs/qY81heoFRclV5y23lUDJ4=
-github.com/rogpeppe/go-internal v1.11.0 h1:cWPaGQEPrBb5/AsnsZesgZZ9yb1OQ+GOISoDNXVBh4M=
-github.com/rogpeppe/go-internal v1.11.0/go.mod h1:ddIwULY96R17DhadqLgMfk9H9tvdUzkipdSkR5nkCZA=
+github.com/rogpeppe/go-internal v1.12.0 h1:exVL4IDcn6na9z1rAb56Vxr+CgyK3nn3O+epU5NdKM8=
+github.com/rogpeppe/go-internal v1.12.0/go.mod h1:E+RYuTGaKKdloAfM02xzb0FW3Paa99yedzYV+kq4uf4=
 github.com/rs/xid v1.2.1/go.mod h1:+uKXf+4Djp6Md1KODXJxgGQPKngRmWyn10oCKFzNHOQ=
 github.com/rs/zerolog v1.13.0/go.mod h1:YbFCdg8HfsridGWAh22vktObvhZbQsZXe4/zB0OKkWU=
 github.com/rs/zerolog v1.15.0/go.mod h1:xYTKnLHcpfU2225ny5qZjxnj9NvkumZYjJHlAThCjNc=

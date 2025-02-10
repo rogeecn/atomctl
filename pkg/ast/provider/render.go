@@ -23,8 +23,8 @@ func Render(filename string, conf []Provider) error {
 	}()
 
 	imports := map[string]string{
-		"git.ipao.vip/rogeecn/atom/container": "",
-		"git.ipao.vip/rogeecn/atom/utils/opt": "",
+		atomPackage("container"): "",
+		atomPackage("opt"):       "",
 	}
 	lo.ForEach(conf, func(item Provider, _ int) {
 		for k, v := range item.Imports {

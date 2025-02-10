@@ -1,5 +1,6 @@
 package events
 
 const (
-	TopicProcessed = "event:processed"
+	TopicProcessed    = "event:processed"
+	TopicUserRegister = "event:user_register"
 )
