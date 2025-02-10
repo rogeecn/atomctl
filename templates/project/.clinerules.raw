@@ -119,7 +119,16 @@ migration 文件示例.
 -- +goose Up
 -- +goose StatementBegin
 
--- write your migration up sqls (remove this)
+CREATE TABLE tenants (
+id BIGSERIAL PRIMARY KEY,
+created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+deleted_at TIMESTAMP WITH TIME ZONE DEFAULT NULL,
+)                                                                       ;
+
+COMMENT ON COLUMN tenants.created_at IS '创建时间';
+COMMENT ON COLUMN tenants.updated_at IS '更新时间';
+COMMENT ON COLUMN tenants.deleted_at IS '删除时间';
 
 -- +goose StatementEnd
 
@@ -128,17 +137,11 @@ migration 文件示例.
 -- +goose Down
 -- +goose StatementBegin
 
--- write your migration down sqls（remove this）
+DROP TABLE IF EXISTS tenants ;
 
 -- +goose StatementEnd
+
 ```
-
-## migration sql 编写原则
-
-1. 数据库表需要按需要添加 `created_at` `updated_at` `deleted_at` 字段
-2. 这三个时间字段(`created_at` `updated_at` `deleted_at`)需要直接位于 id 字段后面, 避免后期数据库表字段变更造成字段混乱。
-3. 所有表不使用 `FOREIGN KEY` 约束，而是在业务中使用代码逻辑进行约束。
-4. 所有字段需要添加中文注释
 
 ## http module
 
@@ -364,6 +367,9 @@ func (u *Users) GetUser(ctx context.Context, in *userv1.GetUserRequest) (*userv1
 - 除系统管理员外，一个普通用户只可以是一个租户的管理员，不能同时管理多个租户。
 
 **重要提示：**
-- 严格按照 《migration sql 编写原则》 的要求进行sql 生成
 - `database/schemas` 目录下所有为件为 `atomctl gen model` 自动生成，不能进行任何修改！
-- SQL 中不要使用 `FOREIGN KEY` 约束，而是在业务中使用代码逻辑进行约束。
+- migration SQL 中不要使用 `FOREIGN KEY` 约束，而是在业务中使用代码逻辑进行约束。
+- 数据库表需要按需要添加 `created_at` `updated_at` `deleted_at` 字段，并且这三个时间字段(`created_at` `updated_at` `deleted_at`)需要**直接**位于 id 字段后面, **中间不可以包含其它任何字段声明**。
+- 所有表不使用 `FOREIGN KEY` 约束，而是在业务中使用代码逻辑进行约束。
+- 所有字段需要添加中文字段 `comment`
+- 执行 `migrate up` 命令完成后你不需要再使用 `psql` 来验证是否创建成功
