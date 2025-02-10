@@ -10,8 +10,8 @@ import (
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/static"
 	"github.com/gofiber/utils/v2"
+	"github.com/rogeecn/swag"
 	swaggerFiles "github.com/swaggo/files/v2"
-	"{{.ModuleName}}/pkg/atomctl/pkg/swag"
 )
 
 const (
