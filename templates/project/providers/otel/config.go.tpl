@@ -3,9 +3,9 @@ package otel
 import (
 	"os"
 
-	"{{.ModuleName}}/pkg/atom"
-	"{{.ModuleName}}/pkg/atom/container"
-	"{{.ModuleName}}/pkg/atom/opt"
+	"go.ipao.vip/atom"
+	"go.ipao.vip/atom/container"
+	"go.ipao.vip/atom/opt"
 )
 
 const DefaultPrefix = "OTEL"

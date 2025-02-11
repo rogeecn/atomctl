@@ -5,8 +5,8 @@ import (
 
 	"github.com/riverqueue/river"
 	"github.com/sirupsen/logrus"
-	_ "{{.ModuleName}}/pkg/atom"
-	"{{.ModuleName}}/pkg/atom/contracts"
+	_ "go.ipao.vip/atom"
+	"go.ipao.vip/atom/contracts"
 )
 
 var _ contracts.CronJob = (*CronJob)(nil)

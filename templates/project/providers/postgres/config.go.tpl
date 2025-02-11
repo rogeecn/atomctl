@@ -3,8 +3,8 @@ package postgres
 import (
 	"fmt"
 
-	"{{.ModuleName}}/pkg/atom/container"
-	"{{.ModuleName}}/pkg/atom/opt"
+	"go.ipao.vip/atom/container"
+	"go.ipao.vip/atom/opt"
 )
 
 const DefaultPrefix = "Database"

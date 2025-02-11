@@ -7,9 +7,9 @@ import (
 	"{{.ModuleName}}/providers/http"
 
 	"github.com/soheilhy/cmux"
+	"go.ipao.vip/atom/container"
+	"go.ipao.vip/atom/opt"
 	"golang.org/x/sync/errgroup"
-	"{{.ModuleName}}/pkg/atom/container"
-	"{{.ModuleName}}/pkg/atom/opt"
 )
 
 const DefaultPrefix = "Cmux"

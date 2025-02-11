@@ -1,8 +1,8 @@
 package app
 
 import (
-	"{{.ModuleName}}/pkg/atom/container"
-	"{{.ModuleName}}/pkg/atom/opt"
+	"go.ipao.vip/atom/container"
+	"go.ipao.vip/atom/opt"
 )
 
 func Provide(opts ...opt.Option) error {

@@ -5,7 +5,7 @@ import (
 
 	"{{.ModuleName}}/app/events"
 
-	"{{.ModuleName}}/pkg/atom/contracts"
+	"go.ipao.vip/atom/contracts"
 )
 
 var _ contracts.EventPublisher = (*{{.Name}}Event)(nil)

@@ -1,13 +1,13 @@
 package http
 
 import (
+	"go.ipao.vip/atom"
+	"go.ipao.vip/atom/container"
+	"go.ipao.vip/atom/contracts"
 	"{{.ModuleName}}/app/errorx"
 	"{{.ModuleName}}/app/jobs"
 	"{{.ModuleName}}/app/service"
 	_ "{{.ModuleName}}/docs"
-	"{{.ModuleName}}/pkg/atom"
-	"{{.ModuleName}}/pkg/atom/container"
-	"{{.ModuleName}}/pkg/atom/contracts"
 	"{{.ModuleName}}/providers/app"
 	"{{.ModuleName}}/providers/hashids"
 	"{{.ModuleName}}/providers/http"

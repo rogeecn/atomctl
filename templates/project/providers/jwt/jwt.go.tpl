@@ -5,8 +5,8 @@ import (
 	"strings"
 	"time"
 
-	"{{.ModuleName}}/pkg/atom/container"
-	"{{.ModuleName}}/pkg/atom/opt"
+	"go.ipao.vip/atom/container"
+	"go.ipao.vip/atom/opt"
 
 	jwt "github.com/golang-jwt/jwt/v4"
 	"golang.org/x/sync/singleflight"

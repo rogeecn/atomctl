@@ -1,7 +1,7 @@
 package service
 
 import (
-	"{{.ModuleName}}/pkg/atom/container"
+	"go.ipao.vip/atom/container"
 	"{{.ModuleName}}/providers/app"
 	"{{.ModuleName}}/providers/event"
 )

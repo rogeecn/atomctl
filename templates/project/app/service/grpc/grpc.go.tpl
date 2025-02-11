@@ -1,11 +1,11 @@
 package grpc
 
 import (
+	"go.ipao.vip/atom"
+	"go.ipao.vip/atom/container"
+	"go.ipao.vip/atom/contracts"
 	"{{.ModuleName}}/app/grpc/users"
 	"{{.ModuleName}}/app/service"
-	"{{.ModuleName}}/pkg/atom"
-	"{{.ModuleName}}/pkg/atom/container"
-	"{{.ModuleName}}/pkg/atom/contracts"
 	"{{.ModuleName}}/providers/app"
 	"{{.ModuleName}}/providers/grpc"
 	"{{.ModuleName}}/providers/postgres"

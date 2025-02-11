@@ -7,8 +7,8 @@ import (
 	"{{.ModuleName}}/providers/http"
 
 	"github.com/soheilhy/cmux"
-	"{{.ModuleName}}/pkg/atom/container"
-	"{{.ModuleName}}/pkg/atom/opt"
+	"go.ipao.vip/atom/container"
+	"go.ipao.vip/atom/opt"
 )
 
 func Provide(opts ...opt.Option) error {

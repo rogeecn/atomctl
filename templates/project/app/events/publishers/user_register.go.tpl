@@ -3,8 +3,8 @@ package publishers
 import (
 	"encoding/json"
 
+	"go.ipao.vip/atom/contracts"
 	"{{.ModuleName}}/app/events"
-	"{{.ModuleName}}/pkg/atom/contracts"
 )
 
 var _ contracts.EventPublisher = (*UserRegister)(nil)

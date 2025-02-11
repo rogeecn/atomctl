@@ -3,11 +3,11 @@ package queue
 import (
 	"context"
 
+	"go.ipao.vip/atom"
+	"go.ipao.vip/atom/container"
+	"go.ipao.vip/atom/contracts"
 	"{{.ModuleName}}/app/jobs"
 	"{{.ModuleName}}/app/service"
-	"{{.ModuleName}}/pkg/atom"
-	"{{.ModuleName}}/pkg/atom/container"
-	"{{.ModuleName}}/pkg/atom/contracts"
 	"{{.ModuleName}}/providers/app"
 	"{{.ModuleName}}/providers/job"
 	"{{.ModuleName}}/providers/postgres"

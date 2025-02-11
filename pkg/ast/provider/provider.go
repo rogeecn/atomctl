@@ -9,9 +9,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"go.ipao.vip/atomctl/pkg/utils/gomod"
 	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
+	"go.ipao.vip/atomctl/pkg/utils/gomod"
 )
 
 func getTypePkgName(typ string) string {
@@ -60,7 +60,7 @@ type Provider struct {
 }
 
 func atomPackage(suffix string) string {
-	root := gomod.GetModuleName() + "/pkg/atom"
+	root := "go.ipao.vip/atom"
 	if suffix != "" {
 		return fmt.Sprintf("%s/%s", root, suffix)
 	}

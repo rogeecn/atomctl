@@ -4,7 +4,7 @@ import (
 	"{{.ModuleName}}/app/service/http"
 
 	log "github.com/sirupsen/logrus"
-	"{{.ModuleName}}/pkg/atom"
+	"go.ipao.vip/atom"
 )
 
 // @title           ApiDoc

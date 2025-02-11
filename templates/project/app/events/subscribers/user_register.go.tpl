@@ -3,9 +3,9 @@ package subscribers
 import (
 	"encoding/json"
 
+	"go.ipao.vip/atom/contracts"
 	"{{.ModuleName}}/app/events"
 	"{{.ModuleName}}/app/events/publishers"
-	"{{.ModuleName}}/pkg/atom/contracts"
 
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/sirupsen/logrus"

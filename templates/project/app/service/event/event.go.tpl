@@ -3,11 +3,11 @@ package event
 import (
 	"context"
 
+	"go.ipao.vip/atom"
+	"go.ipao.vip/atom/container"
+	"go.ipao.vip/atom/contracts"
 	"{{.ModuleName}}/app/events/subscribers"
 	"{{.ModuleName}}/app/service"
-	"{{.ModuleName}}/pkg/atom"
-	"{{.ModuleName}}/pkg/atom/container"
-	"{{.ModuleName}}/pkg/atom/contracts"
 	"{{.ModuleName}}/providers/app"
 	"{{.ModuleName}}/providers/event"
 	"{{.ModuleName}}/providers/postgres"

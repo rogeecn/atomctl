@@ -6,8 +6,7 @@ import (
 {{- range .Imports }}
 	{{.}}
 {{- end }}
-	. "{{.ProjectPackage}}/pkg/f"
-
+	. "go.ipao.vip/atom/fen"
 	_ "go.ipao.vip/atom"
 	_ "go.ipao.vip/atom/contracts"
 	"github.com/gofiber/fiber/v3"
