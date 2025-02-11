@@ -44,6 +44,11 @@ func New(code, statusCode int, message string) *Response {
 	}
 }
 
+func (r *Response) WithMsg(msg string) *Response {
+	r.Message = msg
+	return r
+}
+
 func (r *Response) Sql(sql string) *Response {
 	r.sql = sql
 	return r
