@@ -8,8 +8,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"git.ipao.vip/rogeecn/atomctl/pkg/utils"
-	"git.ipao.vip/rogeecn/atomctl/pkg/utils/generator"
+	"go.ipao.vip/atomctl/pkg/utils"
+	"go.ipao.vip/atomctl/pkg/utils/generator"
 	_ "github.com/lib/pq"
 	"github.com/spf13/cobra"
 )

@@ -8,8 +8,8 @@ import (
 {{- end }}
 	. "{{.ProjectPackage}}/pkg/f"
 
-	_ "git.ipao.vip/rogeecn/atom"
-	_ "git.ipao.vip/rogeecn/atom/contracts"
+	_ "go.ipao.vip/atom"
+	_ "go.ipao.vip/atom/contracts"
 	"github.com/gofiber/fiber/v3"
 	log "github.com/sirupsen/logrus"
 )

@@ -9,8 +9,8 @@ import (
 	"strings"
 	"text/template"
 
-	"git.ipao.vip/rogeecn/atomctl/pkg/utils/gomod"
-	"git.ipao.vip/rogeecn/atomctl/templates"
+	"go.ipao.vip/atomctl/pkg/utils/gomod"
+	"go.ipao.vip/atomctl/templates"
 	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"

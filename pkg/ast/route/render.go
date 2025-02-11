@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"text/template"
 
-	"git.ipao.vip/rogeecn/atomctl/pkg/utils/gomod"
+	"go.ipao.vip/atomctl/pkg/utils/gomod"
 	"github.com/Masterminds/sprig/v3"
 	"github.com/iancoleman/strcase"
 	"github.com/samber/lo"

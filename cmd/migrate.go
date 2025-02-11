@@ -3,7 +3,7 @@ package cmd
 import (
 	"context"
 
-	"git.ipao.vip/rogeecn/atomctl/pkg/postgres"
+	"go.ipao.vip/atomctl/pkg/postgres"
 	"github.com/pkg/errors"
 	"github.com/pressly/goose/v3"
 	"github.com/samber/lo"

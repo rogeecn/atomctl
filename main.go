@@ -1,7 +1,7 @@
 package main
 
 import (
-	"git.ipao.vip/rogeecn/atomctl/cmd"
+	"go.ipao.vip/atomctl/cmd"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )

@@ -7,8 +7,8 @@ import (
 	"path/filepath"
 	"text/template"
 
-	"git.ipao.vip/rogeecn/atomctl/pkg/utils/gomod"
-	"git.ipao.vip/rogeecn/atomctl/templates"
+	"go.ipao.vip/atomctl/pkg/utils/gomod"
+	"go.ipao.vip/atomctl/templates"
 	"github.com/samber/lo"
 	"github.com/spf13/cobra"
 )

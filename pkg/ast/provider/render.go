@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	"git.ipao.vip/rogeecn/atomctl/pkg/utils/gomod"
+	"go.ipao.vip/atomctl/pkg/utils/gomod"
 	"github.com/samber/lo"
 	"golang.org/x/tools/imports"
 )

@@ -9,7 +9,7 @@ import (
 	"strings"
 	"text/template"
 
-	"git.ipao.vip/rogeecn/atomctl/templates"
+	"go.ipao.vip/atomctl/templates"
 	"github.com/iancoleman/strcase"
 	"github.com/spf13/cobra"
 )

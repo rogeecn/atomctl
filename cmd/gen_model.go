@@ -6,8 +6,8 @@ import (
 	"regexp"
 	"strings"
 
-	pgDatabase "git.ipao.vip/rogeecn/atomctl/pkg/postgres"
-	"git.ipao.vip/rogeecn/atomctl/pkg/utils/gomod"
+	pgDatabase "go.ipao.vip/atomctl/pkg/postgres"
+	"go.ipao.vip/atomctl/pkg/utils/gomod"
 	"github.com/go-jet/jet/v2/generator/metadata"
 	"github.com/go-jet/jet/v2/generator/postgres"
 	"github.com/go-jet/jet/v2/generator/template"

@@ -1,4 +1,4 @@
-module git.ipao.vip/rogeecn/atomctl
+module go.ipao.vip/atomctl
 
 go 1.23.2
 

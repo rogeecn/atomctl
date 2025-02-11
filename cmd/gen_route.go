@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 	"regexp"
 
-	"git.ipao.vip/rogeecn/atomctl/pkg/ast/route"
-	"git.ipao.vip/rogeecn/atomctl/pkg/utils/gomod"
+	"go.ipao.vip/atomctl/pkg/ast/route"
+	"go.ipao.vip/atomctl/pkg/utils/gomod"
 	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -24,7 +24,7 @@ func CommandGenRoute(root *cobra.Command) {
 	root.AddCommand(cmd)
 }
 
-// https://git.ipao.vip/rogeecn/atomctl/pkg/swag?tab=readme-ov-file#api-operation
+// https://go.ipao.vip/atomctl/pkg/swag?tab=readme-ov-file#api-operation
 func commandGenRouteE(cmd *cobra.Command, args []string) error {
 	var err error
 	var path string

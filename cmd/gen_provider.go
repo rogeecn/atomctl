@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"git.ipao.vip/rogeecn/atomctl/pkg/ast/provider"
-	"git.ipao.vip/rogeecn/atomctl/pkg/utils/gomod"
+	"go.ipao.vip/atomctl/pkg/ast/provider"
+	"go.ipao.vip/atomctl/pkg/utils/gomod"
 	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"

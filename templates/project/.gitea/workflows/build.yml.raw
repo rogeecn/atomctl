@@ -39,4 +39,4 @@ jobs:
       - name: Build final Docker image
         run: |
           docker login -u ${{ secrets.DOCKER_AF_USERNAME }} -p ${{ secrets.DOCKER_AF_PASSWORD }} docker-af.hub.ipao.vip
-          docker build --push -t docker-af.hub.ipao.vip/rogeecn/qvyun:latest  .
+          docker build --push -t docker-af.hub.ipao.vip/rogeecn/test:latest  .

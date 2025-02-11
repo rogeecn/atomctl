@@ -1,5 +1,11 @@
 # Atomctl 脚手架工具命令指南
 
+## Install
+
+```
+go install go.ipao.vip/atomctl@latest
+```
+
 ## 命令列表
 
 ### 生成命令
