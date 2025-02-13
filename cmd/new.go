@@ -14,7 +14,7 @@ func CommandInit(root *cobra.Command) {
 
 	cmds := []func(*cobra.Command){
 		CommandNewProject,
-		CommandNewModule,
+		// deprecate CommandNewModule,
 		CommandNewProvider,
 		CommandNewEvent,
 		CommandNewJob,

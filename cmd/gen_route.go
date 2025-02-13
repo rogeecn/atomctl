@@ -4,21 +4,21 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
-	"regexp"
+	"strings"
 
-	"go.ipao.vip/atomctl/pkg/ast/route"
-	"go.ipao.vip/atomctl/pkg/utils/gomod"
 	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"go.ipao.vip/atomctl/pkg/ast/route"
+	"go.ipao.vip/atomctl/pkg/utils/gomod"
 )
 
 func CommandGenRoute(root *cobra.Command) {
 	cmd := &cobra.Command{
-		Use:      "route",
-		Short:    "generate routes",
-		RunE:     commandGenRouteE,
-		PostRunE: commandGenProviderE,
+		Use:   "route",
+		Short: "generate routes",
+		RunE:  commandGenRouteE,
+		// PostRunE: commandGenProviderE,
 	}
 
 	root.AddCommand(cmd)
@@ -51,13 +51,20 @@ func commandGenRouteE(cmd *cobra.Command, args []string) error {
 		log.Fatal("modules dir not exist, ", modulePath)
 	}
 
-	controllerPattern := regexp.MustCompile(`controller(_?\w+)?\.go`)
+	// controllerPattern := regexp.MustCompile(`controller(_?\w+)?\.go`)
 	err = filepath.WalkDir(modulePath, func(path string, d fs.DirEntry, err error) error {
 		if d.IsDir() {
 			return nil
 		}
 
-		if !controllerPattern.MatchString(d.Name()) {
+		// if !controllerPattern.MatchString(d.Name()) {
+		// 	return nil
+		// }
+		if strings.HasSuffix(path, ".gen.go") {
+			return nil
+		}
+
+		if strings.HasSuffix(path, "_test.go") {
 			return nil
 		}
 

@@ -6,8 +6,6 @@ import (
 	"regexp"
 	"strings"
 
-	pgDatabase "go.ipao.vip/atomctl/pkg/postgres"
-	"go.ipao.vip/atomctl/pkg/utils/gomod"
 	"github.com/go-jet/jet/v2/generator/metadata"
 	"github.com/go-jet/jet/v2/generator/postgres"
 	"github.com/go-jet/jet/v2/generator/template"
@@ -19,6 +17,9 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	astModel "go.ipao.vip/atomctl/pkg/ast/model"
+	pgDatabase "go.ipao.vip/atomctl/pkg/postgres"
+	"go.ipao.vip/atomctl/pkg/utils/gomod"
 )
 
 func CommandGenModel(root *cobra.Command) {
@@ -68,6 +69,8 @@ func commandGenModelE(cmd *cobra.Command, args []string) error {
 		"bool",
 	}
 
+	generatedTables := []string{}
+
 	err = postgres.GenerateDSN(
 		dbConf.DSN(),
 		dbConf.Schema,
@@ -107,6 +110,8 @@ func commandGenModelE(cmd *cobra.Command, args []string) error {
 									log.Infof("Skip table %s", table.Name)
 									return tbl
 								}
+
+								generatedTables = append(generatedTables, table.Name)
 
 								return tbl.UseField(func(column metadata.Column) template.TableModelField {
 									defaultTableModelField := template.DefaultTableModelField(column)
@@ -164,6 +169,5 @@ func commandGenModelE(cmd *cobra.Command, args []string) error {
 	if err := os.Rename(dataPath, "database/schemas"); err != nil {
 		return err
 	}
-
-	return nil
+	return astModel.Generate(generatedTables)
 }

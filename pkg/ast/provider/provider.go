@@ -321,6 +321,14 @@ func Parse(source string) []Provider {
 			}
 		}
 
+		if providerDoc.Mode == "model" {
+			provider.Mode = "model"
+
+			provider.ProviderGroup = "atom.GroupInitial"
+			provider.ReturnType = "contracts.Initial"
+			provider.NeedPrepareFunc = true
+		}
+
 		providers = append(providers, provider)
 
 	}
