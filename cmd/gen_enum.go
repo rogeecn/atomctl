@@ -8,18 +8,19 @@ import (
 	"path/filepath"
 	"strings"
 
-	"go.ipao.vip/atomctl/pkg/utils"
-	"go.ipao.vip/atomctl/pkg/utils/generator"
 	_ "github.com/lib/pq"
 	"github.com/spf13/cobra"
+	"go.ipao.vip/atomctl/pkg/utils"
+	"go.ipao.vip/atomctl/pkg/utils/generator"
 )
 
 func CommandGenEnum(root *cobra.Command) {
 	cmd := &cobra.Command{
-		Use:     "enum",
-		Aliases: []string{"e"},
-		Short:   "Generate enums",
-		RunE:    commandGenEnumE,
+		Use:      "enum",
+		Aliases:  []string{"e"},
+		Short:    "Generate enums",
+		RunE:     commandGenEnumE,
+		PostRunE: commandGenProviderE,
 	}
 
 	cmd.Flags().BoolP("flag", "f", true, "Flag enum values")

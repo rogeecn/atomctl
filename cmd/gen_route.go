@@ -15,10 +15,10 @@ import (
 
 func CommandGenRoute(root *cobra.Command) {
 	cmd := &cobra.Command{
-		Use:   "route",
-		Short: "generate routes",
-		RunE:  commandGenRouteE,
-		// PostRunE: commandGenProviderE,
+		Use:      "route",
+		Short:    "generate routes",
+		RunE:     commandGenRouteE,
+		PostRunE: commandGenProviderE,
 	}
 
 	root.AddCommand(cmd)
