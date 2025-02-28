@@ -2,6 +2,7 @@ package main
 
 import (
 	"{{.ModuleName}}/app/service/http"
+	"{{.ModuleName}}/app/service/migrate"
 
 	log "github.com/sirupsen/logrus"
 	"go.ipao.vip/atom"
@@ -25,6 +26,7 @@ func main() {
 	opts := []atom.Option{
 		atom.Name("{{ .ProjectName }}"),
 		http.Command(),
+		migrate.Command(),
 	}
 
 	if err := atom.Serve(opts...); err != nil {
