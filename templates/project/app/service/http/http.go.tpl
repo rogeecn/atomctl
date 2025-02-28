@@ -1,6 +1,8 @@
 package http
 
 import (
+	"context"
+
 	"go.ipao.vip/atom"
 	"go.ipao.vip/atom/container"
 	"go.ipao.vip/atom/contracts"
@@ -46,7 +48,7 @@ func Command() atom.Option {
 	)
 }
 
-type Http struct {
+type Service struct {
 	dig.In
 
 	App      *app.Config
@@ -57,24 +59,24 @@ type Http struct {
 }
 
 func Serve(cmd *cobra.Command, args []string) error {
-	return container.Container.Invoke(func(http Http) error {
+	return container.Container.Invoke(func(ctx context.Context, svc Service) error {
 		log.SetFormatter(&log.JSONFormatter{})
 
-		if http.App.Mode == app.AppModeDevelopment {
+		if svc.App.Mode == app.AppModeDevelopment {
 			log.SetLevel(log.DebugLevel)
 
-			http.Service.Engine.Get("/swagger/*", swagger.HandlerDefault)
+			svc.Service.Engine.Get("/swagger/*", swagger.HandlerDefault)
 		}
-		http.Service.Engine.Use(errorx.Middleware)
-		http.Service.Engine.Use(favicon.New(favicon.Config{
+		svc.Service.Engine.Use(errorx.Middleware)
+		svc.Service.Engine.Use(favicon.New(favicon.Config{
 			Data: []byte{},
 		}))
 
-		group := http.Service.Engine.Group("")
-		for _, route := range http.Routes {
+		group := svc.Service.Engine.Group("")
+		for _, route := range svc.Routes {
 			route.Register(group)
 		}
 
-		return http.Service.Serve()
+		return svc.Service.Serve()
 	})
 }
