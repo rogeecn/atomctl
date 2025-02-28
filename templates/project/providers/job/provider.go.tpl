@@ -8,6 +8,7 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/pkg/errors"
 	"github.com/riverqueue/river"
 	"github.com/riverqueue/river/riverdriver/riverpgxv5"
 	log "github.com/sirupsen/logrus"
@@ -82,4 +83,29 @@ func (q *Job) Client() (*river.Client[pgx.Tx], error) {
 	}
 
 	return q.client, nil
+}
+
+func (q *Job) Start(ctx context.Context) error {
+	client, err := q.Client()
+	if err != nil {
+		return errors.Wrap(err, "get client failed")
+	}
+
+	if err := client.Start(ctx); err != nil {
+		return err
+	}
+	defer client.StopAndCancel(ctx)
+
+	<-ctx.Done()
+
+	return nil
+}
+
+func (q *Job) StopAndCancel(ctx context.Context) error {
+	client, err := q.Client()
+	if err != nil {
+		return errors.Wrap(err, "get client failed")
+	}
+
+	return client.StopAndCancel(ctx)
 }

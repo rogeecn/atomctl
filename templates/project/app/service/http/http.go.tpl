@@ -53,7 +53,7 @@ type Service struct {
 
 	App      *app.Config
 	Job      *job.Job
-	Service  *http.Service
+	Http     *http.Service
 	Initials []contracts.Initial   `group:"initials"`
 	Routes   []contracts.HttpRoute `group:"routes"`
 }
@@ -65,18 +65,18 @@ func Serve(cmd *cobra.Command, args []string) error {
 		if svc.App.Mode == app.AppModeDevelopment {
 			log.SetLevel(log.DebugLevel)
 
-			svc.Service.Engine.Get("/swagger/*", swagger.HandlerDefault)
+			svc.Http.Engine.Get("/swagger/*", swagger.HandlerDefault)
 		}
-		svc.Service.Engine.Use(errorx.Middleware)
-		svc.Service.Engine.Use(favicon.New(favicon.Config{
+		svc.Http.Engine.Use(errorx.Middleware)
+		svc.Http.Engine.Use(favicon.New(favicon.Config{
 			Data: []byte{},
 		}))
 
-		group := svc.Service.Engine.Group("")
+		group := svc.Http.Engine.Group("")
 		for _, route := range svc.Routes {
 			route.Register(group)
 		}
 
-		return svc.Service.Serve()
+		return svc.Http.Serve()
 	})
 }
