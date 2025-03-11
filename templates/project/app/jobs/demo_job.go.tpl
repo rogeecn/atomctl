@@ -11,8 +11,6 @@ import (
 	_ "go.ipao.vip/atom/contracts"
 )
 
-// provider:[except|only] [returnType] [group]
-
 var (
 	_ JobArgs               = SortArgs{}
 	_ JobArgsWithInsertOpts = SortArgs{}
@@ -22,7 +20,6 @@ type SortArgs struct {
 	Strings []string `json:"strings"`
 }
 
-// InsertOpts implements JobArgsWithInsertOpts.
 func (s SortArgs) InsertOpts() InsertOpts {
 	return InsertOpts{
 		Queue:    QueueDefault,

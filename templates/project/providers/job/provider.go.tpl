@@ -11,8 +11,11 @@ import (
 	"github.com/pkg/errors"
 	"github.com/riverqueue/river"
 	"github.com/riverqueue/river/riverdriver/riverpgxv5"
+	"github.com/riverqueue/river/rivertype"
+	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
 	"go.ipao.vip/atom/container"
+	"go.ipao.vip/atom/contracts"
 	"go.ipao.vip/atom/opt"
 )
 
@@ -108,4 +111,21 @@ func (q *Job) StopAndCancel(ctx context.Context) error {
 	}
 
 	return client.StopAndCancel(ctx)
+}
+
+func (q *Job) AddPeriodicJobs(job contracts.CronJob) (rivertype.PeriodicJobHandle, error) {
+	client, err := q.Client()
+	if err != nil {
+		return 0, err
+	}
+
+	return client.PeriodicJobs().Add(river.NewPeriodicJob(
+		job.Periodic(),
+		func() (river.JobArgs, *river.InsertOpts) {
+			return job.JobArgs(), lo.ToPtr(job.InsertOpts())
+		},
+		&river.PeriodicJobOpts{
+			RunOnStart: job.RunOnStart(),
+		},
+	)), nil
 }
