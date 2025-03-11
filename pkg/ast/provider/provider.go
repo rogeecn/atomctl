@@ -300,8 +300,8 @@ func Parse(source string) []Provider {
 			}
 		}
 
-		if providerDoc.Mode == "job" {
-			provider.Mode = "job"
+		if providerDoc.Mode == "job" || providerDoc.Mode == "cronjob" {
+			provider.Mode = providerDoc.Mode
 
 			modePkg := gomod.GetModuleName() + "/providers/job"
 
