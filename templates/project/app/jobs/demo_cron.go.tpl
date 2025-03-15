@@ -3,7 +3,6 @@ package jobs
 import (
 	"time"
 
-	"github.com/riverqueue/river"
 	. "github.com/riverqueue/river"
 	"github.com/sirupsen/logrus"
 	_ "go.ipao.vip/atom"
@@ -26,7 +25,7 @@ func (CronJob) Args() []contracts.CronJobArg {
 			},
 
 			Kind:             "cron_job",
-			PeriodicInterval: river.PeriodicInterval(time.Second * 10),
+			PeriodicInterval: PeriodicInterval(time.Second * 10),
 			RunOnStart:       false,
 		},
 	}
