@@ -58,7 +58,7 @@ func Serve(cmd *cobra.Command, args []string) error {
 		if err := svc.Job.Start(ctx); err != nil {
 			return err
 		}
-		defer svc.Job.Close(ctx)
+		defer svc.Job.Close()
 
 		<-ctx.Done()
 		return nil
