@@ -72,7 +72,7 @@ func Parse(source string) []Provider {
 		return []Provider{}
 	}
 
-	if strings.HasSuffix(source, "/provider.go") {
+	if strings.HasSuffix(source, "/provider.gen.go") {
 		return []Provider{}
 	}
 

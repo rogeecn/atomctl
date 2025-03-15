@@ -113,19 +113,23 @@ func (q *Job) StopAndCancel(ctx context.Context) error {
 	return client.StopAndCancel(ctx)
 }
 
-func (q *Job) AddPeriodicJobs(job contracts.CronJob) (rivertype.PeriodicJobHandle, error) {
+func (q *Job) AddPeriodicJobs(job contracts.CronJob) (map[string]rivertype.PeriodicJobHandle, error) {
 	client, err := q.Client()
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
 
-	return client.PeriodicJobs().Add(river.NewPeriodicJob(
-		job.Periodic(),
-		func() (river.JobArgs, *river.InsertOpts) {
-			return job.JobArgs(), lo.ToPtr(job.InsertOpts())
-		},
-		&river.PeriodicJobOpts{
-			RunOnStart: job.RunOnStart(),
-		},
-	)), nil
+	handles := make(map[string]rivertype.PeriodicJobHandle)
+	for _, job := range job.Args() {
+		handles[job.Kind] = client.PeriodicJobs().Add(river.NewPeriodicJob(
+			job.PeriodicInterval,
+			func() (river.JobArgs, *river.InsertOpts) {
+				return job.Arg, lo.ToPtr(job.Arg.InsertOpts())
+			},
+			&river.PeriodicJobOpts{
+				RunOnStart: job.RunOnStart,
+			},
+		))
+	}
+	return handles, nil
 }

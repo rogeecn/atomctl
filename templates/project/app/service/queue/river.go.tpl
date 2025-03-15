@@ -12,7 +12,6 @@ import (
 	"{{.ModuleName}}/providers/job"
 	"{{.ModuleName}}/providers/postgres"
 
-	"github.com/riverqueue/river"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"go.uber.org/dig"
@@ -56,37 +55,10 @@ func Serve(cmd *cobra.Command, args []string) error {
 			log.SetLevel(log.DebugLevel)
 		}
 
-		client, err := svc.Job.Client()
-		if err != nil {
+		if err := svc.Job.Start(ctx); err != nil {
 			return err
 		}
-
-		for _, cronJob := range svc.CronJobs {
-			log.
-				WithField("module", "cron").
-				WithField("name", cronJob.Description()).
-				WithField("duration", cronJob.Periodic().Seconds()).
-				Info("registering cron job")
-
-			for _, jobArgs := range cronJob.JobArgs() {
-				client.PeriodicJobs().Add(
-					river.NewPeriodicJob(
-						river.PeriodicInterval(cronJob.Periodic()),
-						func() (river.JobArgs, *river.InsertOpts) {
-							return jobArgs, cronJob.InsertOpts()
-						},
-						&river.PeriodicJobOpts{
-							RunOnStart: cronJob.RunOnStart(),
-						},
-					),
-				)
-			}
-		}
-
-		if err := client.Start(ctx); err != nil {
-			return err
-		}
-		defer client.StopAndCancel(ctx)
+		defer svc.Job.Close(ctx)
 
 		<-ctx.Done()
 		return nil
