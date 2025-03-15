@@ -16,6 +16,11 @@ type CronJob struct {
 	log *logrus.Entry `inject:"false"`
 }
 
+// Prepare implements contracts.CronJob.
+func (CronJob) Prepare() error {
+	return nil
+}
+
 // JobArgs implements contracts.CronJob.
 func (CronJob) Args() []contracts.CronJobArg {
 	return []contracts.CronJobArg{
