@@ -29,7 +29,6 @@ func (CronJob) Args() []contracts.CronJobArg {
 				Strings: []string{"a", "b", "c", "d"},
 			},
 
-			Kind:             "cron_job",
 			PeriodicInterval: PeriodicInterval(time.Second * 10),
 			RunOnStart:       false,
 		},
