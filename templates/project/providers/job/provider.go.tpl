@@ -106,6 +106,8 @@ func (q *Job) AddPeriodicJob(job contracts.CronJobArg) error {
 	if err != nil {
 		return err
 	}
+	q.l.Lock()
+	defer q.l.Unlock()
 
 	q.periodicJobs[job.Arg.Kind()] = client.PeriodicJobs().Add(river.NewPeriodicJob(
 		job.PeriodicInterval,
@@ -125,6 +127,9 @@ func (q *Job) Cancel(kind string) error {
 	if err != nil {
 		return err
 	}
+
+	q.l.Lock()
+	defer q.l.Unlock()
 
 	if h, ok := q.periodicJobs[kind]; ok {
 		client.PeriodicJobs().Remove(h)
@@ -149,6 +154,9 @@ func (q *Job) Add(job contracts.JobArgs) error {
 	if err != nil {
 		return err
 	}
+
+	q.l.Lock()
+	defer q.l.Unlock()
 
 	q.jobs[job.Kind()], err = client.Insert(q.ctx, job, lo.ToPtr(job.InsertOpts()))
 	return err
