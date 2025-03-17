@@ -40,7 +40,7 @@ func Provide(opts ...opt.Option) error {
 		container.AddCloseAble(dbPool.Close)
 		pool := riverpgxv5.New(dbPool)
 
-		queue := &Job{Workers: workers, Driver: pool, ctx: ctx}
+		queue := &Job{Workers: workers, driver: pool, ctx: ctx, periodicJobs: make(map[string]rivertype.PeriodicJobHandle), jobs: make(map[string]*rivertype.JobInsertResult)}
 		container.AddCloseAble(queue.Close)
 
 		return queue, nil
@@ -48,11 +48,13 @@ func Provide(opts ...opt.Option) error {
 }
 
 type Job struct {
-	ctx     context.Context
 	Workers *river.Workers
-	Driver  *riverpgxv5.Driver
 
-	l            sync.Mutex
+	l sync.Mutex
+
+	ctx    context.Context
+	driver *riverpgxv5.Driver
+
 	client       *river.Client[pgx.Tx]
 	periodicJobs map[string]rivertype.PeriodicJobHandle
 	jobs         map[string]*rivertype.JobInsertResult
