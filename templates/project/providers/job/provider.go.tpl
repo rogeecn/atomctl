@@ -118,7 +118,7 @@ func (q *Job) AddPeriodicJobs(job contracts.CronJob) (map[string]rivertype.Perio
 
 	handles := make(map[string]rivertype.PeriodicJobHandle)
 	for _, job := range job.Args() {
-		handles[job.Kind], err = q.AddPeriodicJob(job)
+		handles[job.Kind()], err = q.AddPeriodicJob(job)
 		if err != nil {
 			return handles, err
 		}
