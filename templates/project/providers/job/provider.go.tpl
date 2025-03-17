@@ -76,7 +76,7 @@ func (q *Job) Client() (*river.Client[pgx.Tx], error) {
 
 	if q.client == nil {
 		var err error
-		q.client, err = river.NewClient(q.Driver, &river.Config{
+		q.client, err = river.NewClient(q.driver, &river.Config{
 			Workers: q.Workers,
 			Queues: map[string]river.QueueConfig{
 				QueueHigh:    {MaxWorkers: 10},
