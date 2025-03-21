@@ -4,21 +4,16 @@ import (
 	"context"
 	"time"
 
-	_ "go.ipao.vip/atom"
-	_ "go.ipao.vip/atom/contracts"
 	. "github.com/riverqueue/river"
+	_ "go.ipao.vip/atom"
+	"go.ipao.vip/atom/contracts"
 )
 
-var (
-	_ JobArgs               = (*{{.Name}}Job)(nil)
-	_ JobArgsWithInsertOpts = (*{{.Name}}Job)(nil)
-)
+var _ contracts.JobArgs = (*{{.Name}})(nil)
 
-type {{.Name}}Job struct {
-}
+type {{.Name}} struct {}
 
-// InsertOpts implements JobArgsWithInsertOpts.
-func (s {{.Name}}Job) InsertOpts() InsertOpts {
+func (s {{.Name}}) InsertOpts() InsertOpts {
 	return InsertOpts{
 		Queue:    QueueDefault,
 		Priority: PriorityDefault,
@@ -28,21 +23,20 @@ func (s {{.Name}}Job) InsertOpts() InsertOpts {
 	}
 }
 
-func ({{.Name}}Job) Kind() string {
-	return "{{.Name}}Job"
-}
+func ({{.Name}}) Kind() string { return "{{.Name}}" }
+func (arg {{.Name}}) UniqueID() string { return arg.Kind()}
 
-var _ Worker[{{.Name}}Job] = (*{{.Name}}JobWorker)(nil)
+var _ Worker[{{.Name}}] = (*{{.Name}}Worker)(nil)
 
 // @provider(job)
-type {{.Name}}JobWorker struct {
-	WorkerDefaults[{{.Name}}Job]
+type {{.Name}}Worker struct {
+	WorkerDefaults[{{.Name}}]
 }
 
-func (w *{{.Name}}JobWorker) NextRetry(job *Job[{{.Name}}Job]) time.Time {
+func (w *{{.Name}}Worker) NextRetry(job *Job[{{.Name}}]) time.Time {
 	return time.Now().Add(5 * time.Second)
 }
 
-func (w *{{.Name}}JobWorker) Work(ctx context.Context, job *Job[{{.Name}}Job]) error {
+func (w *{{.Name}}Worker) Work(ctx context.Context, job *Job[{{.Name}}]) error {
 	return nil
 }

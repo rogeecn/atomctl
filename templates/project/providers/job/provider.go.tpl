@@ -2,22 +2,9 @@ package job
 
 import (
 	"context"
-	"quyun/providers/postgres"
 	"sync"
 
 	"{{.ModuleName}}/providers/postgres"
-
-	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/pkg/errors"
-	"github.com/riverqueue/river"
-	"github.com/riverqueue/river/riverdriver/riverpgxv5"
-	"github.com/riverqueue/river/rivertype"
-	"github.com/samber/lo"
-	log "github.com/sirupsen/logrus"
-	"go.ipao.vip/atom/container"
-	"go.ipao.vip/atom/contracts"
-	"go.ipao.vip/atom/opt"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"

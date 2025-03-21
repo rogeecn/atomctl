@@ -8,13 +8,11 @@ import (
 	. "github.com/riverqueue/river"
 	log "github.com/sirupsen/logrus"
 	_ "go.ipao.vip/atom"
+	"go.ipao.vip/atom/contracts"
 	_ "go.ipao.vip/atom/contracts"
 )
 
-var (
-	_ JobArgs               = SortArgs{}
-	_ JobArgsWithInsertOpts = SortArgs{}
-)
+var _ contracts.JobArgs = SortArgs{}
 
 type SortArgs struct {
 	Strings []string `json:"strings"`
@@ -27,9 +25,8 @@ func (s SortArgs) InsertOpts() InsertOpts {
 	}
 }
 
-func (SortArgs) Kind() string {
-	return "sort"
-}
+func (SortArgs) Kind() string       { return "sort" }
+func (a SortArgs) UniqueID() string { return a.Kind() }
 
 var _ Worker[SortArgs] = (*SortWorker)(nil)
 

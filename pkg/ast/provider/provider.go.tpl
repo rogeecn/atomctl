@@ -45,9 +45,7 @@ func Provide(opts ...opt.Option) error {
 		{{- end }}
 
 		{{ if eq .Mode "cronjob" }}
-		if _, err := __job.AddPeriodicJobs(obj); err != nil {
-			return nil, err
-		}
+		container.Later(func() error { return __job.AddPeriodicJobs(obj) })
 		{{- end}}
 
 		return obj, nil
