@@ -35,7 +35,7 @@ tools:
 	go get go.ipao.vip/atom
 
 .PHONY: init
-init:
+init: tools
 	@atomctl swag init
 	@atomctl gen route
 	@atomctl gen enum
