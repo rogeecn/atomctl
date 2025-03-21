@@ -1,0 +1,31 @@
+```
+PositionPath = "path"
+PositionQuery= "query"
+PositionBody = "body"
+PositionHeader = "header"
+PositionCookie = "cookie"
+PositionLocal = "local"
+PositionFile = "file"
+```
+
+@Bind 语法
+```
+@Bind name position key() table() model()
+```
+
+```
+// Upload
+// @Router /v1/medias/upload [post]
+// @Bind req body
+// @Bind file file
+// @Bind claim local
+func (ctl *Controller) Upload(ctx fiber.Ctx, claim *jwt.Claims, file *multipart.FileHeader, req *UploadReq) (*storage.UploadedFile, error) {
+return nil
+}
+```
+
+Jet import for Pg
+```
+. "github.com/go-jet/jet/v2/postgres"
+"github.com/go-jet/jet/v2/qrm"
+```
