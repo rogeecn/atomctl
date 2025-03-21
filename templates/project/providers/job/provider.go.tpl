@@ -159,7 +159,7 @@ func (q *Job) AddPeriodicJob(job contracts.CronJobArg) error {
 	return nil
 }
 
-func (q *Job) Cancel(kind string) error {
+func (q *Job) Cancel(id string) error {
 	client, err := q.Client()
 	if err != nil {
 		return err
@@ -168,18 +168,18 @@ func (q *Job) Cancel(kind string) error {
 	q.l.Lock()
 	defer q.l.Unlock()
 
-	if h, ok := q.periodicJobs[kind]; ok {
+	if h, ok := q.periodicJobs[id]; ok {
 		client.PeriodicJobs().Remove(h)
-		delete(q.periodicJobs, kind)
+		delete(q.periodicJobs, id)
 		return nil
 	}
 
-	if r, ok := q.jobs[kind]; ok {
+	if r, ok := q.jobs[id]; ok {
 		_, err = client.JobCancel(q.ctx, r.Job.ID)
 		if err != nil {
 			return err
 		}
-		delete(q.jobs, kind)
+		delete(q.jobs, id)
 		return nil
 	}
 
