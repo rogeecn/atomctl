@@ -10,15 +10,20 @@ import (
 	"strings"
 
 	"github.com/samber/lo"
+	"go.ipao.vip/atomctl/pkg/utils/gomod"
 )
 
 //go:embed table.go.tpl
 var tableTpl string
 
+//go:embed table_test.go.tpl
+var tableTestTpl string
+
 //go:embed models.gen.go.tpl
 var modelTpl string
 
 type TableModelParam struct {
+	PkgName     string
 	CamelTable  string // user
 	PascalTable string // User
 }
@@ -27,6 +32,7 @@ func Generate(tables []string, transformer Transformer) error {
 	baseDir := "app/models"
 
 	tableTpl := template.Must(template.New("model").Parse(string(tableTpl)))
+	tableTestTpl := template.Must(template.New("model").Parse(string(tableTestTpl)))
 	modelTpl := template.Must(template.New("modelGen").Parse(string(modelTpl)))
 
 	items := []TableModelParam{}
@@ -36,10 +42,12 @@ func Generate(tables []string, transformer Transformer) error {
 			continue
 		}
 
-		items = append(items, TableModelParam{
+		tableInfo := TableModelParam{
 			CamelTable:  lo.CamelCase(table),
 			PascalTable: lo.PascalCase(table),
-		})
+			PkgName:     gomod.GetModuleName(),
+		}
+		items = append(items, tableInfo)
 
 		modelFile := fmt.Sprintf("%s/%s.go", baseDir, table)
 		// 如果 modelFile 已存在，则跳过
@@ -55,8 +63,26 @@ func Generate(tables []string, transformer Transformer) error {
 		}
 		defer fd.Close()
 
-		if err := tableTpl.Execute(fd, map[string]string{"CamelTable": lo.CamelCase(table)}); err != nil {
+		if err := tableTpl.Execute(fd, tableInfo); err != nil {
 			return fmt.Errorf("failed to render model template: %w", err)
+		}
+
+		modelTestFile := fmt.Sprintf("%s/%s_test.go", baseDir, table)
+		// 如果 modelTestFile 已存在，则跳过
+		if _, err := os.Stat(modelTestFile); err == nil {
+			fmt.Printf("Model test file %s already exists. Skipping...\n", modelTestFile)
+			continue
+		}
+
+		// 如果 modelTestFile 不存在，则创建
+		fd, err = os.Create(modelTestFile)
+		if err != nil {
+			return fmt.Errorf("failed to create model test file %s: %w", modelTestFile, err)
+		}
+		defer fd.Close()
+
+		if err := tableTestTpl.Execute(fd, tableInfo); err != nil {
+			return fmt.Errorf("failed to render model test template: %w", err)
 		}
 	}
 
