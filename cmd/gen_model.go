@@ -17,6 +17,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"go.ipao.vip/atomctl/pkg/ast/model"
 	astModel "go.ipao.vip/atomctl/pkg/ast/model"
 	pgDatabase "go.ipao.vip/atomctl/pkg/postgres"
 	"go.ipao.vip/atomctl/pkg/utils/gomod"
@@ -43,11 +44,6 @@ func commandGenModelE(cmd *cobra.Command, args []string) error {
 		return errors.Wrap(err, "get db")
 	}
 
-	type Transformer struct {
-		Ignores []string                     `mapstructure:"ignores"`
-		Types   map[string]map[string]string `mapstructure:"types"`
-	}
-
 	v := viper.New()
 	v.SetConfigType("yaml")
 	v.SetConfigFile("database/transform.yaml")
@@ -56,8 +52,8 @@ func commandGenModelE(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	var conf Transformer
-	if err := v.Unmarshal(&conf); err != nil {
+	var transformer model.Transformer
+	if err := v.Unmarshal(&transformer); err != nil {
 		return err
 	}
 
@@ -85,7 +81,7 @@ func commandGenModelE(cmd *cobra.Command, args []string) error {
 							UseTable(func(table metadata.Table) template.TableSQLBuilder {
 								tbl := template.DefaultTableSQLBuilder(table)
 
-								if lo.Contains(conf.Ignores, table.Name) {
+								if lo.Contains(transformer.Ignores.Jet, table.Name) {
 									tbl.Skip = true
 									log.Infof("Skip table %s", table.Name)
 								}
@@ -93,7 +89,7 @@ func commandGenModelE(cmd *cobra.Command, args []string) error {
 							}).
 							UseEnum(func(meta metadata.Enum) template.EnumSQLBuilder {
 								enum := template.DefaultEnumSQLBuilder(meta)
-								if lo.Contains(conf.Ignores, meta.Name) {
+								if lo.Contains(transformer.Ignores.Jet, meta.Name) {
 									enum.Skip = true
 									log.Infof("Skip enum %s", meta.Name)
 								}
@@ -105,7 +101,7 @@ func commandGenModelE(cmd *cobra.Command, args []string) error {
 							DefaultModel().
 							UseTable(func(table metadata.Table) template.TableModel {
 								tbl := template.DefaultTableModel(table)
-								if lo.Contains(conf.Ignores, table.Name) {
+								if lo.Contains(transformer.Ignores.Jet, table.Name) {
 									tbl.Skip = true
 									log.Infof("Skip table %s", table.Name)
 									return tbl
@@ -121,7 +117,7 @@ func commandGenModelE(cmd *cobra.Command, args []string) error {
 										return defaultTableModelField
 									}
 
-									fields, ok := conf.Types[table.Name]
+									fields, ok := transformer.Types[table.Name]
 									if !ok {
 										return defaultTableModelField
 									}
@@ -169,5 +165,5 @@ func commandGenModelE(cmd *cobra.Command, args []string) error {
 	if err := os.Rename(dataPath, "database/schemas"); err != nil {
 		return err
 	}
-	return astModel.Generate(generatedTables)
+	return astModel.Generate(generatedTables, transformer)
 }

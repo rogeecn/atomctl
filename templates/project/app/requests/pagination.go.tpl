@@ -4,8 +4,8 @@ import "github.com/samber/lo"
 
 type Pager struct {
 	Pagination `json:",inline"`
-	Total      int64       `json:"total"`
-	Items      interface{} `json:"items"`
+	Total      int64 `json:"total"`
+	Items      any   `json:"items"`
 }
 
 type Pagination struct {
