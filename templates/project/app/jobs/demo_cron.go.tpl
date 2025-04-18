@@ -9,23 +9,23 @@ import (
 	"go.ipao.vip/atom/contracts"
 )
 
-var _ contracts.CronJob = (*CronJob)(nil)
+var _ contracts.CronJob = (*DemoCronJob)(nil)
 
 // @provider(cronjob)
-type CronJob struct {
+type DemoCronJob struct {
 	log *logrus.Entry `inject:"false"`
 }
 
 // Prepare implements contracts.CronJob.
-func (CronJob) Prepare() error {
+func (DemoCronJob) Prepare() error {
 	return nil
 }
 
 // JobArgs implements contracts.CronJob.
-func (CronJob) Args() []contracts.CronJobArg {
+func (DemoCronJob) Args() []contracts.CronJobArg {
 	return []contracts.CronJobArg{
 		{
-			Arg: SortArgs{
+			Arg: DemoJob{
 				Strings: []string{"a", "b", "c", "d"},
 			},
 

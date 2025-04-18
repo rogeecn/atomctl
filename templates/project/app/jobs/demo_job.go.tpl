@@ -12,36 +12,42 @@ import (
 	_ "go.ipao.vip/atom/contracts"
 )
 
-var _ contracts.JobArgs = SortArgs{}
+var _ contracts.JobArgs = DemoJob{}
 
-type SortArgs struct {
+type DemoJob struct {
 	Strings []string `json:"strings"`
 }
 
-func (s SortArgs) InsertOpts() InsertOpts {
+func (s DemoJob) InsertOpts() InsertOpts {
 	return InsertOpts{
 		Queue:    QueueDefault,
 		Priority: PriorityDefault,
 	}
 }
 
-func (SortArgs) Kind() string       { return "sort" }
-func (a SortArgs) UniqueID() string { return a.Kind() }
+func (DemoJob) Kind() string       { return "demo_job" }
+func (a DemoJob) UniqueID() string { return a.Kind() }
 
-var _ Worker[SortArgs] = (*SortWorker)(nil)
+var _ Worker[DemoJob] = (*SortWorker)(nil)
 
 // @provider(job)
-type SortWorker struct {
-	WorkerDefaults[SortArgs]
+type DemoJobWorker struct {
+	WorkerDefaults[DemoJob]
 }
 
-func (w *SortWorker) Work(ctx context.Context, job *Job[SortArgs]) error {
+func (w *DemoJobWorker) NextRetry(job *Job[DemoJob]) time.Time {
+	return time.Now().Add(30 * time.Second)
+}
+
+func (w *DemoJobWorker) Work(ctx context.Context, job *Job[DemoJob]) error {
+	log = log.WithField("job", job.Kind())
+
+	log.Infof("[START] %s args: %v", job.Kind(), job.Args.Strings)
+	defer log.Infof("[END] %s", job.Kind())
+
+	// modify below
 	sort.Strings(job.Args.Strings)
-
 	log.Infof("[%s] Sorted strings: %v\n", time.Now().Format(time.TimeOnly), job.Args.Strings)
-	return nil
-}
 
-func (w *SortWorker) NextRetry(job *Job[SortArgs]) time.Time {
-	return time.Now().Add(5 * time.Second)
+	return nil
 }
