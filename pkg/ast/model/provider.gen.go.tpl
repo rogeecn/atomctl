@@ -15,8 +15,22 @@ import (
 
 type Cond func(BoolExpression) BoolExpression
 
-func CondDefault() BoolExpression {
-	return BoolExp(Bool(true))
+func ExprCond(expr BoolExpression) Cond {
+	return func(cond BoolExpression) BoolExpression {
+		return cond.AND(expr)
+	}
+}
+
+func CondTrue(conds ...Cond) BoolExpression {
+	cond:= BoolExp(Bool(true))
+	for _, c := range conds {
+		cond = c(cond)
+	}
+	return cond
+}
+
+func CondJoin(cond Cond, conds ...Cond) []Cond {
+	return append([]Cond{cond}, conds...)
 }
 
 

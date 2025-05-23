@@ -106,18 +106,12 @@ func Generate(tables []string, transformer Transformer) error {
 		}
 
 		tableInfo := TableModelParam{
-			CamelTable:  lo.CamelCase(table),
-			PascalTable: lo.PascalCase(table),
-			PkgName:     gomod.GetModuleName(),
-		}
-		if strings.Contains(table, "DeletedAt") {
-			tableInfo.SoftDelete = true
-		}
-		if strings.Contains(table, "UpdatedAt") {
-			tableInfo.HasUpdatedAt = true
-		}
-		if strings.Contains(table, "CreatedAt") {
-			tableInfo.HasCreatedAt = true
+			CamelTable:   lo.CamelCase(table),
+			PascalTable:  lo.PascalCase(table),
+			PkgName:      gomod.GetModuleName(),
+			SoftDelete:   strings.Contains(modelContent[table], "DeletedAt"),
+			HasUpdatedAt: strings.Contains(modelContent[table], "UpdatedAt"),
+			HasCreatedAt: strings.Contains(modelContent[table], "CreatedAt"),
 		}
 
 		items = append(items, tableInfo)

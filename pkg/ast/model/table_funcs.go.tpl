@@ -12,14 +12,18 @@ import (
 )
 // conds
 {{- if .SoftDelete }}
-func (m *{{.PascalTable}}) NotDeleted() Cond {
+func (m *{{.PascalTable}}) CondNotDeleted() Cond {
 	return func(cond BoolExpression) BoolExpression {
-		return cond.AND(table.Posts.DeletedAt.IS_NULL())
+		return cond.AND(table.{{.PascalTable}}.DeletedAt.IS_NULL())
 	}
 }
 {{- end}}
 
-
+func (m *{{.PascalTable}}) CondID(id int64) Cond {
+	return func(cond BoolExpression) BoolExpression {
+		return cond.AND(table.{{.PascalTable}}.ID.EQ(Int(id)))
+	}
+}
 
 // funcs
 func (m *{{.PascalTable}}) log() *log.Entry {
@@ -64,7 +68,7 @@ func (m *{{.PascalTable}}) BatchCreate(ctx context.Context, models []*{{.PascalT
 
 {{- if .SoftDelete }}
 func (m *{{.PascalTable}}) Delete(ctx context.Context) error {
-	stmt := table.{{.PascalTable}}.UPDATE().SET(table.{{.PascalTable}}.DeletedAt.Set(TimestampzT(time.Now()))).WHERE(table.{{.PascalTable}}.ID.EQ(Int(m.ID)))
+	stmt := table.{{.PascalTable}}.UPDATE().SET(table.{{.PascalTable}}.DeletedAt.SET(TimestampT(time.Now()))).WHERE(table.{{.PascalTable}}.ID.EQ(Int(m.ID)))
 	m.log().WithField("func", "SoftDelete").Info(stmt.DebugSql())
 
 	if err := stmt.QueryContext(ctx, db, m); err != nil {
@@ -82,7 +86,7 @@ func (m *{{.PascalTable}}) BatchDelete(ctx context.Context, ids []int64) error {
 		return Int64(id)
 	})
 
-	stmt := table.{{.PascalTable}}.UPDATE().SET(table.{{.PascalTable}}.DeletedAt.Set(TimestampzT(time.Now()))).WHERE(table.{{.PascalTable}}.ID.IN(condIds...))
+	stmt := table.{{.PascalTable}}.UPDATE().SET(table.{{.PascalTable}}.DeletedAt.SET(TimestampT(time.Now()))).WHERE(table.{{.PascalTable}}.ID.IN(condIds...))
 	m.log().WithField("func", "BatchSoftDelete").Info(stmt.DebugSql())
 
 	if err := stmt.QueryContext(ctx, db, m); err != nil {
@@ -142,35 +146,32 @@ func (m *{{.PascalTable}}) Update(ctx context.Context) error {
 	m.log().WithField("func", "Update").Infof("{{.PascalTable}} item updated successfully")
 	return nil
 }
-// GetByID
-func (m *{{.PascalTable}}) GetByID(ctx context.Context, id int64, conds ...BoolExpression) (*{{.PascalTable}}, error) {
-	expr := table.{{.PascalTable}}.ID.EQ(Int(m.ID))
-	if len(conds) > 0 {
-		for _, c := range conds {
-			expr = expr.AND(c)
-		}
-	}
-	stmt := table.{{.PascalTable}}.SELECT(table.{{.PascalTable}}.AllColumns).WHERE(expr)
-	m.log().WithField("func", "GetByID").Info(stmt.DebugSql())
+
+// GetByCond
+func (m *{{.PascalTable}}) GetByCond(ctx context.Context, conds ...Cond) (*{{.PascalTable}}, error) {
+	cond := CondTrue(conds...)
+
+	stmt := table.{{.PascalTable}}.SELECT(table.{{.PascalTable}}.AllColumns).WHERE(cond)
+	m.log().WithField("func", "GetByCond").Info(stmt.DebugSql())
 
 	if err := stmt.QueryContext(ctx, db, m); err != nil {
-		m.log().WithField("func","GetByID").Errorf("error getting {{.PascalTable}} item by ID: %v", err)
+		m.log().WithField("func","GetByCond").Errorf("error getting {{.PascalTable}} item by ID: %v", err)
 		return nil, err
 	}
 
-	m.log().WithField("func", "GetByID").Infof("{{.PascalTable}} item retrieved successfully")
+	m.log().WithField("func", "GetByCond").Infof("{{.PascalTable}} item retrieved successfully")
 	return m, nil
+}
+
+// GetByID
+func (m *{{.PascalTable}}) GetByID(ctx context.Context, id int64, conds ...Cond) (*{{.PascalTable}}, error) {
+	return m.GetByCond(ctx, CondJoin(m.CondID(id), conds...)...)
 }
 
 
 // Count
-func (m *{{.PascalTable}}) Count(ctx context.Context, conds ...BoolExpression) (int64, error) {
-	cond := Bool(true)
-	if len(conds) > 0 {
-		for _, c := range conds {
-			cond = cond.AND(c)
-		}
-	}
+func (m *{{.PascalTable}}) Count(ctx context.Context, conds ...Cond) (int64, error) {
+	cond := CondTrue(conds...)
 
 	tbl := table.{{.PascalTable}}
 	stmt := tbl.SELECT(COUNT(tbl.ID).AS("count")).WHERE(cond)
