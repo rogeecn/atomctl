@@ -6,6 +6,7 @@ import (
 
 	"{{ .PkgName }}/database/table"
 
+	"github.com/samber/lo"
 	. "github.com/go-jet/jet/v2/postgres"
 	log "github.com/sirupsen/logrus"
 )
@@ -45,7 +46,7 @@ func (m *{{.PascalTable}}) BatchCreate(ctx context.Context, models []*{{.PascalT
 
 // Delete
 func (m *{{.PascalTable}}) Delete(ctx context.Context) error {
-	stmt := table.{{.PascalTable}}.DELETE().WHERE(table.{{.PascalTable}}.ID.EQ(m.ID))
+	stmt := table.{{.PascalTable}}.DELETE().WHERE(table.{{.PascalTable}}.ID.EQ(Int(m.ID)))
 	m.log().WithField("func", "Delete").Info(stmt.DebugSql())
 
 	if _, err := stmt.ExecContext(ctx, db); err != nil {
@@ -58,7 +59,11 @@ func (m *{{.PascalTable}}) Delete(ctx context.Context) error {
 }
 
 func (m *{{.PascalTable}}) BatchDelete(ctx context.Context, ids []int64) error {
-	stmt := table.{{.PascalTable}}.DELETE().WHERE(table.{{.PascalTable}}.ID.IN(ids))
+	condIds := lo.Map(ids, func(id int64, _ int) Expression {
+		return Int64(id)
+	})
+
+	stmt := table.{{.PascalTable}}.DELETE().WHERE(table.{{.PascalTable}}.ID.IN(condIds...))
 	m.log().WithField("func", "BatchDelete").Info(stmt.DebugSql())
 
 	if _, err := stmt.ExecContext(ctx, db); err != nil {
@@ -71,7 +76,7 @@ func (m *{{.PascalTable}}) BatchDelete(ctx context.Context, ids []int64) error {
 }
 
 func (m *{{.PascalTable}}) Update(ctx context.Context) error {
-	stmt := table.{{.PascalTable}}.UPDATE(table.{{.PascalTable}}.MutableColumns).SET(m).WHERE(table.{{.PascalTable}}.ID.EQ(m.ID)).RETURNING(table.{{.PascalTable}}.AllColumns)
+	stmt := table.{{.PascalTable}}.UPDATE(table.{{.PascalTable}}.MutableColumns).SET(m).WHERE(table.{{.PascalTable}}.ID.EQ()).RETURNING(table.{{.PascalTable}}.AllColumns)
 	m.log().WithField("func", "Update").Info(stmt.DebugSql())
 
 	if err := stmt.QueryContext(ctx, db, m); err != nil {
@@ -84,7 +89,7 @@ func (m *{{.PascalTable}}) Update(ctx context.Context) error {
 }
 // GetByID
 func (m *{{.PascalTable}}) GetByID(ctx context.Context, id int64) (*{{.PascalTable}}, error) {
-	stmt := table.{{.PascalTable}}.SELECT(table.{{.PascalTable}}.AllColumns).WHERE(table.{{.PascalTable}}.ID.EQ(id))
+	stmt := table.{{.PascalTable}}.SELECT(table.{{.PascalTable}}.AllColumns).WHERE(table.{{.PascalTable}}.ID.EQ(Int(m.ID)))
 	m.log().WithField("func", "GetByID").Info(stmt.DebugSql())
 
 	if err := stmt.QueryContext(ctx, db, m); err != nil {
