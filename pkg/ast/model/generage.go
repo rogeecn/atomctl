@@ -29,6 +29,7 @@ type TableModelParam struct {
 	PkgName     string
 	CamelTable  string // user
 	PascalTable string // User
+	SoftDelete  bool
 }
 
 func Generate(tables []string, transformer Transformer) error {
@@ -65,6 +66,7 @@ func Generate(tables []string, transformer Transformer) error {
 		return err
 	}
 
+	modelContent := make(map[string]string)
 	for _, file := range files {
 		// get filename without ext
 		name := strings.TrimSuffix(file.Name(), filepath.Ext(file.Name()))
@@ -75,6 +77,13 @@ func Generate(tables []string, transformer Transformer) error {
 		if err := os.Rename(from, to); err != nil {
 			return err
 		}
+
+		// read file content
+		content, err := os.ReadFile(to)
+		if err != nil {
+			return err
+		}
+		modelContent[name] = string(content)
 	}
 
 	// remove database/schemas/public/model
@@ -99,6 +108,10 @@ func Generate(tables []string, transformer Transformer) error {
 			PascalTable: lo.PascalCase(table),
 			PkgName:     gomod.GetModuleName(),
 		}
+		if strings.Contains(table, "DeletedAt") {
+			tableInfo.SoftDelete = true
+		}
+
 		items = append(items, tableInfo)
 
 		// tableFuncsFile

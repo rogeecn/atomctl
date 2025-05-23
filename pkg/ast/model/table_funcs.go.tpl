@@ -44,6 +44,8 @@ func (m *{{.PascalTable}}) BatchCreate(ctx context.Context, models []*{{.PascalT
 	return nil
 }
 
+// if SoftDelete
+{{- if .SoftDelete }}
 
 func (m *{{.PascalTable}}) Delete(ctx context.Context) error {
 	stmt := table.{{.PascalTable}}.UPDATE().SET(table.{{.PascalTable}}.DeletedAt.Set(TimestampzT(time.Now()))).WHERE(table.{{.PascalTable}}.ID.EQ(Int(m.ID)))
@@ -75,6 +77,7 @@ func (m *{{.PascalTable}}) BatchDelete(ctx context.Context, ids []int64) error {
 	m.log().WithField("func", "BatchSoftDelete").Infof("{{.PascalTable}} items soft deleted successfully")
 	return nil
 }
+{{- end}}
 
 
 func (m *{{.PascalTable}}) ForceDelete(ctx context.Context) error {
