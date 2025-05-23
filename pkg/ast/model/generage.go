@@ -31,7 +31,16 @@ type TableModelParam struct {
 func Generate(tables []string, transformer Transformer) error {
 	baseDir := "app/model"
 	modelDir := "database/schemas/public/model"
-	// move database/schemas/public/model files to app/model
+	tableDir := "database/schemas/public/table"
+	defer func() {
+		os.RemoveAll("database/schemas")
+	}()
+
+	os.RemoveAll("database/table")
+	// move tableDir to database/table
+	if err := os.Rename(tableDir, "database/table"); err != nil {
+		return err
+	}
 
 	// remove all files in app/model with ext .gen.go
 	files, err := os.ReadDir(baseDir)
