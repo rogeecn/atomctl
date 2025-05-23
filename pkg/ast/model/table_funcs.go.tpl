@@ -141,7 +141,7 @@ func (m *{{.PascalTable}}) GetByID(ctx context.Context, id int64, conds ...BoolE
 			expr = expr.AND(c)
 		}
 	}
-	stmt := table.{{.PascalTable}}.SELECT(table.{{.PascalTable}}.AllColumns).WHERE()
+	stmt := table.{{.PascalTable}}.SELECT(table.{{.PascalTable}}.AllColumns).WHERE(expr)
 	m.log().WithField("func", "GetByID").Info(stmt.DebugSql())
 
 	if err := stmt.QueryContext(ctx, db, m); err != nil {
