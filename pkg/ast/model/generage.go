@@ -26,10 +26,12 @@ var tableTestTpl string
 var providerTplStr string
 
 type TableModelParam struct {
-	PkgName     string
-	CamelTable  string // user
-	PascalTable string // User
-	SoftDelete  bool
+	PkgName      string
+	CamelTable   string // user
+	PascalTable  string // User
+	SoftDelete   bool
+	HasUpdatedAt bool
+	HasCreatedAt bool
 }
 
 func Generate(tables []string, transformer Transformer) error {
@@ -110,6 +112,12 @@ func Generate(tables []string, transformer Transformer) error {
 		}
 		if strings.Contains(table, "DeletedAt") {
 			tableInfo.SoftDelete = true
+		}
+		if strings.Contains(table, "UpdatedAt") {
+			tableInfo.HasUpdatedAt = true
+		}
+		if strings.Contains(table, "CreatedAt") {
+			tableInfo.HasCreatedAt = true
 		}
 
 		items = append(items, tableInfo)

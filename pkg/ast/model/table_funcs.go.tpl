@@ -17,7 +17,15 @@ func (m *{{.PascalTable}}) log() *log.Entry {
 }
 
 func (m *{{.PascalTable}}) Create(ctx context.Context) error {
+	{{- if .HasCreatedAt}}
 	m.CreatedAt = time.Now()
+	{{- end}}
+
+	{{- if .HasUpdatedAt}}
+	m.UpdatedAt = time.Now()
+	{{- end}}
+
+
 	stmt := table.Medias.INSERT(table.{{.PascalTable}}.MutableColumns).MODEL(m).RETURNING(table.Medias.AllColumns)
 	m.log().WithField("func","Create").Info( stmt.DebugSql())
 
@@ -46,7 +54,6 @@ func (m *{{.PascalTable}}) BatchCreate(ctx context.Context, models []*{{.PascalT
 
 // if SoftDelete
 {{- if .SoftDelete }}
-
 func (m *{{.PascalTable}}) Delete(ctx context.Context) error {
 	stmt := table.{{.PascalTable}}.UPDATE().SET(table.{{.PascalTable}}.DeletedAt.Set(TimestampzT(time.Now()))).WHERE(table.{{.PascalTable}}.ID.EQ(Int(m.ID)))
 	m.log().WithField("func", "SoftDelete").Info(stmt.DebugSql())
@@ -111,7 +118,9 @@ func (m *{{.PascalTable}}) BatchForceDelete(ctx context.Context, ids []int64) er
 }
 
 func (m *{{.PascalTable}}) Update(ctx context.Context) error {
+	{{- if .HasUpdatedAt}}
 	m.UpdatedAt = time.Now()
+	{{- end}}
 
 	stmt := table.{{.PascalTable}}.UPDATE(table.{{.PascalTable}}.MutableColumns.Except({{.CamelTable}}UpdateExcludeColumns...)).SET(m).WHERE(table.{{.PascalTable}}.ID.EQ(Int(m.ID))).RETURNING(table.{{.PascalTable}}.AllColumns)
 	m.log().WithField("func", "Update").Info(stmt.DebugSql())
