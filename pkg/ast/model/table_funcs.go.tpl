@@ -10,8 +10,18 @@ import (
 	. "github.com/go-jet/jet/v2/postgres"
 	log "github.com/sirupsen/logrus"
 )
+// conds
+{{- if .SoftDelete }}
+func (m *{{.PascalTable}}) NotDeleted() Cond {
+	return func(cond BoolExpression) BoolExpression {
+		return cond.AND(table.Posts.DeletedAt.IS_NULL())
+	}
+}
+{{- end}}
 
 
+
+// funcs
 func (m *{{.PascalTable}}) log() *log.Entry {
 	return log.WithField("model", "{{.PascalTable}}")
 }
@@ -52,7 +62,6 @@ func (m *{{.PascalTable}}) BatchCreate(ctx context.Context, models []*{{.PascalT
 	return nil
 }
 
-// if SoftDelete
 {{- if .SoftDelete }}
 func (m *{{.PascalTable}}) Delete(ctx context.Context) error {
 	stmt := table.{{.PascalTable}}.UPDATE().SET(table.{{.PascalTable}}.DeletedAt.Set(TimestampzT(time.Now()))).WHERE(table.{{.PascalTable}}.ID.EQ(Int(m.ID)))

@@ -10,7 +10,15 @@ import (
 	"go.ipao.vip/atom/container"
 	"go.ipao.vip/atom/contracts"
 	"go.ipao.vip/atom/opt"
+	. "github.com/go-jet/jet/v2/postgres"
 )
+
+type Cond func(BoolExpression) BoolExpression
+
+func CondDefault() BoolExpression {
+	return BoolExp(Bool(true))
+}
+
 
 var db *sql.DB
 {{- range . }}
