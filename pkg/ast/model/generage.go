@@ -16,6 +16,9 @@ import (
 //go:embed table.go.tpl
 var tableTpl string
 
+//go:embed table_funcs.go.tpl
+var tableFuncsTpl string
+
 //go:embed table_test.go.tpl
 var tableTestTpl string
 
@@ -80,6 +83,7 @@ func Generate(tables []string, transformer Transformer) error {
 	}
 
 	tableTpl := template.Must(template.New("model").Parse(string(tableTpl)))
+	tableFuncsTpl := template.Must(template.New("model").Parse(string(tableFuncsTpl)))
 	tableTestTpl := template.Must(template.New("model").Parse(string(tableTestTpl)))
 	providerTpl := template.Must(template.New("modelGen").Parse(string(providerTplStr)))
 
@@ -131,6 +135,25 @@ func Generate(tables []string, transformer Transformer) error {
 
 		if err := tableTestTpl.Execute(fd, tableInfo); err != nil {
 			return fmt.Errorf("failed to render model test template: %w", err)
+		}
+
+		// tableFuncsFile
+		tableFuncsFile := fmt.Sprintf("%s/%s.funcs.gen.go", baseDir, table)
+		// 如果 modelFuncsFile 已存在，则跳过
+		if _, err := os.Stat(tableFuncsFile); err == nil {
+			fmt.Printf("Model funcs file %s already exists. Skipping...\n", tableFuncsFile)
+			continue
+		}
+
+		// 如果 modelFuncsFile 不存在，则创建
+		fd, err = os.Create(tableFuncsFile)
+		if err != nil {
+			return fmt.Errorf("failed to create model funcs file %s: %w", tableFuncsFile, err)
+		}
+		defer fd.Close()
+
+		if err := tableFuncsTpl.Execute(fd, tableInfo); err != nil {
+			return fmt.Errorf("failed to render model funcs template: %w", err)
 		}
 	}
 
