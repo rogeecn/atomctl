@@ -76,7 +76,7 @@ func (m *{{.PascalTable}}) BatchDelete(ctx context.Context, ids []int64) error {
 }
 
 func (m *{{.PascalTable}}) Update(ctx context.Context) error {
-	stmt := table.{{.PascalTable}}.UPDATE(table.{{.PascalTable}}.MutableColumns).SET(m).WHERE(table.{{.PascalTable}}.ID.EQ()).RETURNING(table.{{.PascalTable}}.AllColumns)
+	stmt := table.{{.PascalTable}}.UPDATE(table.{{.PascalTable}}.MutableColumns).SET(m).WHERE(table.{{.PascalTable}}.ID.EQ(Int(m.ID))).RETURNING(table.{{.PascalTable}}.AllColumns)
 	m.log().WithField("func", "Update").Info(stmt.DebugSql())
 
 	if err := stmt.QueryContext(ctx, db, m); err != nil {
