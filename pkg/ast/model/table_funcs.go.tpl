@@ -134,8 +134,14 @@ func (m *{{.PascalTable}}) Update(ctx context.Context) error {
 	return nil
 }
 // GetByID
-func (m *{{.PascalTable}}) GetByID(ctx context.Context, id int64) (*{{.PascalTable}}, error) {
-	stmt := table.{{.PascalTable}}.SELECT(table.{{.PascalTable}}.AllColumns).WHERE(table.{{.PascalTable}}.ID.EQ(Int(m.ID)))
+func (m *{{.PascalTable}}) GetByID(ctx context.Context, id int64, conds ...BoolExpression) (*{{.PascalTable}}, error) {
+	expr := table.{{.PascalTable}}.ID.EQ(Int(m.ID))
+	if len(conds) > 0 {
+		for _, c := range conds {
+			expr = expr.AND(c)
+		}
+	}
+	stmt := table.{{.PascalTable}}.SELECT(table.{{.PascalTable}}.AllColumns).WHERE()
 	m.log().WithField("func", "GetByID").Info(stmt.DebugSql())
 
 	if err := stmt.QueryContext(ctx, db, m); err != nil {

@@ -1,5 +1,10 @@
 package model
 
 var {{.CamelTable}}UpdateExcludeColumns = []Column{
-	// table.{{.PascalTable}}.CreatedAt,
+	{{-if .HasCreatedAt}}
+	table.{{.PascalTable}}.CreatedAt,
+	{{- end}}
+	{{-if .SoftDelete}}
+	table.{{.PascalTable}}.DeletedAt,
+	{{- end}}
 }
