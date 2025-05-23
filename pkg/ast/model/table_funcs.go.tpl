@@ -1,6 +1,11 @@
 package model
 
 import (
+	"context"
+	"time"
+
+	"{{ .PkgName }}/database/table"
+
 	. "github.com/go-jet/jet/v2/postgres"
 	log "github.com/sirupsen/logrus"
 )
