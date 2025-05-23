@@ -44,8 +44,40 @@ func (m *{{.PascalTable}}) BatchCreate(ctx context.Context, models []*{{.PascalT
 	return nil
 }
 
-// Delete
+
 func (m *{{.PascalTable}}) Delete(ctx context.Context) error {
+	stmt := table.{{.PascalTable}}.UPDATE().SET(table.{{.PascalTable}}.DeletedAt.Set(TimestampzT(time.Now()))).WHERE(table.{{.PascalTable}}.ID.EQ(Int(m.ID)))
+	m.log().WithField("func", "SoftDelete").Info(stmt.DebugSql())
+
+	if err := stmt.QueryContext(ctx, db, m); err != nil {
+		m.log().WithField("func","SoftDelete").Errorf("error soft deleting {{.PascalTable}} item: %v", err)
+		return err
+	}
+
+	m.log().WithField("func", "SoftDelete").Infof("{{.PascalTable}} item soft deleted successfully")
+	return nil
+}
+
+// BatchDelete
+func (m *{{.PascalTable}}) BatchDelete(ctx context.Context, ids []int64) error {
+	condIds := lo.Map(ids, func(id int64, _ int) Expression {
+		return Int64(id)
+	})
+
+	stmt := table.{{.PascalTable}}.UPDATE().SET(table.{{.PascalTable}}.DeletedAt.Set(TimestampzT(time.Now()))).WHERE(table.{{.PascalTable}}.ID.IN(condIds...))
+	m.log().WithField("func", "BatchSoftDelete").Info(stmt.DebugSql())
+
+	if err := stmt.QueryContext(ctx, db, m); err != nil {
+		m.log().WithField("func","BatchSoftDelete").Errorf("error soft deleting {{.PascalTable}} items: %v", err)
+		return err
+	}
+
+	m.log().WithField("func", "BatchSoftDelete").Infof("{{.PascalTable}} items soft deleted successfully")
+	return nil
+}
+
+
+func (m *{{.PascalTable}}) ForceDelete(ctx context.Context) error {
 	stmt := table.{{.PascalTable}}.DELETE().WHERE(table.{{.PascalTable}}.ID.EQ(Int(m.ID)))
 	m.log().WithField("func", "Delete").Info(stmt.DebugSql())
 
@@ -58,7 +90,7 @@ func (m *{{.PascalTable}}) Delete(ctx context.Context) error {
 	return nil
 }
 
-func (m *{{.PascalTable}}) BatchDelete(ctx context.Context, ids []int64) error {
+func (m *{{.PascalTable}}) BatchForceDelete(ctx context.Context, ids []int64) error {
 	condIds := lo.Map(ids, func(id int64, _ int) Expression {
 		return Int64(id)
 	})
@@ -76,7 +108,9 @@ func (m *{{.PascalTable}}) BatchDelete(ctx context.Context, ids []int64) error {
 }
 
 func (m *{{.PascalTable}}) Update(ctx context.Context) error {
-	stmt := table.{{.PascalTable}}.UPDATE(table.{{.PascalTable}}.MutableColumns).SET(m).WHERE(table.{{.PascalTable}}.ID.EQ(Int(m.ID))).RETURNING(table.{{.PascalTable}}.AllColumns)
+	m.UpdatedAt = time.Now()
+
+	stmt := table.{{.PascalTable}}.UPDATE(table.{{.PascalTable}}.MutableColumns.Except({{.CamelTable}}UpdateExcludeColumns...)).SET(m).WHERE(table.{{.PascalTable}}.ID.EQ(Int(m.ID))).RETURNING(table.{{.PascalTable}}.AllColumns)
 	m.log().WithField("func", "Update").Info(stmt.DebugSql())
 
 	if err := stmt.QueryContext(ctx, db, m); err != nil {
