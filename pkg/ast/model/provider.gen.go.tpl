@@ -14,17 +14,12 @@ import (
 
 var db *sql.DB
 {{- range . }}
-func {{.PascalTable}}Model() *{{.PascalTable}} {
-    return &{{.PascalTable}}{}
-}
+func {{.PascalTable}}Model() *{{.PascalTable}} { return &{{.PascalTable}}{} }
 {{- end }}
 
-func Transaction(ctx context.Context) (*sql.Tx, error) {
-	return db.Begin()
-}
-func DB() *sql.DB {
-	return db
-}
+func Transaction(ctx context.Context) (*sql.Tx, error) { return db.Begin() }
+
+func DB() *sql.DB { return db }
 
 func Provide(opts ...opt.Option) error {
 	if err := container.Container.Provide(func( _db *sql.DB,) (contracts.Initial, error) {
