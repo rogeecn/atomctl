@@ -6,6 +6,8 @@ import (
 	"regexp"
 	"strings"
 
+	astModel "go.ipao.vip/atomctl/pkg/ast/model"
+
 	"github.com/go-jet/jet/v2/generator/metadata"
 	"github.com/go-jet/jet/v2/generator/postgres"
 	"github.com/go-jet/jet/v2/generator/template"
@@ -18,7 +20,6 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"go.ipao.vip/atomctl/pkg/ast/model"
-	astModel "go.ipao.vip/atomctl/pkg/ast/model"
 	pgDatabase "go.ipao.vip/atomctl/pkg/postgres"
 	"go.ipao.vip/atomctl/pkg/utils/gomod"
 )
@@ -99,6 +100,14 @@ func commandGenModelE(cmd *cobra.Command, args []string) error {
 					UseModel(
 						template.
 							DefaultModel().
+							UseEnum(func(meta metadata.Enum) template.EnumModel {
+								enum := template.DefaultEnumModel(meta)
+								if lo.Contains(transformer.Ignores.Jet, meta.Name) {
+									enum.Skip = true
+									log.Infof("Skip enum  %s", meta.Name)
+								}
+								return enum
+							}).
 							UseTable(func(table metadata.Table) template.TableModel {
 								tbl := template.DefaultTableModel(table)
 								if lo.Contains(transformer.Ignores.Jet, table.Name) {
@@ -165,5 +174,9 @@ func commandGenModelE(cmd *cobra.Command, args []string) error {
 	if err := os.Rename(dataPath, "database/schemas"); err != nil {
 		return err
 	}
-	return astModel.Generate(generatedTables, transformer)
+
+	if err := astModel.Generate(generatedTables, transformer); err != nil {
+		return err
+	}
+	return nil
 }

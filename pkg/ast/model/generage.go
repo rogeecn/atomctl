@@ -4,12 +4,12 @@ import (
 	_ "embed"
 	"fmt"
 	"html/template"
-	"log"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/samber/lo"
+	log "github.com/sirupsen/logrus"
 	"go.ipao.vip/atomctl/pkg/utils/gomod"
 )
 
@@ -19,8 +19,8 @@ var tableTpl string
 //go:embed table_test.go.tpl
 var tableTestTpl string
 
-//go:embed models.gen.go.tpl
-var modelTpl string
+//go:embed provider.gen.go.tpl
+var providerTplStr string
 
 type TableModelParam struct {
 	PkgName     string
@@ -29,11 +29,50 @@ type TableModelParam struct {
 }
 
 func Generate(tables []string, transformer Transformer) error {
-	baseDir := "app/models"
+	baseDir := "app/model"
+	modelDir := "database/schemas/public/model"
+	// move database/schemas/public/model files to app/model
+
+	// remove all files in app/model with ext .gen.go
+	files, err := os.ReadDir(baseDir)
+	if err != nil {
+		return err
+	}
+
+	for _, file := range files {
+		if strings.HasSuffix(file.Name(), ".gen.go") {
+			if err := os.RemoveAll(filepath.Join(baseDir, file.Name())); err != nil {
+				return err
+			}
+		}
+	}
+
+	// move files remove ext .go to .gen.go
+	files, err = os.ReadDir(modelDir)
+	if err != nil {
+		return err
+	}
+
+	for _, file := range files {
+		// get filename without ext
+		name := strings.TrimSuffix(file.Name(), filepath.Ext(file.Name()))
+
+		from := filepath.Join(modelDir, file.Name())
+		to := filepath.Join(baseDir, name+".gen.go")
+		log.Infof("Move %s to %s", from, to)
+		if err := os.Rename(from, to); err != nil {
+			return err
+		}
+	}
+
+	// remove database/schemas/public/model
+	if err := os.RemoveAll(modelDir); err != nil {
+		return err
+	}
 
 	tableTpl := template.Must(template.New("model").Parse(string(tableTpl)))
 	tableTestTpl := template.Must(template.New("model").Parse(string(tableTestTpl)))
-	modelTpl := template.Must(template.New("modelGen").Parse(string(modelTpl)))
+	providerTpl := template.Must(template.New("modelGen").Parse(string(providerTplStr)))
 
 	items := []TableModelParam{}
 	for _, table := range tables {
@@ -86,51 +125,53 @@ func Generate(tables []string, transformer Transformer) error {
 		}
 	}
 
-	// 遍历 baseDir 下的所有文件，将不在 tables 中的文件名（不带扩展名）加入
-	files, err := os.ReadDir(baseDir)
+	// 渲染总的 provider 文件
+	providerFile := fmt.Sprintf("%s/provider.gen.go", baseDir)
+	os.Remove(providerFile)
+	fd, err := os.Create(providerFile)
 	if err != nil {
-		return fmt.Errorf("遍历目录 %s 失败: %w", baseDir, err)
-	}
-	for _, file := range files {
-		if file.IsDir() {
-			continue
-		}
-		name := file.Name()
-		if strings.HasSuffix(name, ".gen.go") {
-			continue
-		}
-
-		if strings.HasSuffix(name, "_test.go") {
-			continue
-		}
-
-		baseName := strings.TrimSuffix(name, filepath.Ext(name))
-		if lo.Contains(transformer.Ignores.Model, baseName) {
-			log.Printf("[WARN] skip model %s\n", baseName)
-			continue
-		}
-
-		if !lo.Contains(tables, baseName) {
-			items = append(items, TableModelParam{
-				CamelTable:  lo.CamelCase(baseName),
-				PascalTable: lo.PascalCase(baseName),
-			})
-		}
-	}
-
-	// 渲染总的 model 文件
-
-	modelFile := fmt.Sprintf("%s/models.gen.go", baseDir)
-	os.Remove(modelFile)
-	fd, err := os.Create(modelFile)
-	if err != nil {
-		return fmt.Errorf("failed to create model file %s: %w", baseDir, err)
+		return fmt.Errorf("failed to create provider file %s: %w", providerFile, err)
 	}
 	defer fd.Close()
 
-	if err := modelTpl.Execute(fd, items); err != nil {
+	if err := providerTpl.Execute(fd, items); err != nil {
 		return fmt.Errorf("failed to render model template: %w", err)
 	}
 
+	return nil
+}
+
+func addProviderComment(filePath string) error {
+	file, err := os.OpenFile(filePath, os.O_RDWR, 0o644)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	content, err := os.ReadFile(filePath)
+	if err != nil {
+		return err
+	}
+
+	if strings.Contains(string(content), "// @provider") {
+		return nil
+	}
+
+	// Write this comment to the up line of the type xxx struct
+	newLines := []string{}
+	lines := strings.Split(string(content), "\n")
+	for i, line := range lines {
+		if strings.Contains(line, "type ") && strings.Contains(line, "struct") {
+			newLines = append(newLines, "// @provider")
+			// append rest lines
+			newLines = append(newLines, lines[i:]...)
+			break
+		}
+		newLines = append(newLines, line)
+	}
+	newContent := strings.Join(newLines, "\n")
+	if _, err := file.WriteAt([]byte(newContent), 0); err != nil {
+		return err
+	}
 	return nil
 }
