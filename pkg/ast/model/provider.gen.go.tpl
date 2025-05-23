@@ -14,7 +14,9 @@ import (
 
 var db *sql.DB
 {{- range . }}
-var {{.PascalTable}}Model *{{.PascalTable}}
+func {{.PascalTable}}Model() *{{.PascalTable}} {
+    return &{{.PascalTable}}{}
+}
 {{- end }}
 
 func Transaction(ctx context.Context) (*sql.Tx, error) {
@@ -25,26 +27,8 @@ func DB() *sql.DB {
 }
 
 func Provide(opts ...opt.Option) error {
-{{- range . }}
-	if err := container.Container.Provide(func() (*{{.PascalTable}}, error) {
-		obj := &{{.PascalTable}}{}
-		return obj, nil
-	}); err != nil {
-		return err
-	}
-{{ end }}
-
-	if err := container.Container.Provide(func(
-		_db *sql.DB,
-{{- range . }}
-	{{.CamelTable}} *{{.PascalTable}},
-{{- end }}
-	) (contracts.Initial, error) {
-		db = _db
-{{- range . }}
-		{{.PascalTable}}Model = {{.CamelTable}}
-{{- end }}
-
+	if err := container.Container.Provide(func( _db *sql.DB,) (contracts.Initial, error) {
+		 db = _db
 		return nil, nil
 	}, atom.GroupInitial); err != nil {
 		return err
