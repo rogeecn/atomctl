@@ -1,11 +1,11 @@
 package model
 
-var {{.CamelTable}}UpdateExcludeColumns = []Column{
+var tbl{{.PascalTable}}UpdateMutableColumns = tbl{{.PascalTable}}.MutableColumns.Except(
 	{{- if .HasCreatedAt}}
-	table.{{.PascalTable}}.CreatedAt,
+	tbl{{.PascalTable}}.CreatedAt,
 	{{- end}}
 
 	{{- if .SoftDelete}}
-	table.{{.PascalTable}}.DeletedAt,
+	tbl{{.PascalTable}}.DeletedAt,
 	{{- end}}
-}
+)

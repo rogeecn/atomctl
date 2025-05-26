@@ -6,7 +6,7 @@ import (
 
 	"{{ .PkgName }}/app/service/testx"
 	"{{ .PkgName }}/database"
-	"{{ .PkgName }}/database/schemas/public/table"
+	"{{ .PkgName }}/database/table"
 
 	. "github.com/smartystreets/goconvey/convey"
 	"go.ipao.vip/atom/contracts"
@@ -38,6 +38,6 @@ func Test_{{ .PascalTable }}(t *testing.T) {
 
 func (s *{{ .PascalTable }}TestSuite) Test_Demo() {
 	Convey("Test_Demo", s.T(), func() {
-		database.Truncate(context.Background(), db, table.{{ .PascalTable }}.TableName())
+		database.Truncate(context.Background(), db, tbl{{ .PascalTable }}.TableName())
 	})
 }
