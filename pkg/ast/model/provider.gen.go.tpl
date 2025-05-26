@@ -6,6 +6,11 @@ import (
 	"context"
 	"database/sql"
 
+
+	{{ if gt (len .) 0 }}
+	"{{ (index . 0).PkgName }}/database/table"
+	{{ end }}
+
 	"go.ipao.vip/atom"
 	"go.ipao.vip/atom/container"
 	"go.ipao.vip/atom/contracts"
@@ -33,7 +38,13 @@ func CondJoin(cond Cond, conds ...Cond) []Cond {
 	return append([]Cond{cond}, conds...)
 }
 
+// tables
+{{- range . }}
+var tbl{{.PascalTable}} = table.{{.PascalTable}}
+{{- end }}
 
+
+// models
 var db *sql.DB
 {{- range . }}
 func {{.PascalTable}}Model() *{{.PascalTable}} { return &{{.PascalTable}}{} }

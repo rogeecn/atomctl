@@ -130,22 +130,22 @@ func (m *{{.PascalTable}}) BatchForceDelete(ctx context.Context, ids []int64) er
 	return nil
 }
 
-func (m *{{.PascalTable}}) Update(ctx context.Context) error {
-	{{- if .HasUpdatedAt}}
-	m.UpdatedAt = time.Now()
-	{{- end}}
+// func (m *{{.PascalTable}}) Update(ctx context.Context) error {
+// 	{{- if .HasUpdatedAt}}
+// 	m.UpdatedAt = time.Now()
+// 	{{- end}}
 
-	stmt := table.{{.PascalTable}}.UPDATE(table.{{.PascalTable}}.MutableColumns.Except({{.CamelTable}}UpdateExcludeColumns...)).SET(m).WHERE(table.{{.PascalTable}}.ID.EQ(Int(m.ID))).RETURNING(table.{{.PascalTable}}.AllColumns)
-	m.log().WithField("func", "Update").Info(stmt.DebugSql())
+// 	stmt := table.{{.PascalTable}}.UPDATE(table.{{.PascalTable}}.MutableColumns.Except({{.CamelTable}}UpdateExcludeColumns...)).SET(m).WHERE(table.{{.PascalTable}}.ID.EQ(Int(m.ID))).RETURNING(table.{{.PascalTable}}.AllColumns)
+// 	m.log().WithField("func", "Update").Info(stmt.DebugSql())
 
-	if err := stmt.QueryContext(ctx, db, m); err != nil {
-		m.log().WithField("func","Update").Errorf("error updating {{.PascalTable}} item: %v", err)
-		return err
-	}
+// 	if err := stmt.QueryContext(ctx, db, m); err != nil {
+// 		m.log().WithField("func","Update").Errorf("error updating {{.PascalTable}} item: %v", err)
+// 		return err
+// 	}
 
-	m.log().WithField("func", "Update").Infof("{{.PascalTable}} item updated successfully")
-	return nil
-}
+// 	m.log().WithField("func", "Update").Infof("{{.PascalTable}} item updated successfully")
+// 	return nil
+// }
 
 // GetByCond
 func (m *{{.PascalTable}}) GetByCond(ctx context.Context, conds ...Cond) (*{{.PascalTable}}, error) {
