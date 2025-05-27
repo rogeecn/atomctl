@@ -16,6 +16,8 @@ import (
 	"go.ipao.vip/atom/contracts"
 	"go.ipao.vip/atom/opt"
 	. "github.com/go-jet/jet/v2/postgres"
+	"github.com/samber/lo"
+	"golang.org/x/exp/constraints"
 )
 
 type Cond func(BoolExpression) BoolExpression
@@ -36,6 +38,34 @@ func CondTrue(conds ...Cond) BoolExpression {
 
 func CondJoin(cond Cond, conds ...Cond) []Cond {
 	return append([]Cond{cond}, conds...)
+}
+
+// converts
+func IntExprSlice[T constraints.Integer](slice []T) []Expression {
+    if len(slice) == 0 { return nil }
+
+    return lo.Map(slice, func(item T, _ int) Expression {
+        switch any(item).(type) {
+        case int8:
+            return Int8(int8(item))
+        case int16:
+            return Int16(int16(item))
+        case int32:
+            return Int32(int32(item))
+        case int64:
+            return Int64(int64(item))
+        case uint8:
+            return Uint8(uint8(item))
+        case uint16:
+            return Uint16(uint16(item))
+        case uint32:
+            return Uint32(uint32(item))
+        case uint64:
+            return Uint64(uint64(item))
+        default:
+            return nil
+        }
+    })
 }
 
 // tables
