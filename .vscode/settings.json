@@ -1,3 +1,20 @@
 {
-    "editor.fontSize": 10
+    "editor.fontSize": 10,
+    "dbcode.connections": [
+        {
+            "connectionId": "l6fEOogu2kQt5G3BashDt",
+            "name": "10.1.1.2",
+            "driver": "postgres",
+            "connectionType": "host",
+            "host": "10.1.1.2",
+            "port": 5432,
+            "ssl": false,
+            "username": "postgres",
+            "password": "",
+            "savePassword": "secretStorage",
+            "database": "quyun",
+            "readOnly": false,
+            "connectionTimeout": 30
+        }
+    ]
 }

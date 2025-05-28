@@ -43,7 +43,7 @@ func (m *{{.PascalTable}}) Create(ctx context.Context) error {
 	{{- end}}
 
 
-	stmt := tblMedias.INSERT(tbl{{.PascalTable}}.MutableColumns).MODEL(m).RETURNING(tblMedias.AllColumns)
+	stmt := tbl{{.PascalTable}}.INSERT(tbl{{.PascalTable}}.MutableColumns).MODEL(m).RETURNING(tbl{{.PascalTable}}.AllColumns)
 	m.log().WithField("func","Create").Info( stmt.DebugSql())
 
 	if err := stmt.QueryContext(ctx, db, m); err != nil {
@@ -207,8 +207,7 @@ func (m *{{.PascalTable}}) GetByID(ctx context.Context, id int64, conds ...Cond)
 func (m *{{.PascalTable}}) Count(ctx context.Context, conds ...Cond) (int64, error) {
 	cond := CondTrue(conds...)
 
-	tbl := tbl{{.PascalTable}}
-	stmt := tbl.SELECT(COUNT(tbl.ID).AS("count")).WHERE(cond)
+	stmt := tbl{{.PascalTable}}.SELECT(COUNT(tbl{{.PascalTable}}.ID).AS("count")).WHERE(cond)
 	m.log().Infof("sql: %s", stmt.DebugSql())
 
 	var count struct {
