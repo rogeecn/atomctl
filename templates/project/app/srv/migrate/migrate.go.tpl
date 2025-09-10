@@ -15,14 +15,8 @@ import (
 	"go.ipao.vip/atom/container"
 	"go.uber.org/dig"
 
-	"github.com/pressly/goose/v3"
 	"github.com/riverqueue/river/riverdriver/riverdatabasesql"
 	"github.com/riverqueue/river/rivermigrate"
-	log "github.com/sirupsen/logrus"
-	"github.com/spf13/cobra"
-	"go.ipao.vip/atom"
-	"go.ipao.vip/atom/container"
-	"go.uber.org/dig"
 )
 
 func defaultProviders() container.Providers {
