@@ -1,7 +1,6 @@
 package postgres
 
 import (
-	_ "github.com/lib/pq"
 	"github.com/sirupsen/logrus"
 	"go.ipao.vip/atom/container"
 	"go.ipao.vip/atom/opt"
