@@ -56,7 +56,7 @@ func commandGenRouteE(cmd *cobra.Command, args []string) error {
 
 	modulePath := filepath.Join(path, "app/http")
 	if _, err := os.Stat(modulePath); os.IsNotExist(err) {
-		log.Fatal("modules dir not exist, ", modulePath)
+		return fmt.Errorf("routes directory not found: %s (set --path to your project root)", modulePath)
 	}
 
 	// controllerPattern := regexp.MustCompile(`controller(_?\w+)?\.go`)
