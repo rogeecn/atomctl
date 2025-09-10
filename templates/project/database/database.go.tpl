@@ -5,21 +5,10 @@ import (
 	"database/sql"
 	"embed"
 	"fmt"
-
-	"github.com/go-jet/jet/v2/qrm"
 )
 
 //go:embed migrations/*
 var MigrationFS embed.FS
-
-type CtxDB struct{}
-
-func FromContext(ctx context.Context, db *sql.DB) qrm.DB {
-	if tx, ok := ctx.Value(CtxDB{}).(*sql.Tx); ok {
-		return tx
-	}
-	return db
-}
 
 func Truncate(ctx context.Context, db *sql.DB, tableName ...string) error {
 	for _, name := range tableName {
