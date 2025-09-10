@@ -4,7 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"{{.ModuleName}}/app/service/testx"
+	"{{.ModuleName}}/app/srv/services"
+	"{{.ModuleName}}/app/srv/testx"
 	"{{.ModuleName}}/providers/app"
 	"{{.ModuleName}}/providers/job"
 
@@ -31,7 +32,7 @@ type DemoJobSuite struct {
 }
 
 func Test_DemoJob(t *testing.T) {
-	providers := testx.Default().With(Provide, models.Provide)
+	providers := testx.Default().With(Provide, services.Provide)
 
 	testx.Serve(providers, t, func(p DemoJobSuiteInjectParams) {
 		suite.Run(t, &DemoJobSuite{DemoJobSuiteInjectParams: p})

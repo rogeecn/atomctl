@@ -7,7 +7,9 @@ import (
 )
 
 // @provider(grpc) userv1.RegisterUserServiceServer
-type Users struct{}
+type Users struct {
+	userv1.UnimplementedUserServiceServer
+}
 
 func (u *Users) ListUsers(ctx context.Context, in *userv1.ListUsersRequest) (*userv1.ListUsersResponse, error) {
 	// userv1.UserServiceServer

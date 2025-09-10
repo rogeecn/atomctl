@@ -1,13 +1,11 @@
 package errorx
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 	"runtime"
 	"strings"
 
-	"github.com/go-jet/jet/v2/qrm"
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/binder"
 	"github.com/gofiber/utils/v2"
@@ -29,9 +27,9 @@ type Response struct {
 	sql      string
 	file     string
 
-	StatusCode int    `json:"-" xml:"-"`
-	Code       int    `json:"code" xml:"code"`
-	Message    string `json:"message" xml:"message"`
+	StatusCode int    `json:"-"              xml:"-"`
+	Code       int    `json:"code"           xml:"code"`
+	Message    string `json:"message"        xml:"message"`
 	Data       any    `json:"data,omitempty" xml:"data"`
 }
 
@@ -83,11 +81,6 @@ func (r *Response) Wrap(err error) *Response {
 
 func (r *Response) format() {
 	r.isFormat = true
-	if errors.Is(r.err, qrm.ErrNoRows) {
-		r.from(RecordNotExists)
-		return
-	}
-
 	if e, ok := r.err.(*fiber.Error); ok {
 		r.Code = e.Code
 		r.Message = e.Message

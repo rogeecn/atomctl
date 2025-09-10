@@ -1,8 +1,8 @@
 package main
 
 import (
-	"{{.ModuleName}}/app/service/http"
-	"{{.ModuleName}}/app/service/migrate"
+	"{{.ModuleName}}/app/srv/http"
+	"{{.ModuleName}}/app/srv/migrate"
 
 	log "github.com/sirupsen/logrus"
 	"go.ipao.vip/atom"

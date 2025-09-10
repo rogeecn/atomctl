@@ -1,15 +1,13 @@
-package event
+package grpc
 
 import (
-	"context"
-
 	"go.ipao.vip/atom"
 	"go.ipao.vip/atom/container"
 	"go.ipao.vip/atom/contracts"
-	"{{.ModuleName}}/app/events/subscribers"
-	"{{.ModuleName}}/app/service"
+	"{{.ModuleName}}/app/grpc/users"
+	"{{.ModuleName}}/app/srv"
 	"{{.ModuleName}}/providers/app"
-	"{{.ModuleName}}/providers/event"
+	"{{.ModuleName}}/providers/grpc"
 	"{{.ModuleName}}/providers/postgres"
 
 	log "github.com/sirupsen/logrus"
@@ -18,20 +16,21 @@ import (
 )
 
 func defaultProviders() container.Providers {
-	return service.Default(container.Providers{
+	return srv.Default(container.Providers{
 		postgres.DefaultProvider(),
+		grpc.DefaultProvider(),
 	}...)
 }
 
 func Command() atom.Option {
 	return atom.Command(
-		atom.Name("event"),
-		atom.Short("start event processor"),
+		atom.Name("grpc"),
+		atom.Short("run grpc server"),
 		atom.RunE(Serve),
 		atom.Providers(
 			defaultProviders().
 				With(
-					subscribers.Provide,
+					users.Provide,
 				),
 		),
 	)
@@ -41,18 +40,18 @@ type Service struct {
 	dig.In
 
 	App      *app.Config
-	PubSub   *event.PubSub
+	Grpc     *grpc.Grpc
 	Initials []contracts.Initial `group:"initials"`
 }
 
 func Serve(cmd *cobra.Command, args []string) error {
-	return container.Container.Invoke(func(ctx context.Context, svc Service) error {
+	return container.Container.Invoke(func(svc Service) error {
 		log.SetFormatter(&log.JSONFormatter{})
 
 		if svc.App.IsDevMode() {
 			log.SetLevel(log.DebugLevel)
 		}
 
-		return svc.PubSub.Serve(ctx)
+		return svc.Grpc.Serve()
 	})
 }

@@ -28,7 +28,7 @@ func (s DemoJob) InsertOpts() InsertOpts {
 func (DemoJob) Kind() string       { return "demo_job" }
 func (a DemoJob) UniqueID() string { return a.Kind() }
 
-var _ Worker[DemoJob] = (*SortWorker)(nil)
+var _ Worker[DemoJob] = (*DemoJobWorker)(nil)
 
 // @provider(job)
 type DemoJobWorker struct {
