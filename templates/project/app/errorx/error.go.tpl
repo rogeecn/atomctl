@@ -1,15 +1,16 @@
 package errorx
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"runtime"
-	"strings"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/binder"
 	"github.com/gofiber/utils/v2"
 	log "github.com/sirupsen/logrus"
+	"gorm.io/gorm"
 )
 
 func Middleware(c fiber.Ctx) error {
@@ -90,7 +91,12 @@ func (r *Response) format() {
 
 	if r.err != nil {
 		msg := r.err.Error()
-		if strings.Contains(msg, "duplicate key value") || strings.Contains(msg, "unique constraint") {
+		if errors.Is(r.err, gorm.ErrRecordNotFound) {
+			r.from(RecordNotExists)
+			return
+		}
+
+		if errors.Is(r.err, gorm.ErrDuplicatedKey) {
 			r.from(RecordDuplicated)
 			return
 		}
