@@ -8,10 +8,10 @@ import (
 	"path/filepath"
 	"text/template"
 
-	"go.ipao.vip/atomctl/pkg/utils/gomod"
 	"github.com/Masterminds/sprig/v3"
 	"github.com/iancoleman/strcase"
 	"github.com/samber/lo"
+	"go.ipao.vip/atomctl/v2/pkg/utils/gomod"
 )
 
 //go:embed router.go.tpl

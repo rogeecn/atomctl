@@ -10,8 +10,8 @@ import (
 
 	_ "github.com/lib/pq"
 	"github.com/spf13/cobra"
-	"go.ipao.vip/atomctl/pkg/utils"
-	"go.ipao.vip/atomctl/pkg/utils/generator"
+	"go.ipao.vip/atomctl/v2/pkg/utils"
+	"go.ipao.vip/atomctl/v2/pkg/utils/generator"
 )
 
 func CommandGenEnum(root *cobra.Command) {

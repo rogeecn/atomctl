@@ -1,9 +1,9 @@
 package main
 
 import (
-	"go.ipao.vip/atomctl/cmd"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"go.ipao.vip/atomctl/v2/cmd"
 )
 
 func main() {

@@ -9,11 +9,11 @@ import (
 	"strings"
 	"text/template"
 
-	"go.ipao.vip/atomctl/pkg/utils/gomod"
-	"go.ipao.vip/atomctl/templates"
 	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"go.ipao.vip/atomctl/v2/pkg/utils/gomod"
+	"go.ipao.vip/atomctl/v2/templates"
 )
 
 func CommandNewModule(root *cobra.Command) {

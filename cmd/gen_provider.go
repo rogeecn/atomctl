@@ -6,11 +6,11 @@ import (
 	"path/filepath"
 	"strings"
 
-	"go.ipao.vip/atomctl/pkg/ast/provider"
-	"go.ipao.vip/atomctl/pkg/utils/gomod"
 	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"go.ipao.vip/atomctl/v2/pkg/ast/provider"
+	"go.ipao.vip/atomctl/v2/pkg/utils/gomod"
 )
 
 func CommandGenProvider(root *cobra.Command) {

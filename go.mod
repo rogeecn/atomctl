@@ -1,4 +1,4 @@
-module go.ipao.vip/atomctl
+module go.ipao.vip/atomctl/v2
 
 go 1.23.2
 

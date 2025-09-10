@@ -6,8 +6,8 @@ import (
 	"os"
 	"strings"
 
-	"go.ipao.vip/atomctl/pkg/utils/gomod"
 	"github.com/samber/lo"
+	"go.ipao.vip/atomctl/v2/pkg/utils/gomod"
 	"golang.org/x/tools/imports"
 )
 

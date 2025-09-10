@@ -1,45 +1,45 @@
 package cmd
 
 import (
-    "fmt"
-    "io/fs"
-    "os"
-    "path/filepath"
-    "strings"
-    "text/template"
+	"fmt"
+	"io/fs"
+	"os"
+	"path/filepath"
+	"strings"
+	"text/template"
 
-	"go.ipao.vip/atomctl/pkg/utils/gomod"
-	"go.ipao.vip/atomctl/templates"
 	"github.com/samber/lo"
 	"github.com/spf13/cobra"
+	"go.ipao.vip/atomctl/v2/pkg/utils/gomod"
+	"go.ipao.vip/atomctl/v2/templates"
 )
 
 // CommandNewProvider 注册 new_provider 命令
 func CommandNewEvent(root *cobra.Command) {
-    cmd := &cobra.Command{
-        Use:     "event",
-        Aliases: []string{"e"},
-        Short:   "创建新的 event publish & subscriber",
-        Args:    cobra.ExactArgs(1),
-        RunE:    commandNewEventE,
-    }
+	cmd := &cobra.Command{
+		Use:     "event",
+		Aliases: []string{"e"},
+		Short:   "创建新的 event publish & subscriber",
+		Args:    cobra.ExactArgs(1),
+		RunE:    commandNewEventE,
+	}
 
-    cmd.Flags().String("only", "", "仅生成: publisher 或 subscriber")
+	cmd.Flags().String("only", "", "仅生成: publisher 或 subscriber")
 
-    root.AddCommand(cmd)
+	root.AddCommand(cmd)
 }
 
 func commandNewEventE(cmd *cobra.Command, args []string) error {
 	snakeName := lo.SnakeCase(args[0])
 	camelName := lo.PascalCase(args[0])
 
-    // shared flags
-    dryRun, _ := cmd.Flags().GetBool("dry-run")
-    baseDir, _ := cmd.Flags().GetString("dir")
-    only, _ := cmd.Flags().GetString("only")
+	// shared flags
+	dryRun, _ := cmd.Flags().GetBool("dry-run")
+	baseDir, _ := cmd.Flags().GetString("dir")
+	only, _ := cmd.Flags().GetString("only")
 
-    publisherPath := filepath.Join(baseDir, "app/events/publishers")
-    subscriberPath := filepath.Join(baseDir, "app/events/subscribers")
+	publisherPath := filepath.Join(baseDir, "app/events/publishers")
+	subscriberPath := filepath.Join(baseDir, "app/events/subscribers")
 
 	path, err := os.Getwd()
 	if err != nil {
@@ -52,17 +52,17 @@ func commandNewEventE(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-    if dryRun {
-        fmt.Printf("[dry-run] mkdir -p %s\n", publisherPath)
-        fmt.Printf("[dry-run] mkdir -p %s\n", subscriberPath)
-    } else {
-        if err := os.MkdirAll(publisherPath, os.ModePerm); err != nil {
-            return err
-        }
-        if err := os.MkdirAll(subscriberPath, os.ModePerm); err != nil {
-            return err
-        }
-    }
+	if dryRun {
+		fmt.Printf("[dry-run] mkdir -p %s\n", publisherPath)
+		fmt.Printf("[dry-run] mkdir -p %s\n", subscriberPath)
+	} else {
+		if err := os.MkdirAll(publisherPath, os.ModePerm); err != nil {
+			return err
+		}
+		if err := os.MkdirAll(subscriberPath, os.ModePerm); err != nil {
+			return err
+		}
+	}
 
 	err = fs.WalkDir(templates.Events, "events", func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
@@ -77,59 +77,73 @@ func commandNewEventE(cmd *cobra.Command, args []string) error {
 			return err
 		}
 
-        var destPath string
-        if relPath == "publisher.go.tpl" {
-            if only == "subscriber" { return nil }
-            destPath = filepath.Join(publisherPath, snakeName+".go")
-        } else if relPath == "subscriber.go.tpl" {
-            if only == "publisher" { return nil }
-            destPath = filepath.Join(subscriberPath, snakeName+".go")
-        } else { return nil }
+		var destPath string
+		if relPath == "publisher.go.tpl" {
+			if only == "subscriber" {
+				return nil
+			}
+			destPath = filepath.Join(publisherPath, snakeName+".go")
+		} else if relPath == "subscriber.go.tpl" {
+			if only == "publisher" {
+				return nil
+			}
+			destPath = filepath.Join(subscriberPath, snakeName+".go")
+		} else {
+			return nil
+		}
 
 		tmpl, err := template.ParseFS(templates.Events, path)
 		if err != nil {
 			return err
 		}
 
-        if dryRun {
-            fmt.Printf("[dry-run] render > %s\n", destPath)
-            return nil
-        }
+		if dryRun {
+			fmt.Printf("[dry-run] render > %s\n", destPath)
+			return nil
+		}
 
-        destFile, err := os.Create(destPath)
-        if err != nil {
-            return err
-        }
-        defer destFile.Close()
+		destFile, err := os.Create(destPath)
+		if err != nil {
+			return err
+		}
+		defer destFile.Close()
 
-        return tmpl.Execute(destFile, map[string]string{
-            "Name":       camelName,
-            "ModuleName": gomod.GetModuleName(),
-        })
-    })
+		return tmpl.Execute(destFile, map[string]string{
+			"Name":       camelName,
+			"ModuleName": gomod.GetModuleName(),
+		})
+	})
 
-    // 写入或追加 topic 常量，避免重复。
-    topicsPath := filepath.Join(baseDir, "app/events/topics.go")
-    topicLine := fmt.Sprintf("const Topic%s = %q\n", camelName, snakeName)
+	// 写入或追加 topic 常量，避免重复。
+	topicsPath := filepath.Join(baseDir, "app/events/topics.go")
+	topicLine := fmt.Sprintf("const Topic%s = %q\n", camelName, snakeName)
 
-    if dryRun {
-        fmt.Printf("[dry-run] ensure topics file and add constant > %s\n", topicsPath)
-    } else {
-        // ensure file exists with basic header
-        if _, statErr := os.Stat(topicsPath); os.IsNotExist(statErr) {
-            if err := os.MkdirAll(filepath.Dir(topicsPath), os.ModePerm); err != nil { return err }
-            header := "package events\n\n// topics generated by atomctl\n\n"
-            if err := os.WriteFile(topicsPath, []byte(header), 0o644); err != nil { return err }
-        }
-        // check duplicate
-        content, _ := os.ReadFile(topicsPath)
-        if !strings.Contains(string(content), "Topic"+camelName+" ") && !strings.Contains(string(content), topicLine) {
-            f, err := os.OpenFile(topicsPath, os.O_APPEND|os.O_WRONLY, 0o644)
-            if err != nil { return err }
-            defer f.Close()
-            if _, err := f.WriteString(topicLine); err != nil { return err }
-        }
-    }
+	if dryRun {
+		fmt.Printf("[dry-run] ensure topics file and add constant > %s\n", topicsPath)
+	} else {
+		// ensure file exists with basic header
+		if _, statErr := os.Stat(topicsPath); os.IsNotExist(statErr) {
+			if err := os.MkdirAll(filepath.Dir(topicsPath), os.ModePerm); err != nil {
+				return err
+			}
+			header := "package events\n\n// topics generated by atomctl\n\n"
+			if err := os.WriteFile(topicsPath, []byte(header), 0o644); err != nil {
+				return err
+			}
+		}
+		// check duplicate
+		content, _ := os.ReadFile(topicsPath)
+		if !strings.Contains(string(content), "Topic"+camelName+" ") && !strings.Contains(string(content), topicLine) {
+			f, err := os.OpenFile(topicsPath, os.O_APPEND|os.O_WRONLY, 0o644)
+			if err != nil {
+				return err
+			}
+			defer f.Close()
+			if _, err := f.WriteString(topicLine); err != nil {
+				return err
+			}
+		}
+	}
 
 	fmt.Printf("event 已创建: %s\n", snakeName)
 	return nil

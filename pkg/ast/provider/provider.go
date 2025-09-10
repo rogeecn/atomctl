@@ -11,7 +11,7 @@ import (
 
 	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
-	"go.ipao.vip/atomctl/pkg/utils/gomod"
+	"go.ipao.vip/atomctl/v2/pkg/utils/gomod"
 )
 
 func getTypePkgName(typ string) string {

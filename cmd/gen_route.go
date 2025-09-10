@@ -10,40 +10,40 @@ import (
 	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"go.ipao.vip/atomctl/pkg/ast/route"
-	"go.ipao.vip/atomctl/pkg/utils/gomod"
+	"go.ipao.vip/atomctl/v2/pkg/ast/route"
+	"go.ipao.vip/atomctl/v2/pkg/utils/gomod"
 )
 
 func CommandGenRoute(root *cobra.Command) {
-    cmd := &cobra.Command{
-        Use:      "route",
-        Short:    "generate routes",
-        RunE:     commandGenRouteE,
-        PostRunE: commandGenProviderE,
-    }
+	cmd := &cobra.Command{
+		Use:      "route",
+		Short:    "generate routes",
+		RunE:     commandGenRouteE,
+		PostRunE: commandGenProviderE,
+	}
 
-    cmd.Flags().String("path", ".", "Base path to scan (defaults to CWD)")
+	cmd.Flags().String("path", ".", "Base path to scan (defaults to CWD)")
 
-    root.AddCommand(cmd)
+	root.AddCommand(cmd)
 }
 
-// https://go.ipao.vip/atomctl/pkg/swag?tab=readme-ov-file#api-operation
+// https://go.ipao.vip/atomctl/v2/pkg/swag?tab=readme-ov-file#api-operation
 func commandGenRouteE(cmd *cobra.Command, args []string) error {
-    var err error
-    var path string
-    if len(args) > 0 {
-        path = args[0]
-    } else {
-        path, err = os.Getwd()
-        if err != nil {
-            return err
-        }
-    }
+	var err error
+	var path string
+	if len(args) > 0 {
+		path = args[0]
+	} else {
+		path, err = os.Getwd()
+		if err != nil {
+			return err
+		}
+	}
 
-    // allow overriding via --path flag
-    if f := cmd.Flag("path"); f != nil && f.Value.String() != "." && f.Value.String() != "" {
-        path = f.Value.String()
-    }
+	// allow overriding via --path flag
+	if f := cmd.Flag("path"); f != nil && f.Value.String() != "." && f.Value.String() != "" {
+		path = f.Value.String()
+	}
 
 	path, _ = filepath.Abs(path)
 

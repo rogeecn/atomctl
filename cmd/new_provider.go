@@ -9,9 +9,9 @@ import (
 	"strings"
 	"text/template"
 
-	"go.ipao.vip/atomctl/templates"
 	"github.com/iancoleman/strcase"
 	"github.com/spf13/cobra"
+	"go.ipao.vip/atomctl/v2/templates"
 )
 
 // CommandNewProvider 注册 new_provider 命令
@@ -27,24 +27,24 @@ func CommandNewProvider(root *cobra.Command) {
 }
 
 func commandNewProviderE(cmd *cobra.Command, args []string) error {
-    providerName := args[0]
-    // shared flags
-    dryRun, _ := cmd.Flags().GetBool("dry-run")
-    baseDir, _ := cmd.Flags().GetString("dir")
+	providerName := args[0]
+	// shared flags
+	dryRun, _ := cmd.Flags().GetBool("dry-run")
+	baseDir, _ := cmd.Flags().GetString("dir")
 
-    targetPath := filepath.Join(baseDir, "providers", providerName)
+	targetPath := filepath.Join(baseDir, "providers", providerName)
 
-    if _, err := os.Stat(targetPath); err == nil {
-        return fmt.Errorf("目录 %s 已存在", targetPath)
-    }
+	if _, err := os.Stat(targetPath); err == nil {
+		return fmt.Errorf("目录 %s 已存在", targetPath)
+	}
 
-    if dryRun {
-        fmt.Printf("[dry-run] mkdir -p %s\n", targetPath)
-    } else {
-        if err := os.MkdirAll(targetPath, os.ModePerm); err != nil {
-            return err
-        }
-    }
+	if dryRun {
+		fmt.Printf("[dry-run] mkdir -p %s\n", targetPath)
+	} else {
+		if err := os.MkdirAll(targetPath, os.ModePerm); err != nil {
+			return err
+		}
+	}
 
 	err := fs.WalkDir(templates.Provider, "provider", func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
@@ -59,35 +59,35 @@ func commandNewProviderE(cmd *cobra.Command, args []string) error {
 			return err
 		}
 
-        destPath := filepath.Join(targetPath, strings.TrimSuffix(relPath, ".tpl"))
-        if dryRun {
-            fmt.Printf("[dry-run] mkdir -p %s\n", filepath.Dir(destPath))
-        } else {
-            if err := os.MkdirAll(filepath.Dir(destPath), os.ModePerm); err != nil {
-                return err
-            }
-        }
+		destPath := filepath.Join(targetPath, strings.TrimSuffix(relPath, ".tpl"))
+		if dryRun {
+			fmt.Printf("[dry-run] mkdir -p %s\n", filepath.Dir(destPath))
+		} else {
+			if err := os.MkdirAll(filepath.Dir(destPath), os.ModePerm); err != nil {
+				return err
+			}
+		}
 
 		tmpl, err := template.ParseFS(templates.Provider, path)
 		if err != nil {
 			return err
 		}
 
-        if dryRun {
-            fmt.Printf("[dry-run] render > %s\n", destPath)
-            return nil
-        }
+		if dryRun {
+			fmt.Printf("[dry-run] render > %s\n", destPath)
+			return nil
+		}
 
-        destFile, err := os.Create(destPath)
-        if err != nil {
-            return err
-        }
-        defer destFile.Close()
+		destFile, err := os.Create(destPath)
+		if err != nil {
+			return err
+		}
+		defer destFile.Close()
 
-        return tmpl.Execute(destFile, map[string]string{
-            "Name":      providerName,
-            "CamelName": strcase.ToCamel(providerName),
-        })
+		return tmpl.Execute(destFile, map[string]string{
+			"Name":      providerName,
+			"CamelName": strcase.ToCamel(providerName),
+		})
 	})
 	if err != nil {
 		return errors.New("渲染 provider 模板失败")
