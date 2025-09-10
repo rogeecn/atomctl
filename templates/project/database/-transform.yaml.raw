@@ -1,5 +1,11 @@
 ignores:
 - migrations
+- river_client
+- river_client_queue
+- river_job
+- river_leader
+- river_migration
+- river_queue
 imports:
 - go.ipao.vip/gen
 field_type:
