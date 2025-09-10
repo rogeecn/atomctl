@@ -1,6 +1,0 @@
-ignores:
-  - migrations
-imports:
-  - go.ipao.vip/gen
-field_type:
-field_relate:
