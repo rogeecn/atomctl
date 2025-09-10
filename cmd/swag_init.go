@@ -11,39 +11,45 @@ import (
 )
 
 func CommandSwagInit(root *cobra.Command) {
-	cmd := &cobra.Command{
-		Use:     "init",
-		Short:   "swag init",
-		Aliases: []string{"i"},
-		RunE:    commandSwagInitE,
-	}
+    cmd := &cobra.Command{
+        Use:     "init",
+        Short:   "swag init",
+        Aliases: []string{"i"},
+        RunE:    commandSwagInitE,
+    }
+
+    cmd.Flags().String("dir", ".", "SearchDir (project root)")
+    cmd.Flags().String("out", "docs", "Output dir for generated docs")
+    cmd.Flags().String("main", "main.go", "Main API file path")
 
 	root.AddCommand(cmd)
 }
 
 func commandSwagInitE(cmd *cobra.Command, args []string) error {
-	pwd, err := os.Getwd()
-	if err != nil {
-		return err
-	}
-	if len(args) > 0 {
-		pwd = args[0]
-	}
+    root := cmd.Flag("dir").Value.String()
+    if root == "" {
+        var err error
+        root, err = os.Getwd()
+        if err != nil { return err }
+    }
 
 	leftDelim, rightDelim := "{{", "}}"
 
-	return gen.New().Build(&gen.Config{
-		SearchDir:           pwd,
-		Excludes:            "",
-		ParseExtension:      "",
-		MainAPIFile:         "main.go",
-		PropNamingStrategy:  swag.CamelCase,
-		OutputDir:           filepath.Join(pwd, "docs"),
-		OutputTypes:         []string{"go", "json", "yaml"},
-		ParseVendor:         false,
-		ParseDependency:     0,
-		MarkdownFilesDir:    "",
-		ParseInternal:       false,
+    outDir := cmd.Flag("out").Value.String()
+    mainFile := cmd.Flag("main").Value.String()
+
+    return gen.New().Build(&gen.Config{
+        SearchDir:           root,
+        Excludes:            "",
+        ParseExtension:      "",
+        MainAPIFile:         mainFile,
+        PropNamingStrategy:  swag.CamelCase,
+        OutputDir:           filepath.Join(root, outDir),
+        OutputTypes:         []string{"go", "json", "yaml"},
+        ParseVendor:         false,
+        ParseDependency:     0,
+        MarkdownFilesDir:    "",
+        ParseInternal:       false,
 		Strict:              false,
 		GeneratedTime:       false,
 		RequiredByDefault:   false,

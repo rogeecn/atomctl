@@ -25,12 +25,16 @@ import (
 )
 
 func CommandGenModel(root *cobra.Command) {
-	cmd := &cobra.Command{
-		Use:     "model",
-		Aliases: []string{"m"},
-		Short:   "Generate jet models",
-		RunE:    commandGenModelE,
-	}
+    cmd := &cobra.Command{
+        Use:     "model",
+        Aliases: []string{"m"},
+        Short:   "Generate jet models",
+        RunE:    commandGenModelE,
+    }
+
+    cmd.Flags().String("schema", "", "Override database schema")
+    cmd.Flags().Bool("rename-schemas", true, "Rename generated database/<db> to database/schemas")
+    cmd.Flags().String("schemas-out", "database/schemas", "Schemas output directory when renaming")
 
 	root.AddCommand(cmd)
 }
@@ -40,10 +44,15 @@ func commandGenModelE(cmd *cobra.Command, args []string) error {
 		return errors.Wrap(err, "parse go.mod")
 	}
 
-	_, dbConf, err := pgDatabase.GetDB(cmd.Flag("config").Value.String())
-	if err != nil {
-		return errors.Wrap(err, "get db")
-	}
+    _, dbConf, err := pgDatabase.GetDB(cmd.Flag("config").Value.String())
+    if err != nil {
+        return errors.Wrap(err, "get db")
+    }
+
+    // optional schema override
+    if s := cmd.Flag("schema").Value.String(); s != "" {
+        dbConf.Schema = s
+    }
 
 	v := viper.New()
 	v.SetConfigType("yaml")
@@ -166,14 +175,16 @@ func commandGenModelE(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	if err := os.RemoveAll("database/schemas"); err != nil {
-		return err
-	}
-
-	dataPath := fmt.Sprintf("database/%s", cfg.Database)
-	if err := os.Rename(dataPath, "database/schemas"); err != nil {
-		return err
-	}
+    if rename, _ := cmd.Flags().GetBool("rename-schemas"); rename {
+        out := cmd.Flag("schemas-out").Value.String()
+        if err := os.RemoveAll(out); err != nil {
+            return err
+        }
+        dataPath := fmt.Sprintf("database/%s", cfg.Database)
+        if err := os.Rename(dataPath, out); err != nil {
+            return err
+        }
+    }
 
 	if err := astModel.Generate(generatedTables, transformer); err != nil {
 		return err
