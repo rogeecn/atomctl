@@ -36,10 +36,14 @@ func CommandNewProject(root *cobra.Command) {
 }
 
 func commandNewProjectE(cmd *cobra.Command, args []string) error {
-	var (
-		moduleName string
-		inPlace    bool
-	)
+    var (
+        moduleName string
+        inPlace    bool
+    )
+
+    // shared flags
+    dryRun, _ := cmd.Flags().GetBool("dry-run")
+    baseDir, _ := cmd.Flags().GetString("dir")
 
 	if len(args) == 0 {
 		if _, err := os.Stat("go.mod"); err == nil {
@@ -72,22 +76,27 @@ func commandNewProjectE(cmd *cobra.Command, args []string) error {
 
 	force, _ := cmd.Flags().GetBool("force")
 
-	rootDir := "."
-	if !inPlace {
-		rootDir = projectInfo.ProjectName
-		if _, err := os.Stat(rootDir); err == nil {
-			if !force {
-				return fmt.Errorf("project directory %s already exists", rootDir)
-			}
-			log.Warnf("强制删除已存在的目录: %s", rootDir)
-			if err := os.RemoveAll(rootDir); err != nil {
-				return fmt.Errorf("failed to remove existing directory: %v", err)
-			}
-		}
-		if err := os.MkdirAll(rootDir, 0o755); err != nil {
-			return fmt.Errorf("failed to create project directory: %v", err)
-		}
-	}
+    rootDir := "."
+    if !inPlace {
+        // honor base dir when creating a new project
+        rootDir = filepath.Join(baseDir, projectInfo.ProjectName)
+        if _, err := os.Stat(rootDir); err == nil {
+            if !force {
+                return fmt.Errorf("project directory %s already exists", rootDir)
+            }
+            log.Warnf("强制删除已存在的目录: %s", rootDir)
+            if dryRun {
+                log.Infof("[dry-run] 将删除目录: %s", rootDir)
+            } else if err := os.RemoveAll(rootDir); err != nil {
+                return fmt.Errorf("failed to remove existing directory: %v", err)
+            }
+        }
+        if dryRun {
+            log.Infof("[dry-run] 将创建目录: %s", rootDir)
+        } else if err := os.MkdirAll(rootDir, 0o755); err != nil {
+            return fmt.Errorf("failed to create project directory: %v", err)
+        }
+    }
 
 	if err := fs.WalkDir(templates.Project, "project", func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
@@ -106,10 +115,14 @@ func commandNewProjectE(cmd *cobra.Command, args []string) error {
 		}
 
 		targetPath := filepath.Join(rootDir, relPath)
-		if d.IsDir() {
-			log.Infof("创建目录: %s", targetPath)
-			return os.MkdirAll(targetPath, 0o755)
-		}
+        if d.IsDir() {
+            log.Infof("创建目录: %s", targetPath)
+            if dryRun {
+                log.Infof("[dry-run] mkdir -p %s", targetPath)
+                return nil
+            }
+            return os.MkdirAll(targetPath, 0o755)
+        }
 
 		content, err := templates.Project.ReadFile(path)
 		if err != nil {
@@ -151,20 +164,28 @@ func commandNewProjectE(cmd *cobra.Command, args []string) error {
 			if err != nil {
 				return err
 			}
-			log.Infof("[渲染] 文件: %s", targetPath)
-			f, err := os.Create(targetPath)
-			if err != nil {
-				return errors.Wrapf(err, "创建文件失败 %s", targetPath)
-			}
-			defer f.Close()
-			return tmpl.Execute(f, projectInfo)
-		}
+            log.Infof("[渲染] 文件: %s", targetPath)
+            if dryRun {
+                log.Infof("[dry-run] render > %s", targetPath)
+                return nil
+            }
+            f, err := os.Create(targetPath)
+            if err != nil {
+                return errors.Wrapf(err, "创建文件失败 %s", targetPath)
+            }
+            defer f.Close()
+            return tmpl.Execute(f, projectInfo)
+        }
 
-		log.Infof("[复制] 文件: %s", targetPath)
-		return os.WriteFile(targetPath, content, 0o644)
-	}); err != nil {
-		return err
-	}
+        log.Infof("[复制] 文件: %s", targetPath)
+        if dryRun {
+            log.Infof("[dry-run] write > %s", targetPath)
+            return nil
+        }
+        return os.WriteFile(targetPath, content, 0o644)
+    }); err != nil {
+        return err
+    }
 
 	if inPlace {
 		log.Info("🎉 项目初始化成功 (当前目录)!")

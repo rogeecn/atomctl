@@ -26,10 +26,14 @@ func CommandNewJob(root *cobra.Command) {
 }
 
 func commandNewJobE(cmd *cobra.Command, args []string) error {
-	snakeName := lo.SnakeCase(args[0])
-	camelName := lo.PascalCase(args[0])
+    snakeName := lo.SnakeCase(args[0])
+    camelName := lo.PascalCase(args[0])
 
-	destPath := "app/jobs"
+    // shared flags
+    dryRun, _ := cmd.Flags().GetBool("dry-run")
+    baseDir, _ := cmd.Flags().GetString("dir")
+
+    basePath := filepath.Join(baseDir, "app/jobs")
 
 	path, err := os.Getwd()
 	if err != nil {
@@ -42,9 +46,13 @@ func commandNewJobE(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	if err := os.MkdirAll(destPath, os.ModePerm); err != nil {
-		return err
-	}
+    if dryRun {
+        fmt.Printf("[dry-run] mkdir -p %s\n", basePath)
+    } else {
+        if err := os.MkdirAll(basePath, os.ModePerm); err != nil {
+            return err
+        }
+    }
 
 	err = fs.WalkDir(templates.Jobs, "jobs", func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
@@ -55,22 +63,27 @@ func commandNewJobE(cmd *cobra.Command, args []string) error {
 			return nil
 		}
 
-		destPath := filepath.Join(destPath, snakeName+".go")
-		tmpl, err := template.ParseFS(templates.Jobs, path)
-		if err != nil {
-			return err
-		}
+        filePath := filepath.Join(basePath, snakeName+".go")
+        tmpl, err := template.ParseFS(templates.Jobs, path)
+        if err != nil {
+            return err
+        }
 
-		destFile, err := os.Create(destPath)
-		if err != nil {
-			return err
-		}
-		defer destFile.Close()
+        if dryRun {
+            fmt.Printf("[dry-run] render > %s\n", filePath)
+            return nil
+        }
 
-		return tmpl.Execute(destFile, map[string]string{
-			"Name":       camelName,
-			"ModuleName": gomod.GetModuleName(),
-		})
+        destFile, err := os.Create(filePath)
+        if err != nil {
+            return err
+        }
+        defer destFile.Close()
+
+        return tmpl.Execute(destFile, map[string]string{
+            "Name":       camelName,
+            "ModuleName": gomod.GetModuleName(),
+        })
 	})
 	if err != nil {
 		return err
