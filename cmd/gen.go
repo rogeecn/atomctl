@@ -15,6 +15,7 @@ func CommandGen(root *cobra.Command) {
 		CommandGenRoute,
 		CommandGenModel,
 		CommandGenEnum,
+		CommandGenService,
 	}
 
 	for _, c := range cmds {

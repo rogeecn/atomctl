@@ -16,3 +16,6 @@ var Events embed.FS
 
 //go:embed jobs
 var Jobs embed.FS
+
+//go:embed services
+var Services embed.FS
