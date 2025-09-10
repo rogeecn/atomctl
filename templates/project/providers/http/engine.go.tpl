@@ -33,13 +33,6 @@ type Service struct {
 func (svc *Service) listenerConfig() fiber.ListenConfig {
 	listenConfig := fiber.ListenConfig{
 		EnablePrintRoutes: true,
-		OnShutdownSuccess: func() {
-			log.Info("http server shutdown success")
-		},
-		OnShutdownError: func(err error) {
-			log.Error("http server shutdown error: ", err)
-		},
-
 		// DisableStartupMessage: true,
 	}
 
@@ -91,6 +84,14 @@ func Provide(opts ...opt.Option) error {
 			TimeFormat: time.RFC1123,
 			TimeZone:   "Asia/Shanghai",
 		}))
+
+		engine.Hooks().OnPostShutdown(func(err error) error {
+			if err != nil {
+				log.Error("http server shutdown error: ", err)
+			}
+			log.Info("http server has shutdown success")
+			return nil
+		})
 
 		return &Service{
 			Engine: engine,

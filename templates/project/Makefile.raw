@@ -42,3 +42,5 @@ init: tools
 	@atomctl gen provider
 	@buf generate
 	@go mod tidy
+	@go get -u
+	@go mod tidy

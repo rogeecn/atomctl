@@ -4,10 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"{{.ModuleName}}/app/srv/services"
+	"{{.ModuleName}}/app/services"
 	"{{.ModuleName}}/app/srv/testx"
-	"{{.ModuleName}}/providers/app"
-	"{{.ModuleName}}/providers/job"
 
 	. "github.com/riverqueue/river"
 	. "github.com/smartystreets/goconvey/convey"
@@ -21,8 +19,6 @@ type DemoJobSuiteInjectParams struct {
 	dig.In
 
 	Initials []contracts.Initial `group:"initials"` // nolint:structcheck
-	Job      *job.Job
-	App      *app.Config
 }
 
 type DemoJobSuite struct {
@@ -48,10 +44,7 @@ func (t *DemoJobSuite) Test_Work() {
 				},
 			}
 
-			worker := &DemoJobWorker{
-				job: t.Job,
-				app: t.App,
-			}
+			worker := &DemoJobWorker{}
 
 			err := worker.Work(context.Background(), job)
 			So(err, ShouldBeNil)

@@ -40,14 +40,14 @@ func (w *DemoJobWorker) NextRetry(job *Job[DemoJob]) time.Time {
 }
 
 func (w *DemoJobWorker) Work(ctx context.Context, job *Job[DemoJob]) error {
-	log = log.WithField("job", job.Kind())
+	logger := log.WithField("job", job.Args.Kind())
 
-	log.Infof("[START] %s args: %v", job.Kind(), job.Args.Strings)
-	defer log.Infof("[END] %s", job.Kind())
+	logger.Infof("[START] %s args: %v", job.Args.Kind(), job.Args.Strings)
+	defer logger.Infof("[END] %s", job.Args.Kind())
 
 	// modify below
 	sort.Strings(job.Args.Strings)
-	log.Infof("[%s] Sorted strings: %v\n", time.Now().Format(time.TimeOnly), job.Args.Strings)
+	logger.Infof("[%s] Sorted strings: %v\n", time.Now().Format(time.TimeOnly), job.Args.Strings)
 
 	return nil
 }
