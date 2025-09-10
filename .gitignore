@@ -21,4 +21,6 @@
 # Go workspace file
 go.work
 
-test/*
+tests/*
+atomctl
+AGENTS.md
