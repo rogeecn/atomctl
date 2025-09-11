@@ -77,6 +77,6 @@ func Serve(cmd *cobra.Command, args []string) error {
 			route.Register(group)
 		}
 
-		return svc.Http.Serve()
+		return svc.Http.Serve(ctx)
 	})
 }
