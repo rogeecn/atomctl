@@ -1,0 +1,121 @@
+OpenTelemetry Provider (OTLP Traces + Metrics)
+
+该 Provider 基于 OpenTelemetry Go SDK，初始化全局 Tracer 与 Meter，支持 OTLP(gRPC/HTTP) 导出，并收集运行时指标。
+
+配置（config.toml）
+
+```
+[OTEL]
+ServiceName = "my-service"
+Version     = "1.0.0"
+Env         = "dev"
+
+# 导出端点（二选一）
+EndpointGRPC = "otel-collector:4317"
+EndpointHTTP = "otel-collector:4318"
+
+# 认证（可选）
+Token = "Bearer <your-token>"    # 也可只填纯 token，Provider 会自动补齐 Bearer 前缀
+
+# 安全（可选）
+InsecureGRPC = true               # gRPC 导出是否使用 insecure
+InsecureHTTP = true               # HTTP 导出是否使用 insecure
+
+# 采样（可选）
+Sampler      = "always"           # always|ratio
+SamplerRatio = 0.1                # Sampler=ratio 时生效，0..1
+
+# 批处理（可选，毫秒）
+BatchTimeoutMs     = 5000
+ExportTimeoutMs    = 10000
+MaxQueueSize       = 2048
+MaxExportBatchSize = 512
+
+# 指标（可选，毫秒）
+MetricReaderIntervalMs        = 10000   # 指标导出周期
+RuntimeReadMemStatsIntervalMs = 5000    # 运行时指标读取周期
+```
+
+启用
+
+```
+import "test/providers/otel"
+
+func providers() container.Providers {
+  return container.Providers{
+    otel.DefaultProvider(),
+  }
+}
+```
+
+使用
+
+-   Traces: 通过 `go.opentelemetry.io/otel` 获取全局 Tracer，或使用仓库提供的 `providers/otel/funcs.go` 包装。
+
+```
+ctx, span := otel.Tracer("my-service").Start(ctx, "my-op")
+// ...
+span.End()
+```
+
+-   Metrics: 通过 `otel.Meter("my-service")` 创建仪表，或使用 `providers/otel/funcs.go` 的便捷函数。
+
+与 Tracing Provider 的区别与场景建议
+
+-   Tracing Provider（Jaeger + OpenTracing）只做链路，适合已有 OpenTracing 项目；
+-   OTEL Provider（OpenTelemetry）统一 Traces+Metrics，对接 OTLP 生态，适合新项目或希望统一可观测性；
+-   可先混用：保留 Jaeger 链路，同时启用 OTEL 运行时指标，逐步迁移。
+
+快速启动（本地 Collector）
+
+最小化 docker-compose：
+
+```
+services:
+  otel-collector:
+    image: otel/opentelemetry-collector:0.104.0
+    command: ["--config=/etc/otelcol-config.yml"]
+    volumes:
+      - ./otelcol-config.yml:/etc/otelcol-config.yml:ro
+    ports:
+      - "4317:4317"   # OTLP gRPC
+      - "4318:4318"   # OTLP HTTP
+```
+
+示例 otelcol-config.yml：
+
+```
+receivers:
+  otlp:
+    protocols:
+      grpc:
+      http:
+exporters:
+  debug:
+    verbosity: detailed
+processors:
+  batch:
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [debug]
+    metrics:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [debug]
+```
+
+应用端：
+
+```
+[OTEL]
+EndpointGRPC = "127.0.0.1:4317"
+InsecureGRPC = true
+```
+
+故障与降级
+
+-   Collector/网络异常：OTEL SDK 异步批处理，不阻塞业务；可能丢点/丢指标；
+-   启动失败：初始化报错会阻止启动；如需“不可达也不影响启动”，可加开关降级为 no-op（可按需补充）。

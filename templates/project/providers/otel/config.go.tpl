@@ -21,13 +21,32 @@ func DefaultProvider() container.ProviderContainer {
 }
 
 type Config struct {
-	ServiceName string
-	Version     string
-	Env         string
+    ServiceName string
+    Version     string
+    Env         string
 
-	EndpointGRPC string
-	EndpointHTTP string
-	Token        string
+    EndpointGRPC string
+    EndpointHTTP string
+    Token        string
+
+    // Connection security
+    InsecureGRPC bool // if true, use grpc insecure for OTLP gRPC
+    InsecureHTTP bool // if true, use http insecure for OTLP HTTP
+
+    // Tracing sampler
+    // Sampler: "always" (default) or "ratio"
+    Sampler      string
+    SamplerRatio float64 // used when Sampler == "ratio"; 0..1
+
+    // Tracing batcher options (milliseconds)
+    BatchTimeoutMs      uint
+    ExportTimeoutMs     uint
+    MaxQueueSize        int
+    MaxExportBatchSize  int
+
+    // Metrics options (milliseconds)
+    MetricReaderIntervalMs        uint // export interval for PeriodicReader
+    RuntimeReadMemStatsIntervalMs uint // runtime metrics min read interval
 }
 
 func (c *Config) format() {

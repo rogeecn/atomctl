@@ -26,6 +26,17 @@ import (
 	"google.golang.org/grpc/encoding/gzip"
 )
 
+// formatAuth formats token into an Authorization header value.
+func formatAuth(token string) string {
+    if token == "" {
+        return ""
+    }
+    if len(token) > 7 && (token[:7] == "Bearer " || token[:7] == "bearer ") {
+        return token
+    }
+    return "Bearer " + token
+}
+
 func Provide(opts ...opt.Option) error {
 	o := opt.New(opts...)
 	var config Config
@@ -82,7 +93,7 @@ func (o *builder) initResource(ctx context.Context) (err error) {
 			semconv.HostNameKey.String(hostName),                  // 主机名
 		),
 	)
-	return
+	return err
 }
 
 func (o *builder) initMeterProvider(ctx context.Context) (err error) {
@@ -92,34 +103,35 @@ func (o *builder) initMeterProvider(ctx context.Context) (err error) {
 			otlpmetricgrpc.WithCompressor(gzip.Name),
 		}
 
-		if o.config.Token != "" {
-			headers := map[string]string{"Authentication": o.config.Token}
-			opts = append(opts, otlpmetricgrpc.WithHeaders(headers))
+		if h := formatAuth(o.config.Token); h != "" {
+			opts = append(opts, otlpmetricgrpc.WithHeaders(map[string]string{"Authorization": h}))
 		}
 
-		exporter, err := otlpmetricgrpc.New(ctx, opts...)
+    exporter, err := otlpmetricgrpc.New(ctx, opts...)
 		if err != nil {
 			return nil, err
 		}
 		return exporter, nil
 	}
 
-	exporterHttpFunc := func(ctx context.Context) (sdkmetric.Exporter, error) {
-		opts := []otlpmetrichttp.Option{
-			otlpmetrichttp.WithEndpoint(o.config.EndpointHTTP),
-			otlpmetrichttp.WithCompression(1),
-		}
+    exporterHttpFunc := func(ctx context.Context) (sdkmetric.Exporter, error) {
+        opts := []otlpmetrichttp.Option{
+            otlpmetrichttp.WithEndpoint(o.config.EndpointHTTP),
+            otlpmetrichttp.WithCompression(1),
+        }
+        if o.config.InsecureHTTP {
+            opts = append(opts, otlpmetrichttp.WithInsecure())
+        }
+        if h := formatAuth(o.config.Token); h != "" {
+            opts = append(opts, otlpmetrichttp.WithHeaders(map[string]string{"Authorization": h}))
+        }
 
-		if o.config.Token != "" {
-			opts = append(opts, otlpmetrichttp.WithURLPath(o.config.Token))
-		}
-
-		exporter, err := otlpmetrichttp.New(ctx, opts...)
-		if err != nil {
-			return nil, err
-		}
-		return exporter, nil
-	}
+        exporter, err := otlpmetrichttp.New(ctx, opts...)
+        if err != nil {
+            return nil, err
+        }
+        return exporter, nil
+    }
 
 	var exporter sdkmetric.Exporter
 	if o.config.EndpointHTTP != "" {
@@ -129,18 +141,27 @@ func (o *builder) initMeterProvider(ctx context.Context) (err error) {
 	}
 
 	if err != nil {
-		return
+		return err
 	}
 
-	meterProvider := sdkmetric.NewMeterProvider(
-		sdkmetric.WithReader(
-			sdkmetric.NewPeriodicReader(exporter),
-		),
-		sdkmetric.WithResource(o.resource),
-	)
+    // periodic reader with optional custom interval
+    var readerOpts []sdkmetric.PeriodicReaderOption
+    if o.config.MetricReaderIntervalMs > 0 {
+        readerOpts = append(readerOpts, sdkmetric.WithInterval(time.Duration(o.config.MetricReaderIntervalMs)*time.Millisecond))
+    }
+    meterProvider := sdkmetric.NewMeterProvider(
+        sdkmetric.WithReader(
+            sdkmetric.NewPeriodicReader(exporter, readerOpts...),
+        ),
+        sdkmetric.WithResource(o.resource),
+    )
 	otel.SetMeterProvider(meterProvider)
 
-	err = runtime.Start(runtime.WithMinimumReadMemStatsInterval(time.Second * 5))
+    interval := 5 * time.Second
+    if o.config.RuntimeReadMemStatsIntervalMs > 0 {
+        interval = time.Duration(o.config.RuntimeReadMemStatsIntervalMs) * time.Millisecond
+    }
+    err = runtime.Start(runtime.WithMinimumReadMemStatsInterval(interval))
 	if err != nil {
 		return errors.Wrapf(err, "Failed to start runtime metrics")
 	}
@@ -151,23 +172,21 @@ func (o *builder) initMeterProvider(ctx context.Context) (err error) {
 		}
 	})
 
-	return
+	return err
 }
 
 func (o *builder) initTracerProvider(ctx context.Context) error {
 	exporterGrpcFunc := func(ctx context.Context) (*otlptrace.Exporter, error) {
-		opts := []otlptracegrpc.Option{
-			otlptracegrpc.WithCompressor(gzip.Name),
-			otlptracegrpc.WithEndpoint(o.config.EndpointGRPC),
-			otlptracegrpc.WithInsecure(), // 添加不安全连接选项
-		}
+        opts := []otlptracegrpc.Option{
+            otlptracegrpc.WithCompressor(gzip.Name),
+            otlptracegrpc.WithEndpoint(o.config.EndpointGRPC),
+        }
+        if o.config.InsecureGRPC {
+            opts = append(opts, otlptracegrpc.WithInsecure())
+        }
 
-		if o.config.Token != "" {
-			headers := map[string]string{
-				"Authentication": o.config.Token,
-				"authorization":  o.config.Token, // 添加标准认证头
-			}
-			opts = append(opts, otlptracegrpc.WithHeaders(headers))
+		if h := formatAuth(o.config.Token); h != "" {
+			opts = append(opts, otlptracegrpc.WithHeaders(map[string]string{"Authorization": h}))
 		}
 
 		log.Debugf("Creating GRPC trace exporter with endpoint: %s", o.config.EndpointGRPC)
@@ -188,18 +207,16 @@ func (o *builder) initTracerProvider(ctx context.Context) error {
 	}
 
 	exporterHttpFunc := func(ctx context.Context) (*otlptrace.Exporter, error) {
-		opts := []otlptracehttp.Option{
-			otlptracehttp.WithInsecure(),
-			otlptracehttp.WithCompression(1),
-			otlptracehttp.WithEndpoint(o.config.EndpointHTTP),
-		}
+        opts := []otlptracehttp.Option{
+            otlptracehttp.WithCompression(1),
+            otlptracehttp.WithEndpoint(o.config.EndpointHTTP),
+        }
+        if o.config.InsecureHTTP {
+            opts = append(opts, otlptracehttp.WithInsecure())
+        }
 
-		if o.config.Token != "" {
-			opts = append(opts,
-				otlptracehttp.WithHeaders(map[string]string{
-					"Authentication": o.config.Token,
-				}),
-			)
+		if h := formatAuth(o.config.Token); h != "" {
+			opts = append(opts, otlptracehttp.WithHeaders(map[string]string{"Authorization": h}))
 		}
 
 		log.Debugf("Creating HTTP trace exporter with endpoint: %s", o.config.EndpointHTTP)
@@ -225,11 +242,39 @@ func (o *builder) initTracerProvider(ctx context.Context) error {
 		return err
 	}
 
-	traceProvider := sdktrace.NewTracerProvider(
-		sdktrace.WithSampler(sdktrace.AlwaysSample()),
-		sdktrace.WithResource(o.resource),
-		sdktrace.WithBatcher(exporter),
-	)
+    // Sampler
+    sampler := sdktrace.AlwaysSample()
+    if o.config.Sampler == "ratio" {
+        ratio := o.config.SamplerRatio
+        if ratio <= 0 {
+            ratio = 0
+        }
+        if ratio > 1 {
+            ratio = 1
+        }
+        sampler = sdktrace.ParentBased(sdktrace.TraceIDRatioBased(ratio))
+    }
+
+    // Batcher options
+    var batchOpts []sdktrace.BatchSpanProcessorOption
+    if o.config.BatchTimeoutMs > 0 {
+        batchOpts = append(batchOpts, sdktrace.WithBatchTimeout(time.Duration(o.config.BatchTimeoutMs)*time.Millisecond))
+    }
+    if o.config.ExportTimeoutMs > 0 {
+        batchOpts = append(batchOpts, sdktrace.WithExportTimeout(time.Duration(o.config.ExportTimeoutMs)*time.Millisecond))
+    }
+    if o.config.MaxQueueSize > 0 {
+        batchOpts = append(batchOpts, sdktrace.WithMaxQueueSize(o.config.MaxQueueSize))
+    }
+    if o.config.MaxExportBatchSize > 0 {
+        batchOpts = append(batchOpts, sdktrace.WithMaxExportBatchSize(o.config.MaxExportBatchSize))
+    }
+
+    traceProvider := sdktrace.NewTracerProvider(
+        sdktrace.WithSampler(sampler),
+        sdktrace.WithResource(o.resource),
+        sdktrace.WithBatcher(exporter, batchOpts...),
+    )
 	container.AddCloseAble(func() {
 		log.Error("shut down")
 		if err := traceProvider.Shutdown(ctx); err != nil {
