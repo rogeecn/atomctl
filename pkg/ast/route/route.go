@@ -33,6 +33,9 @@ type ParamDefinition struct {
     Type     string
     Key      string
     Model    string
+    // ModelField is the field/column name used to lookup the model when Model is set.
+    // Example: `@Bind user path key(id) model(database/models.User:id)` -> Model=database/models.User, ModelField=id
+    ModelField string
     Position Position
 }
 
@@ -138,9 +141,9 @@ func ParseFile(file string) []RouteDefinition {
 			}
 
 			if strings.HasPrefix(line, "@Bind") {
-				//@Bind name [uri|query|path|body|header|cookie] [key()] [table()] [model()]
-				bindParams = append(bindParams, parseRouteBind(line))
-			}
+            //@Bind name [uri|query|path|body|header|cookie] [key()] [table()] [model(<pkg>.<Type>[:<field>])]
+            bindParams = append(bindParams, parseRouteBind(line))
+            }
 		}
 
 		if path == "" || method == "" {
@@ -236,24 +239,44 @@ func parseRouteComment(line string) (string, string, error) {
 }
 
 func parseRouteBind(bind string) ParamDefinition {
-	var param ParamDefinition
-	parts := strings.FieldsFunc(bind, func(r rune) bool {
-		return r == ' ' || r == '(' || r == ')' || r == '\t'
-	})
-	parts = lo.Filter(parts, func(item string, idx int) bool {
-		return item != ""
-	})
+    var param ParamDefinition
+    parts := strings.FieldsFunc(bind, func(r rune) bool {
+        return r == ' ' || r == '(' || r == ')' || r == '\t'
+    })
+    parts = lo.Filter(parts, func(item string, idx int) bool {
+        return item != ""
+    })
 
-	for i, part := range parts {
-		switch part {
-		case "@Bind":
-			param.Name = parts[i+1]
-			param.Position = positionFromString(parts[i+2])
-		case "key":
-			param.Key = parts[i+1]
+    for i, part := range parts {
+        switch part {
+        case "@Bind":
+            param.Name = parts[i+1]
+            param.Position = positionFromString(parts[i+2])
+        case "key":
+            param.Key = parts[i+1]
         case "model":
-            param.Model = parts[i+1]
+            // Supported formats:
+            // - model(field) -> only specify model field/column; model type inferred from parameter
+            // - model(pkg/path.Type) -> type hint (optional); default field will be used later
+            // - model(pkg/path.Type:id) or model(pkg/path.Type#id) -> type + field
+            mv := parts[i+1]
+            // if mv contains no dot, treat as field name directly
+            if !strings.Contains(mv, ".") && !strings.Contains(mv, "/") {
+                param.ModelField = mv
+                break
+            }
+            // otherwise try type[:field]
+            fieldSep := ":"
+            if strings.Contains(mv, "#") {
+                fieldSep = "#"
+            }
+            if idx := strings.LastIndex(mv, fieldSep); idx > 0 && idx < len(mv)-1 {
+                param.Model = mv[:idx]
+                param.ModelField = mv[idx+1:]
+            } else {
+                param.Model = mv
+            }
         }
-	}
-	return param
+    }
+    return param
 }

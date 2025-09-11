@@ -10,10 +10,14 @@
 - `@Router <path> [<method>]`
   - 例如：`@Router /users/:id [get]`
 
- - `@Bind <paramName> <position> [key(<key>)] [model(<model>)]`
+ - `@Bind <paramName> <position> [key(<key>)] [model(<field>|<model>[:<field>])]`
   - `paramName` 必须与方法参数名一致（大小写敏感）
   - `position` 取值：`path`、`query`、`body`、`header`、`cookie`、`local`、`file`
-  - 可选：`key()` 为覆盖默认键名；`model()` 解析并保留，当前不参与渲染（为后续扩展预留）
+  - 可选：
+    - `key()` 覆盖默认键名；
+    - `model()` 支持两种写法：
+      - 仅字段：`model(id)`（推荐；模型类型由参数类型推断）
+      - 类型+字段：`model(database/models.User:id)` 或 `model(database/models.User)`（字段缺省为 `id`）
 
 ### 参数来源与绑定生成
 
@@ -25,6 +29,7 @@
 - path
   - 标量类型：`PathParam[T]("key")`
   - 非标量类型：`Path[T]("key")`
+  - 若声明了 `model()` 且 position 为 `path`：生成 `PathModel[T]("field", "key")`，表示根据路径参数值按 `field` 查询并绑定为 `T` 实例（`T` 来自方法参数类型）。
 - header：`Header[T]("key")`
 - body：`Body[T]("key")`
 - cookie
@@ -63,12 +68,12 @@
 
 ```go
 // @Router /users/:id [get]
-// @Bind id path key(id)
+// @Bind user path key(id) model(id)
 // @Bind fields query
 // @Bind token header key(Authorization)
 // @Bind sess cookie key(session_id)
 // @Bind cfg local
-func (uc *UserController) GetUser(ctx context.Context, id int64, fields []string, token string, sess string, cfg *AppConfig) (*User, error)
+func (uc *UserController) GetUser(ctx context.Context, user *models.User, fields []string, token string, sess string, cfg *AppConfig) (*User, error)
 ```
 
 生成的路由注册（示意）：
@@ -76,7 +81,7 @@ func (uc *UserController) GetUser(ctx context.Context, id int64, fields []string
 ```go
 router.Get("/users/:id", DataFunc4(
     r.userController.GetUser,
-    PathParam[int64]("id"),
+    PathModel[models.User]("id", "id"),
     Query[[]string]("fields"),
     Header[string]("Authorization"),
     CookieParam("session_id"),
@@ -86,5 +91,5 @@ router.Get("/users/:id", DataFunc4(
 ### 错误与限制
 
 - 无效的 `@Router` 语法会报错；无效的 `position` 会在解析阶段触发错误。
-- `file` 目前仅支持单文件头；`model()` 尚未参与代码生成。
+- `file` 目前仅支持单文件头；`model()` 仅在 `position=path` 时参与代码生成（使用 `PathModel`）。
 - 请与实际路由段保持一致（特别是 `path` 的 `key` 与路径变量名）。
