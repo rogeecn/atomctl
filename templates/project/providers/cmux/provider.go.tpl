@@ -23,10 +23,15 @@ func Provide(opts ...opt.Option) error {
 			return nil, err
 		}
 
-		return &CMux{
+		mux := &CMux{
 			Http: http,
 			Grpc: grpc,
 			Mux:  cmux.New(l),
-		}, nil
+			Base: l,
+		}
+		// Ensure cmux stops accepting new connections on shutdown
+		container.AddCloseAble(func() { _ = l.Close() })
+
+		return mux, nil
 	}, o.DiOptions()...)
 }

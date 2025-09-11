@@ -5,6 +5,7 @@ import (
 
 	"{{.ModuleName}}/app/events"
 	"{{.ModuleName}}/app/events/publishers"
+	"{{.ModuleName}}/providers/event"
 
 	"go.ipao.vip/atom/contracts"
 	"github.com/ThreeDotsLabs/watermill/message"
@@ -15,17 +16,15 @@ var _ contracts.EventHandler = (*{{.Name}}Subscriber)(nil)
 
 // @provider(event)
 type {{.Name}}Subscriber struct {
+	event.DefaultChannel
+	event.DefaultPublishTo
+
 	log *logrus.Entry `inject:"false"`
 }
 
 func (e *{{.Name}}Subscriber) Prepare() error {
 	e.log = logrus.WithField("module", "events.subscribers.{{.Name}}Subscriber")
 	return nil
-}
-
-// PublishToTopic implements contracts.EventHandler.
-func (e *{{.Name}}Subscriber) PublishToTopic() string {
-	return events.TopicProcessed
 }
 
 // Topic implements contracts.EventHandler.

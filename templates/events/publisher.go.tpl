@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 
 	"{{.ModuleName}}/app/events"
+	"{{.ModuleName}}/providers/event"
 
 	"go.ipao.vip/atom/contracts"
 )
@@ -11,6 +12,8 @@ import (
 var _ contracts.EventPublisher = (*{{.Name}}Event)(nil)
 
 type {{.Name}}Event struct {
+	event.DefaultChannel
+
 	ID int64 `json:"id"`
 }
 

@@ -3,29 +3,28 @@ package subscribers
 import (
 	"encoding/json"
 
-	"go.ipao.vip/atom/contracts"
 	"{{.ModuleName}}/app/events"
 	"{{.ModuleName}}/app/events/publishers"
+	"{{.ModuleName}}/providers/event"
 
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/sirupsen/logrus"
+	"go.ipao.vip/atom/contracts"
 )
 
 var _ contracts.EventHandler = (*UserRegister)(nil)
 
 // @provider(event)
 type UserRegister struct {
+	event.DefaultChannel
+	event.DefaultPublishTo
+
 	log *logrus.Entry `inject:"false"`
 }
 
 func (e *UserRegister) Prepare() error {
 	e.log = logrus.WithField("module", "events.subscribers.user_register")
 	return nil
-}
-
-// PublishToTopic implements contracts.EventHandler.
-func (e *UserRegister) PublishToTopic() string {
-	return events.TopicProcessed
 }
 
 // Topic implements contracts.EventHandler.

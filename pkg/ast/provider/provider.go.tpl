@@ -35,7 +35,7 @@ func Provide(opts ...opt.Option) error {
 		{{- end }}
 
 		{{- if eq .Mode "event"}}
-		__event.Handle("handler:{{.StructName}}", obj.Topic(), obj.PublishToTopic(), obj.Handler)
+		__event.Handle("handler:{{.StructName}}", obj)
 		{{- end }}
 
 		{{- if eq .Mode "job"}}

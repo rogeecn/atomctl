@@ -3,13 +3,17 @@ package publishers
 import (
 	"encoding/json"
 
-	"go.ipao.vip/atom/contracts"
 	"{{.ModuleName}}/app/events"
+	"{{.ModuleName}}/providers/event"
+
+	"go.ipao.vip/atom/contracts"
 )
 
 var _ contracts.EventPublisher = (*UserRegister)(nil)
 
 type UserRegister struct {
+	event.DefaultChannel
+
 	ID int64 `json:"id"`
 }
 
