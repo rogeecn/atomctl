@@ -1,0 +1,90 @@
+## 路由定义
+
+路由由控制器方法的注释进行声明式定义，解析器会从 Go AST 中读取注释、方法签名与参数列表，生成对应的路由注册与参数绑定代码。
+
+- 关键标签：`@Router` 定义路径与方法；`@Bind` 定义方法参数与其来源位置及键名。
+- 生成行为：根据注释规则生成 `router.<METHOD>(path, FuncN(...))` 或 `DataFuncN(...)` 包装调用，并自动汇聚所需 imports 与控制器注入字段。
+
+### 注释语法
+
+- `@Router <path> [<method>]`
+  - 例如：`@Router /users/:id [get]`
+
+- `@Bind <paramName> <position> [key(<key>)] [table(<table>)] [model(<model>)]`
+  - `paramName` 必须与方法参数名一致（大小写敏感）
+  - `position` 取值：`path`、`query`、`body`、`header`、`cookie`、`local`、`file`
+  - 可选：`key()` 为覆盖默认键名；`table()`、`model()` 解析并保留，当前不参与渲染（为后续扩展预留）
+
+### 参数来源与绑定生成
+
+根据 `position` 与参数类型（是否标量）生成绑定器调用：
+
+- query
+  - 标量类型：`QueryParam[T]("key")`
+  - 非标量类型：`Query[T]("key")`
+- path
+  - 标量类型：`PathParam[T]("key")`
+  - 非标量类型：`Path[T]("key")`
+- header：`Header[T]("key")`
+- body：`Body[T]("key")`
+- cookie
+  - `string`：`CookieParam("key")`
+  - 其他：`Cookie[T]("key")`
+- file：`File[multipart.FileHeader]("key")`
+- local：`Local[T]("key")`
+
+说明：
+
+- 标量类型集合（影响是否使用 `Param` 后缀）：`string`、`int`、`int32`、`int64`、`float32`、`float64`、`bool`。
+- `key` 默认与 `paramName` 相同；若设置 `key(...)` 则使用其值。
+- `file` 使用固定类型参数 `multipart.FileHeader`（请确保依赖可用）。
+
+### 类型与指针处理
+
+- 支持 `T`、`*T`、`pkg.T`、`*pkg.T` 形式；会正确记录选择子表达式对应的 import。
+- 忽略结尾为 `Context` 或 `Ctx` 的参数（视为框架上下文）。
+- 指针处理：除 `local` 外，会去掉前导 `*` 作为泛型实参；`local` 保留指针（便于写回）。
+
+### 解析与匹配规则
+
+- 先收集注释中的多条 `@Bind`，再按“方法参数列表顺序”匹配并输出绑定器，确保调用顺序与方法签名一致。
+- 未在方法参数中的 `@Bind` 会被忽略；缺失 `@Router` 或方法无注释将跳过该方法。
+- import 自动收集去重；控制器注入字段名为类型名的小驼峰形式，例如：`userController *UserController`。
+
+### 返回值与包装函数名
+
+- 若方法返回值个数 > 1：使用 `DataFuncN`（包含数据与错误等返回）。
+- 否则使用 `FuncN`。
+- 其中 `N` 为参与绑定的参数个数。
+
+### 示例
+
+注释与方法签名：
+
+```go
+// @Router /users/:id [get]
+// @Bind id path key(id)
+// @Bind fields query
+// @Bind token header key(Authorization)
+// @Bind sess cookie key(session_id)
+// @Bind cfg local
+func (uc *UserController) GetUser(ctx context.Context, id int64, fields []string, token string, sess string, cfg *AppConfig) (*User, error)
+```
+
+生成的路由注册（示意）：
+
+```go
+router.Get("/users/:id", DataFunc4(
+    r.userController.GetUser,
+    PathParam[int64]("id"),
+    Query[[]string]("fields"),
+    Header[string]("Authorization"),
+    CookieParam("session_id"),
+))
+```
+
+### 错误与限制
+
+- 无效的 `@Router` 语法会报错；无效的 `position` 会在解析阶段触发错误。
+- `file` 目前仅支持单文件头；`table()`、`model()` 尚未参与代码生成。
+- 请与实际路由段保持一致（特别是 `path` 的 `key` 与路径变量名）。
