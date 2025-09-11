@@ -3,6 +3,7 @@ package route
 import (
 	"fmt"
 	"sort"
+	"strings"
 
 	"github.com/iancoleman/strcase"
 	"github.com/samber/lo"
@@ -85,41 +86,51 @@ func buildRenderData(opts RenderBuildOpts) (RenderData, error) {
 }
 
 func buildParamToken(item ParamDefinition) string {
-    key := item.Name
-    if item.Key != "" {
-        key = item.Key
-    }
+	key := item.Name
+	if item.Key != "" {
+		key = item.Key
+	}
 
-    switch item.Position {
-    case PositionQuery:
-        return fmt.Sprintf(`Query%s[%s]("%s")`, scalarSuffix(item.Type), item.Type, key)
-    case PositionHeader:
-        return fmt.Sprintf(`Header[%s]("%s")`, item.Type, key)
-    case PositionFile:
-        return fmt.Sprintf(`File[multipart.FileHeader]("%s")`, key)
-    case PositionCookie:
-        if item.Type == "string" {
-            return fmt.Sprintf(`CookieParam("%s")`, key)
-        }
-        return fmt.Sprintf(`Cookie[%s]("%s")`, item.Type, key)
-    case PositionBody:
-        return fmt.Sprintf(`Body[%s]("%s")`, item.Type, key)
-    case PositionPath:
-        // If a model field is specified, generate a model-lookup binder from path value.
-        if item.ModelField != "" || item.Model != "" {
-            field := item.ModelField
-            if field == "" {
-                field = "id"
-            }
-            // PathModel is expected to resolve the path param to the specified model by field.
-            // Example: PathModel[models.User]("id", "user_id")
-            return fmt.Sprintf(`PathModel[%s]("%s", "%s")`, item.Type, field, key)
-        }
-        return fmt.Sprintf(`Path%s[%s]("%s")`, scalarSuffix(item.Type), item.Type, key)
-    case PositionLocal:
-        return fmt.Sprintf(`Local[%s]("%s")`, item.Type, key)
-    }
-    return ""
+	switch item.Position {
+	case PositionQuery:
+		return fmt.Sprintf(`Query%s[%s]("%s")`, scalarSuffix(item.Type), item.Type, key)
+	case PositionHeader:
+		return fmt.Sprintf(`Header[%s]("%s")`, item.Type, key)
+	case PositionFile:
+		return fmt.Sprintf(`File[multipart.FileHeader]("%s")`, key)
+	case PositionCookie:
+		if item.Type == "string" {
+			return fmt.Sprintf(`CookieParam("%s")`, key)
+		}
+		return fmt.Sprintf(`Cookie[%s]("%s")`, item.Type, key)
+	case PositionBody:
+		return fmt.Sprintf(`Body[%s]("%s")`, item.Type, key)
+	case PositionPath:
+		// If a model field is specified, generate a model-lookup binder from path value.
+		if item.Model != "" {
+			field := "id"
+			fieldType := "int"
+			if strings.Contains(item.Model, ":") {
+				parts := strings.SplitN(item.Model, ":", 2)
+				if len(parts) == 2 {
+					field = parts[0]
+					fieldType = parts[1]
+				}
+			} else {
+				field = item.Model
+			}
+
+			tpl := `func(ctx fiber.Ctx) (*%s, error) {
+			v := fiber.Params[%s](ctx, "%s")
+			return %sQuery.WithContext(ctx).Where(field.NewUnsafeFieldRaw("%s = ?", v)).First()
+		}`
+			return fmt.Sprintf(tpl, item.Type, fieldType, key, item.Type, field)
+		}
+		return fmt.Sprintf(`Path%s[%s]("%s")`, scalarSuffix(item.Type), item.Type, key)
+	case PositionLocal:
+		return fmt.Sprintf(`Local[%s]("%s")`, item.Type, key)
+	}
+	return ""
 }
 
 func scalarSuffix(t string) string {

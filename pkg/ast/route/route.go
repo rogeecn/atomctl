@@ -29,14 +29,11 @@ type ActionDefinition struct {
 }
 
 type ParamDefinition struct {
-    Name     string
-    Type     string
-    Key      string
-    Model    string
-    // ModelField is the field/column name used to lookup the model when Model is set.
-    // Example: `@Bind user path key(id) model(database/models.User:id)` -> Model=database/models.User, ModelField=id
-    ModelField string
-    Position Position
+	Name     string
+	Type     string
+	Key      string
+	Model    string
+	Position Position
 }
 
 type Position string
@@ -141,15 +138,19 @@ func ParseFile(file string) []RouteDefinition {
 			}
 
 			if strings.HasPrefix(line, "@Bind") {
-            //@Bind name [uri|query|path|body|header|cookie] [key()] [table()] [model(<pkg>.<Type>[:<field>])]
-            bindParams = append(bindParams, parseRouteBind(line))
-            }
+				//@Bind name [uri|query|path|body|header|cookie] [key()] [table()] [model(<pkg>.<Type>[:<field>])]
+				bindParams = append(bindParams, parseRouteBind(line))
+			}
 		}
 
 		if path == "" || method == "" {
 			continue
 		}
-		log.WithField("file", file).WithField("action", decl.Name.Name).WithField("path", path).WithField("method", method).Info("get router")
+		log.WithField("file", file).
+			WithField("action", decl.Name.Name).
+			WithField("path", path).
+			WithField("method", method).
+			Info("get router")
 
 		// 拿参数列表去, 忽略 context.Context 参数
 		orderBindParams := []ParamDefinition{}
@@ -239,44 +240,32 @@ func parseRouteComment(line string) (string, string, error) {
 }
 
 func parseRouteBind(bind string) ParamDefinition {
-    var param ParamDefinition
-    parts := strings.FieldsFunc(bind, func(r rune) bool {
-        return r == ' ' || r == '(' || r == ')' || r == '\t'
-    })
-    parts = lo.Filter(parts, func(item string, idx int) bool {
-        return item != ""
-    })
+	var param ParamDefinition
+	parts := strings.FieldsFunc(bind, func(r rune) bool {
+		return r == ' ' || r == '(' || r == ')' || r == '\t'
+	})
+	parts = lo.Filter(parts, func(item string, idx int) bool {
+		return item != ""
+	})
 
-    for i, part := range parts {
-        switch part {
-        case "@Bind":
-            param.Name = parts[i+1]
-            param.Position = positionFromString(parts[i+2])
-        case "key":
-            param.Key = parts[i+1]
-        case "model":
-            // Supported formats:
-            // - model(field) -> only specify model field/column; model type inferred from parameter
-            // - model(pkg/path.Type) -> type hint (optional); default field will be used later
-            // - model(pkg/path.Type:id) or model(pkg/path.Type#id) -> type + field
-            mv := parts[i+1]
-            // if mv contains no dot, treat as field name directly
-            if !strings.Contains(mv, ".") && !strings.Contains(mv, "/") {
-                param.ModelField = mv
-                break
-            }
-            // otherwise try type[:field]
-            fieldSep := ":"
-            if strings.Contains(mv, "#") {
-                fieldSep = "#"
-            }
-            if idx := strings.LastIndex(mv, fieldSep); idx > 0 && idx < len(mv)-1 {
-                param.Model = mv[:idx]
-                param.ModelField = mv[idx+1:]
-            } else {
-                param.Model = mv
-            }
-        }
-    }
-    return param
+	for i, part := range parts {
+		switch part {
+		case "@Bind":
+			param.Name = parts[i+1]
+			param.Position = positionFromString(parts[i+2])
+		case "key":
+			param.Key = parts[i+1]
+		case "model":
+			// Supported formats:
+			// - model(field:field_type) -> only specify model field/column;
+			mv := parts[i+1]
+			// if mv contains no dot, treat as field name directly
+			if mv == "" {
+				param.Model = "id"
+				break
+			}
+			param.Model = mv
+		}
+	}
+	return param
 }
