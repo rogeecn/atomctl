@@ -10,10 +10,10 @@
 - `@Router <path> [<method>]`
   - 例如：`@Router /users/:id [get]`
 
-- `@Bind <paramName> <position> [key(<key>)] [table(<table>)] [model(<model>)]`
+ - `@Bind <paramName> <position> [key(<key>)] [model(<model>)]`
   - `paramName` 必须与方法参数名一致（大小写敏感）
   - `position` 取值：`path`、`query`、`body`、`header`、`cookie`、`local`、`file`
-  - 可选：`key()` 为覆盖默认键名；`table()`、`model()` 解析并保留，当前不参与渲染（为后续扩展预留）
+  - 可选：`key()` 为覆盖默认键名；`model()` 解析并保留，当前不参与渲染（为后续扩展预留）
 
 ### 参数来源与绑定生成
 
@@ -86,5 +86,5 @@ router.Get("/users/:id", DataFunc4(
 ### 错误与限制
 
 - 无效的 `@Router` 语法会报错；无效的 `position` 会在解析阶段触发错误。
-- `file` 目前仅支持单文件头；`table()`、`model()` 尚未参与代码生成。
+- `file` 目前仅支持单文件头；`model()` 尚未参与代码生成。
 - 请与实际路由段保持一致（特别是 `path` 的 `key` 与路径变量名）。

@@ -29,12 +29,11 @@ type ActionDefinition struct {
 }
 
 type ParamDefinition struct {
-	Name     string
-	Type     string
-	Key      string
-	Table    string
-	Model    string
-	Position Position
+    Name     string
+    Type     string
+    Key      string
+    Model    string
+    Position Position
 }
 
 type Position string
@@ -252,11 +251,9 @@ func parseRouteBind(bind string) ParamDefinition {
 			param.Position = positionFromString(parts[i+2])
 		case "key":
 			param.Key = parts[i+1]
-		case "table":
-			param.Table = parts[i+1]
-		case "model":
-			param.Model = parts[i+1]
-		}
+        case "model":
+            param.Model = parts[i+1]
+        }
 	}
 	return param
 }
