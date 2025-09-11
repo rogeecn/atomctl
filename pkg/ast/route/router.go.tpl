@@ -31,8 +31,9 @@ func (r *Routes) Name() string {
 }
 
 func (r *Routes) Register(router fiber.Router) {
-{{- range $key, $value := .Routes }}
+{{- range $key := .RouteGroups }}
 	// 注册路由组: {{$key}}
+	{{- $value := index $.Routes $key }}
 	{{- range $value }}
 	router.{{.Method}}("{{.Route}}", {{.Func}}(
 		r.{{.Controller}}.{{.Action}},
