@@ -1,0 +1,299 @@
+# Tracing Provider (Jaeger / OpenTracing)
+
+该 Provider 使用 jaeger-client-go + OpenTracing 构建分布式追踪能力，可通过本地 Agent 或 Collector 上报。
+
+## 配置项（config.toml）
+
+```toml
+[Tracing]
+# 基础
+Name = "my-service"
+Disabled = false            # 置为 true 可禁用追踪（不初始化 tracer）
+Gen128Bit = true            # 生成 128-bit trace id
+ZipkinSharedRPCSpan = true  # 与 Zipkin 共享 RPC span 模式（与旧行为一致）
+RPCMetrics = false          # 启用 RPC metrics（Jaeger 自带）
+
+# 采样器（const|probabilistic|ratelimiting|remote）
+Sampler_Type = "const"
+Sampler_Param = 1.0                 # const:1=全采；probabilistic:概率；ratelimiting:每秒速率
+Sampler_SamplingServerURL = ""      # remote 采样器服务地址
+Sampler_MaxOperations = 0
+Sampler_RefreshIntervalSec = 0
+
+# Reporter（二选一或同时配置，Jaeger 会择优使用）
+Reporter_LocalAgentHostPort = "127.0.0.1:6831"               # UDP Agent
+Reporter_CollectorEndpoint  = "http://127.0.0.1:14268/api/traces" # HTTP Collector
+Reporter_LogSpans = true
+Reporter_BufferFlushMs = 100
+Reporter_QueueSize = 1000
+
+# 进程级 Tags（用于标记服务实例信息等）
+[Tracing.Tags]
+version = "1.0.0"
+zone = "az1"
+```
+
+> 以上字段均有默认值，未配置时保持兼容：
+> - Sampler: const=1
+> - Reporter: LogSpans=true, BufferFlushMs=100, QueueSize=1000
+> - ZipkinSharedRPCSpan: 默认 true（与原实现一致）
+
+## 在应用中启用
+
+- 通过默认 Provider 注册：
+
+```go
+import (
+    "test/providers/tracing"
+    "go.ipao.vip/atom/container"
+)
+
+func providers() container.Providers {
+    return container.Providers{
+        tracing.DefaultProvider(),
+        // ... 其他 providers
+    }
+}
+```
+
+- 也可直接调用 Provide：
+
+```go
+tracing.Provide(/* 可选 opt.Prefix("Tracing") 等 */)
+```
+
+## 启动 Tracing 服务
+
+以下示例以 Jaeger 为主（与本 Provider 默认兼容）。本地开发推荐使用 all-in-one 容器；生产建议使用独立的 Agent/Collector/Storage 组件。
+
+### 方案 A：Jaeger All-in-One（本地最快）
+
+```bash
+docker run --rm -it \
+  -p 16686:16686 \   # Web UI
+  -p 14268:14268 \   # Collector HTTP
+  -p 6831:6831/udp \ # Agent UDP (thrift compact)
+  --name jaeger \
+  jaegertracing/all-in-one:1.57
+```
+
+对应配置（config.toml）：
+
+```toml
+[Tracing]
+Reporter_LocalAgentHostPort = "127.0.0.1:6831"
+Reporter_CollectorEndpoint  = "http://127.0.0.1:14268/api/traces"
+```
+
+打开 UI: http://localhost:16686
+
+### 方案 B：Jaeger Agent + Collector（推荐用于集成环境）
+
+docker-compose 示例（精简）：
+
+```yaml
+services:
+  jaeger-agent:
+    image: jaegertracing/jaeger-agent:1.57
+    command: ["--reporter.grpc.host-port=jaeger-collector:14250"]
+    ports:
+      - "6831:6831/udp"
+    depends_on: [jaeger-collector]
+
+  jaeger-collector:
+    image: jaegertracing/jaeger-collector:1.57
+    environment:
+      - SPAN_STORAGE_TYPE=memory
+    ports:
+      - "14268:14268"   # HTTP collector
+      - "14250:14250"   # gRPC collector
+    depends_on: []
+
+  jaeger-ui:
+    image: jaegertracing/jaeger-query:1.57
+    environment:
+      - SPAN_STORAGE_TYPE=memory
+      - JAEGER_QUERY_BASE_PATH=/
+    ports:
+      - "16686:16686"
+    depends_on: [jaeger-collector]
+```
+
+应用侧配置与方案 A 相同：
+
+```toml
+[Tracing]
+Reporter_LocalAgentHostPort = "127.0.0.1:6831"
+Reporter_CollectorEndpoint  = "http://127.0.0.1:14268/api/traces"
+```
+
+> 说明：客户端优先将 span 发送到本地 Agent（UDP 6831），Agent 再转发至 Collector；也可直接走 Collector HTTP（14268）。
+
+## 获取与使用 Tracer
+
+Provider 初始化后会设置全局 Tracer。推荐在业务中遵循以下范式使用：
+
+### 1) 在入口处创建/提取根 Span
+
+```go
+import (
+    opentracing "github.com/opentracing/opentracing-go"
+)
+
+func handler(ctx context.Context) error {
+    // 如果上游已经传入了 Trace Context，则这里会基于其创建子 Span
+    span, ctx := opentracing.StartSpanFromContext(ctx, "handler")
+    defer span.Finish()
+
+    // 记录字段/日志
+    span.SetTag("component", "http")
+    span.LogKV("event", "start")
+
+    // ... 调用子流程
+    if err := doWork(ctx); err != nil {
+        span.SetTag("error", true)
+        span.LogKV("event", "error", "error.object", err)
+        return err
+    }
+    span.LogKV("event", "done")
+    return nil
+}
+```
+
+### 2) 在子流程中创建子 Span（Context 贯穿）
+
+```go
+func doWork(ctx context.Context) error {
+    span, ctx := opentracing.StartSpanFromContext(ctx, "doWork")
+    defer span.Finish()
+
+    // 业务标签
+    span.SetTag("db.table", "users")
+    // ...
+    return nil
+}
+```
+
+### 3) 在出站 HTTP 请求中注入 Trace Context
+
+结合 req Provider（或标准 http.Client）进行 Inject：
+
+```go
+import (
+    "net/http"
+    opentracing "github.com/opentracing/opentracing-go"
+    "github.com/opentracing/opentracing-go/ext"
+)
+
+func callDownstream(ctx context.Context, c *Client) error {
+    // 创建 client-span
+    span, _ := opentracing.StartSpanFromContext(ctx, "downstream.call")
+    defer span.Finish()
+    ext.SpanKindRPCClient.Set(span)
+    span.SetTag("peer.service", "downstream-svc")
+
+    // 使用 req 客户端发起请求（支持 BaseURL）
+    r := c.RWithCtx(ctx)
+    // 手动注入（可选）：
+    // headers := http.Header{}
+    // _ = opentracing.GlobalTracer().Inject(span.Context(), opentracing.HTTPHeaders, opentracing.HTTPHeadersCarrier(headers))
+    // r.SetHeaders(map[string]string{"traceparent": headers.Get("traceparent")}) // 视使用的传播格式而定
+
+    resp, err := r.Get("/api/ping")
+    if err != nil {
+        span.SetTag("error", true)
+        span.LogKV("event", "error", "error.object", err)
+        return err
+    }
+    _ = resp // 使用响应
+    return nil
+}
+```
+
+使用标准 http.Client：
+
+```go
+func injectHTTP(ctx context.Context, req *http.Request) {
+    span := opentracing.SpanFromContext(ctx)
+    if span == nil { return }
+    _ = opentracing.GlobalTracer().Inject(
+        span.Context(),
+        opentracing.HTTPHeaders,
+        opentracing.HTTPHeadersCarrier(req.Header),
+    )
+}
+```
+
+### 4) 在入站 HTTP/gRPC 中提取 Trace Context
+
+- HTTP（示例）：
+
+```go
+func extractHTTP(r *http.Request) context.Context {
+    wireContext, _ := opentracing.GlobalTracer().Extract(
+        opentracing.HTTPHeaders,
+        opentracing.HTTPHeadersCarrier(r.Header),
+    )
+    var span opentracing.Span
+    if wireContext != nil {
+        span = opentracing.StartSpan("http.server", ext.RPCServerOption(wireContext))
+    } else {
+        span = opentracing.StartSpan("http.server")
+    }
+    return opentracing.ContextWithSpan(r.Context(), span)
+}
+```
+
+- gRPC：建议在 providers/grpc 中配置拦截器/StatsHandler，实现自动 Extract/Inject，无需在业务中手写（参见 `providers/grpc/options.md`）。
+
+### 5) Baggage（跨服务携带的键值）
+
+```go
+span, ctx := opentracing.StartSpanFromContext(ctx, "op")
+defer span.Finish()
+span.SetBaggageItem("tenant_id", "t-001")
+// 下游可通过 SpanContext.BaggageItem("tenant_id") 获取
+```
+
+### 6) 通过 DI 获取 Tracer / Closer
+
+虽然已设置为全局 Tracer，但也可以注入使用：
+
+```go
+type deps struct {
+    dig.In
+    Tracer opentracing.Tracer
+}
+
+func useTracer(d deps) {
+    span := d.Tracer.StartSpan("manual-span")
+    defer span.Finish()
+}
+```
+
+> Provider 已注册优雅关停钩子，进程退出时会自动调用 `closer.Close()`；如需手动关闭，可同时注入 `io.Closer`。
+
+## 与 HTTP/gRPC 集成建议
+
+- gRPC：可在 gRPC Provider 侧加入拦截器（或 StatsHandler）实现自动注入/传播上下文。
+- HTTP（Fiber）：中间件中从 Header/Context 读取 Trace/Span，创建子 Span 并写回响应 Header。
+
+> 本仓库示例已在 gRPC Provider 中支持拦截器聚合；你可以在 providers/grpc/options.md 查看如何添加 tracing 拦截器或 StatsHandler。
+
+附加建议：
+- 统一行为：在 gRPC 使用 StatsHandler 或拦截器方案，在 HTTP 使用中间件方案，尽量保证上下游行为一致。
+- 采样策略：生产建议通过 remote/概率采样调优，热点接口可以在业务中加额外标记（如错误时强制采样）。
+- 与 OTel 协作：如需要与 OpenTelemetry 共存/迁移，可在 gRPC 端先使用 OTel StatsHandler，同时保留本 Provider 负责 Jaeger 上报。
+
+## 调试与排障
+
+- 未上报：确认 `Reporter_LocalAgentHostPort` 或 `Reporter_CollectorEndpoint` 可达。
+- 采样未命中：检查 `Sampler_Type`/`Sampler_Param` 是否符合预期。
+- ID 长度：如需与其他系统对齐，开启 `Gen128Bit`。
+- 关闭追踪：将 `Disabled=true`，provider 将不初始化 tracer。
+
+## 变更说明
+
+- 使用 JSON 日志格式，便于结构化采集。
+- 新增高级配置开关（采样器、Reporter、Tags、128-bit、禁用等），并保持默认行为兼容。
+- 注册优雅关停钩子，确保进程退出前 flush/关闭。
