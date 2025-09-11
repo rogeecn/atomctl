@@ -2,9 +2,11 @@ package job
 
 import (
 	"context"
+	"fmt"
 	"sync"
+	"time"
 
-	"{{.ModuleName}}/providers/postgres"
+	"test/providers/postgres"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -37,10 +39,22 @@ func Provide(opts ...opt.Option) error {
 		if err != nil {
 			return nil, err
 		}
+		// health check ping with timeout
+		pingCtx, cancel := context.WithTimeout(ctx, 3*time.Second)
+		defer cancel()
+		if err := dbPool.Ping(pingCtx); err != nil {
+			return nil, fmt.Errorf("job provider: db ping failed: %w", err)
+		}
 		container.AddCloseAble(dbPool.Close)
 		pool := riverpgxv5.New(dbPool)
 
-		queue := &Job{Workers: workers, driver: pool, ctx: ctx, periodicJobs: make(map[string]rivertype.PeriodicJobHandle), jobs: make(map[string]*rivertype.JobInsertResult)}
+		queue := &Job{
+			Workers:      workers,
+			driver:       pool,
+			ctx:          ctx,
+			conf:         &config,
+			periodicJobs: make(map[string]rivertype.PeriodicJobHandle),
+		}
 		container.AddCloseAble(queue.Close)
 
 		return queue, nil
@@ -49,6 +63,7 @@ func Provide(opts ...opt.Option) error {
 
 type Job struct {
 	ctx     context.Context
+	conf    *Config
 	Workers *river.Workers
 	driver  *riverpgxv5.Driver
 
@@ -56,7 +71,6 @@ type Job struct {
 	client *river.Client[pgx.Tx]
 
 	periodicJobs map[string]rivertype.PeriodicJobHandle
-	jobs         map[string]*rivertype.JobInsertResult
 }
 
 func (q *Job) Close() {
@@ -67,6 +81,10 @@ func (q *Job) Close() {
 	if err := q.client.StopAndCancel(q.ctx); err != nil {
 		log.Errorf("Failed to stop and cancel client: %s", err)
 	}
+	// clear references
+	q.l.Lock()
+	q.periodicJobs = map[string]rivertype.PeriodicJobHandle{}
+	q.l.Unlock()
 }
 
 func (q *Job) Client() (*river.Client[pgx.Tx], error) {
@@ -77,11 +95,7 @@ func (q *Job) Client() (*river.Client[pgx.Tx], error) {
 		var err error
 		q.client, err = river.NewClient(q.driver, &river.Config{
 			Workers: q.Workers,
-			Queues: map[string]river.QueueConfig{
-				QueueHigh:    {MaxWorkers: 10},
-				QueueDefault: {MaxWorkers: 10},
-				QueueLow:     {MaxWorkers: 10},
-			},
+			Queues:  q.conf.queueConfig(),
 		})
 		if err != nil {
 			return nil, err
@@ -158,15 +172,21 @@ func (q *Job) Cancel(id string) error {
 	if h, ok := q.periodicJobs[id]; ok {
 		client.PeriodicJobs().Remove(h)
 		delete(q.periodicJobs, id)
-		return nil
 	}
+	return nil
+}
 
-	if r, ok := q.jobs[id]; ok {
-		_, err = client.JobCancel(q.ctx, r.Job.ID)
-		if err != nil {
-			return err
-		}
-		delete(q.jobs, id)
+// CancelContext is like Cancel but allows passing a context.
+func (q *Job) CancelContext(ctx context.Context, id string) error {
+	client, err := q.Client()
+	if err != nil {
+		return err
+	}
+	q.l.Lock()
+	defer q.l.Unlock()
+	if h, ok := q.periodicJobs[id]; ok {
+		client.PeriodicJobs().Remove(h)
+		delete(q.periodicJobs, id)
 		return nil
 	}
 
@@ -182,6 +202,6 @@ func (q *Job) Add(job contracts.JobArgs) error {
 	q.l.Lock()
 	defer q.l.Unlock()
 
-	q.jobs[job.UniqueID()], err = client.Insert(q.ctx, job, lo.ToPtr(job.InsertOpts()))
+	_, err = client.Insert(q.ctx, job, lo.ToPtr(job.InsertOpts()))
 	return err
 }
