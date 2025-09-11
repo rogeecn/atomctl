@@ -2,9 +2,9 @@ package redis
 
 import (
 	"context"
-	"time"
 
 	"github.com/redis/go-redis/v9"
+	log "github.com/sirupsen/logrus"
 	"go.ipao.vip/atom/container"
 	"go.ipao.vip/atom/opt"
 )
@@ -17,16 +17,31 @@ func Provide(opts ...opt.Option) error {
 	}
 	config.format()
 	return container.Container.Provide(func() (redis.UniversalClient, error) {
-		rdb := redis.NewClient(&redis.Options{
-			Addr:     config.Addr(),
-			Password: config.Password,
-			DB:       int(config.DB),
-		})
+		// Build options via config helper (encapsulates defaults/decisions)
+		ro := config.Options()
 
-		ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
+		// Safe structured log (no password)
+		log.WithFields(log.Fields{
+			"addr":        ro.Addr,
+			"db":          ro.DB,
+			"user":        ro.Username,
+			"client_name": ro.ClientName,
+			"pool_size":   ro.PoolSize,
+			"min_idle":    ro.MinIdleConns,
+			"retries":     ro.MaxRetries,
+		}).Info("opening Redis connection")
+
+		rdb := redis.NewClient(ro)
+
+		// ping to verify connectivity
+		ctx, cancel := context.WithTimeout(context.Background(), config.PingTimeout())
+		defer cancel()
 		if _, err := rdb.Ping(ctx).Result(); err != nil {
 			return nil, err
 		}
+
+		// close hook
+		container.AddCloseAble(func() { _ = rdb.Close() })
 
 		return rdb, nil
 	}, o.DiOptions()...)
