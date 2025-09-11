@@ -1,6 +1,9 @@
 package postgres
 
 import (
+	"context"
+	"time"
+
 	"github.com/sirupsen/logrus"
 	"go.ipao.vip/atom/container"
 	"go.ipao.vip/atom/opt"
@@ -18,10 +21,24 @@ func Provide(opts ...opt.Option) error {
 	}
 
 	return container.Container.Provide(func() (*gorm.DB, *Config, error) {
-		dbConfig := postgres.Config{
-			DSN: conf.DSN(), // DSN data source name
-		}
-		logrus.Info("Open PostgreSQL:", conf.DSN())
+		dbConfig := postgres.Config{DSN: conf.DSN()}
+
+		// 安全日志：不打印密码，仅输出关键连接信息
+		logrus.
+			WithFields(
+				logrus.Fields{
+					"host":   conf.Host,
+					"port":   conf.Port,
+					"db":     conf.Database,
+					"schema": conf.Schema,
+					"ssl":    conf.SslMode,
+				},
+			).
+			Info("opening PostgreSQL connection")
+
+		// 映射日志等级
+		lvl := conf.GormLogLevel()
+		slow := conf.GormSlowThreshold()
 
 		gormConfig := gorm.Config{
 			NamingStrategy: schema.NamingStrategy{
@@ -29,11 +46,14 @@ func Provide(opts ...opt.Option) error {
 				SingularTable: conf.Singular,
 			},
 			DisableForeignKeyConstraintWhenMigrating: true,
+			PrepareStmt:                              conf.PrepareStmt,
+			SkipDefaultTransaction:                   conf.SkipDefaultTransaction,
 			Logger: logger.New(logrus.StandardLogger(), logger.Config{
-				SlowThreshold:             200, // 慢 SQL 阈值
-				LogLevel:                  logger.Info,
-				IgnoreRecordNotFoundError: true, // 忽略ErrRecordNotFound（记录未找到）错误
+				SlowThreshold:             slow,
+				LogLevel:                  lvl,
+				IgnoreRecordNotFoundError: true,
 				Colorful:                  false,
+				ParameterizedQueries:      conf.ParameterizedQueries,
 			}),
 		}
 
@@ -48,7 +68,23 @@ func Provide(opts ...opt.Option) error {
 		}
 		sqlDB.SetMaxIdleConns(conf.MaxIdleConns)
 		sqlDB.SetMaxOpenConns(conf.MaxOpenConns)
+		if conf.ConnMaxLifetimeSeconds > 0 {
+			sqlDB.SetConnMaxLifetime(time.Duration(conf.ConnMaxLifetimeSeconds) * time.Second)
+		}
+		if conf.ConnMaxIdleTimeSeconds > 0 {
+			sqlDB.SetConnMaxIdleTime(time.Duration(conf.ConnMaxIdleTimeSeconds) * time.Second)
+		}
 
-		return db, &conf, err
+		// Ping 校验
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		if err := sqlDB.PingContext(ctx); err != nil {
+			return nil, nil, err
+		}
+
+		// 关闭钩子
+		container.AddCloseAble(func() { _ = sqlDB.Close() })
+
+		return db, &conf, nil
 	}, o.DiOptions()...)
 }
