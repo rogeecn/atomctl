@@ -2,10 +2,8 @@ package cmd
 
 import (
 	"fmt"
-	"io/fs"
 	"os"
 	"path/filepath"
-	"strings"
 	"text/template"
 
 	"github.com/samber/lo"
@@ -23,8 +21,11 @@ func CommandNewJob(root *cobra.Command) {
 
 行为：
 - 名称转换：输入名的 Snake 与 Pascal 形式分别用于文件名与导出名
-- 输出到 app/jobs/<snake>.go
+- 输出到 app/jobs/<snake>.go；指定 --cron 时输出到 app/jobs/cron_<snake>.go
 - --dry-run 仅打印渲染与写入动作；--dir 指定输出基目录（默认 .）
+
+参数：
+- --cron  生成定时任务（渲染 cronjob.go.tpl，输出 cron_<snake>.go）
 
 示例：
   atomctl new job SendDailyReport`,
@@ -32,6 +33,7 @@ func CommandNewJob(root *cobra.Command) {
 		RunE: commandNewJobE,
 	}
 
+	cmd.Flags().Bool("cron", false, "创建 cron 任务（渲染 cronjob.go.tpl，输出 cron_<name>.go）")
 	root.AddCommand(cmd)
 }
 
@@ -42,6 +44,7 @@ func commandNewJobE(cmd *cobra.Command, args []string) error {
 	// shared flags
 	dryRun, _ := cmd.Flags().GetBool("dry-run")
 	baseDir, _ := cmd.Flags().GetString("dir")
+	cron, _ := cmd.Flags().GetBool("cron")
 
 	basePath := filepath.Join(baseDir, "app/jobs")
 
@@ -64,43 +67,52 @@ func commandNewJobE(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	err = fs.WalkDir(templates.Jobs, "jobs", func(path string, d fs.DirEntry, err error) error {
-		if err != nil {
-			return err
-		}
-
-		if d.IsDir() {
-			return nil
-		}
-
-		if strings.HasPrefix(snakeName, "job_") {
-			snakeName = "job_" + snakeName
-		}
-
-		filePath := filepath.Join(basePath, snakeName+".go")
-		tmpl, err := template.ParseFS(templates.Jobs, path)
-		if err != nil {
-			return err
-		}
-
-		if dryRun {
-			fmt.Printf("[dry-run] render > %s\n", filePath)
-			return nil
-		}
-
-		destFile, err := os.Create(filePath)
-		if err != nil {
-			return err
-		}
-		defer destFile.Close()
-
-		return tmpl.Execute(destFile, map[string]string{
-			"Name":       camelName,
-			"ModuleName": gomod.GetModuleName(),
-		})
-	})
+	// always render job file
+	jobOut := filepath.Join(basePath, snakeName+".go")
+	jobTpl, err := template.ParseFS(templates.Jobs, "jobs/job.go.tpl")
 	if err != nil {
 		return err
+	}
+	if dryRun {
+		fmt.Printf("[dry-run] render > %s\n", jobOut)
+	} else {
+		fd, err := os.Create(jobOut)
+		if err != nil {
+			return err
+		}
+		if err := jobTpl.Execute(fd, map[string]string{
+			"Name":       camelName,
+			"ModuleName": gomod.GetModuleName(),
+		}); err != nil {
+			fd.Close()
+			return err
+		}
+		fd.Close()
+	}
+
+	// optionally render cron job file when --cron is set
+	if cron {
+		cronOut := filepath.Join(basePath, "cron_"+snakeName+".go")
+		cronTpl, err := template.ParseFS(templates.Jobs, "jobs/cronjob.go.tpl")
+		if err != nil {
+			return err
+		}
+		if dryRun {
+			fmt.Printf("[dry-run] render > %s\n", cronOut)
+		} else {
+			fd, err := os.Create(cronOut)
+			if err != nil {
+				return err
+			}
+			if err := cronTpl.Execute(fd, map[string]string{
+				"Name":       camelName,
+				"ModuleName": gomod.GetModuleName(),
+			}); err != nil {
+				fd.Close()
+				return err
+			}
+			fd.Close()
+		}
 	}
 
 	fmt.Printf("job 已创建: %s\n", snakeName)
