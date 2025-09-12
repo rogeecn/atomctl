@@ -57,13 +57,18 @@ atomctl new project        # 在已有 go.mod 的项目中就地初始化
 
 - 功能：创建 Provider 脚手架到 `providers/<name>`
 - 参数：
-  - `<name>`：必填，provider 名称（例如 `cache`、`email`）
+  - `<name>`：可选。省略名称时会列出可用的内置预置 providers 供选择
 - 选项：继承 `--dry-run`、`--dir`
+- 行为：
+  - 若 `<name>` 与内置 `templates/providers/<name>` 目录同名，则渲染该目录
+  - 否则回退渲染 `templates/providers/default` 到 `providers/<name>`
 
 示例：
 
 ```
-atomctl new provider email
+atomctl new provider              # 列出可用预置 providers
+atomctl new provider redis        # 渲染 providers/redis 预置
+atomctl new provider email        # 未命中预置，回退 default 渲染到 providers/email
 atomctl new --dry-run --dir ./demo provider cache
 ```
 
@@ -78,7 +83,7 @@ atomctl new --dry-run --dir ./demo provider cache
 - 行为说明：
   - 生成 publisher 到 `app/events/publishers/<snake>.go`
   - 生成 subscriber 到 `app/events/subscribers/<snake>.go`
-  - 追加常量到 `app/events/topics.go`：`const Topic{Name} = "<snake>"`（避免重复）
+  - 追加常量到 `app/events/topics.go`：`const Topic{Name} = "event:<snake>"`（避免重复）
 
 示例：
 
@@ -89,15 +94,18 @@ atomctl new event UserCreated --only=publisher
 
 ### new job
 
-- 功能：生成任务模板到 `app/jobs/<snake>.go`
+- 功能：生成任务模板文件；支持可选的定时任务模板
 - 参数：
   - `<name>`：必填，任务名
-- 选项：继承 `--dry-run`、`--dir`
+- 选项：
+  - 继承 `--dry-run`、`--dir`
+  - `--cron`：除生成 `app/jobs/<snake>.go` 外，额外生成 `app/jobs/cron_<snake>.go`
 
 示例：
 
 ```
-atomctl new job SendDailyReport
+atomctl new job SendDailyReport               # 生成 app/jobs/send_daily_report.go
+atomctl new job SendDailyReport --cron        # 同时生成 cron 版本 app/jobs/cron_send_daily_report.go
 ```
 
 > 说明：代码中已存在 `new module` 实现，但当前未注册到 `new` 子命令中（处于弃用状态）。

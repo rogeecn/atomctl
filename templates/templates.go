@@ -8,9 +8,6 @@ var Project embed.FS
 //go:embed module
 var Module embed.FS
 
-//go:embed provider
-var Provider embed.FS
-
 //go:embed events
 var Events embed.FS
 
@@ -19,3 +16,6 @@ var Jobs embed.FS
 
 //go:embed services
 var Services embed.FS
+
+//go:embed providers/*
+var Providers embed.FS
