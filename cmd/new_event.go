@@ -127,7 +127,7 @@ func commandNewEventE(cmd *cobra.Command, args []string) error {
 
 	// 写入或追加 topic 常量，避免重复。
 	topicsPath := filepath.Join(baseDir, "app/events/topics.go")
-	topicLine := fmt.Sprintf("const Topic%s = %q\n", camelName, snakeName)
+	topicLine := fmt.Sprintf("const Topic%s = %q\n", camelName, "event:"+snakeName)
 
 	if dryRun {
 		fmt.Printf("[dry-run] ensure topics file and add constant > %s\n", topicsPath)

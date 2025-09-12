@@ -23,7 +23,7 @@ type {{.Name}}Subscriber struct {
 }
 
 func (e *{{.Name}}Subscriber) Prepare() error {
-	e.log = logrus.WithField("module", "events.subscribers.{{.Name}}Subscriber")
+	e.log = logrus.WithField("module", "events.subscribers.{{.Name}}Subscriber").WithField("topic", e.Topic())
 	return nil
 }
 
