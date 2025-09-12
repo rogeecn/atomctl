@@ -8,10 +8,10 @@ import (
 
 	"{{.ModuleName}}/database/models"
 
-	"github.com/rogeecn/atom"
-	"go.ipao.vip/atom/container/container"
-	"go.ipao.vip/atom/contracts/contracts"
-	"go.ipao.vip/atom/opt/opt"
+	"go.ipao.vip/atom"
+	"go.ipao.vip/atom/container"
+	"go.ipao.vip/atom/contracts"
+	"go.ipao.vip/atom/opt"
 	"gorm.io/gorm"
 )
 
