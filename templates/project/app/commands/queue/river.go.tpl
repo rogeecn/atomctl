@@ -1,4 +1,4 @@
-package event
+package queue
 
 import (
 	"context"
@@ -6,10 +6,10 @@ import (
 	"go.ipao.vip/atom"
 	"go.ipao.vip/atom/container"
 	"go.ipao.vip/atom/contracts"
-	"{{.ModuleName}}/app/events/subscribers"
-	"{{.ModuleName}}/app/srv"
+
+	"{{.ModuleName}}/app/jobs"
 	"{{.ModuleName}}/providers/app"
-	"{{.ModuleName}}/providers/event"
+	"{{.ModuleName}}/providers/job"
 	"{{.ModuleName}}/providers/postgres"
 
 	log "github.com/sirupsen/logrus"
@@ -20,18 +20,19 @@ import (
 func defaultProviders() container.Providers {
 	return srv.Default(container.Providers{
 		postgres.DefaultProvider(),
+		job.DefaultProvider(),
 	}...)
 }
 
 func Command() atom.Option {
 	return atom.Command(
-		atom.Name("event"),
-		atom.Short("start event processor"),
+		atom.Name("queue"),
+		atom.Short("start queue processor"),
 		atom.RunE(Serve),
 		atom.Providers(
 			defaultProviders().
 				With(
-					subscribers.Provide,
+					jobs.Provide,
 				),
 		),
 	)
@@ -41,8 +42,9 @@ type Service struct {
 	dig.In
 
 	App      *app.Config
-	PubSub   *event.PubSub
+	Job      *job.Job
 	Initials []contracts.Initial `group:"initials"`
+	CronJobs []contracts.CronJob `group:"cron_jobs"`
 }
 
 func Serve(cmd *cobra.Command, args []string) error {
@@ -53,6 +55,12 @@ func Serve(cmd *cobra.Command, args []string) error {
 			log.SetLevel(log.DebugLevel)
 		}
 
-		return svc.PubSub.Serve(ctx)
+		if err := svc.Job.Start(ctx); err != nil {
+			return err
+		}
+		defer svc.Job.Close()
+
+		<-ctx.Done()
+		return nil
 	})
 }

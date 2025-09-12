@@ -32,8 +32,9 @@ tools:
 	go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
 	go install github.com/bufbuild/buf/cmd/buf@latest
 	go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
-	go get go.ipao.vip/atom
-
+	go get -u go.ipao.vip/atom
+	go get -u google.golang.org/genproto
+	go get -u github.com/gofiber/fiber/v3
 .PHONY: init
 init: tools
 	@atomctl swag init

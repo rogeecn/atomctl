@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 
-	"{{.ModuleName}}/app/srv"
 	"{{.ModuleName}}/database"
 	"{{.ModuleName}}/providers/postgres"
 

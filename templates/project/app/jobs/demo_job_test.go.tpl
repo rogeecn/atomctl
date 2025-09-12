@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
+	"{{.ModuleName}}/app/commands/testx"
 	"{{.ModuleName}}/app/services"
-	"{{.ModuleName}}/app/srv/testx"
 
 	. "github.com/riverqueue/river"
 	. "github.com/smartystreets/goconvey/convey"

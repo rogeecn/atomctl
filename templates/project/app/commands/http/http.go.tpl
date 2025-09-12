@@ -8,7 +8,6 @@ import (
 	"go.ipao.vip/atom/contracts"
 	"{{.ModuleName}}/app/errorx"
 	"{{.ModuleName}}/app/jobs"
-	"{{.ModuleName}}/app/srv"
 	_ "{{.ModuleName}}/docs"
 	"{{.ModuleName}}/providers/app"
 	"{{.ModuleName}}/providers/http"

@@ -1,16 +1,12 @@
-package queue
+package grpc
 
 import (
-	"context"
-
 	"go.ipao.vip/atom"
 	"go.ipao.vip/atom/container"
 	"go.ipao.vip/atom/contracts"
-
-	"{{.ModuleName}}/app/jobs"
-	"{{.ModuleName}}/app/srv"
+	"{{.ModuleName}}/app/grpc/users"
 	"{{.ModuleName}}/providers/app"
-	"{{.ModuleName}}/providers/job"
+	"{{.ModuleName}}/providers/grpc"
 	"{{.ModuleName}}/providers/postgres"
 
 	log "github.com/sirupsen/logrus"
@@ -21,19 +17,19 @@ import (
 func defaultProviders() container.Providers {
 	return srv.Default(container.Providers{
 		postgres.DefaultProvider(),
-		job.DefaultProvider(),
+		grpc.DefaultProvider(),
 	}...)
 }
 
 func Command() atom.Option {
 	return atom.Command(
-		atom.Name("queue"),
-		atom.Short("start queue processor"),
+		atom.Name("grpc"),
+		atom.Short("run grpc server"),
 		atom.RunE(Serve),
 		atom.Providers(
 			defaultProviders().
 				With(
-					jobs.Provide,
+					users.Provide,
 				),
 		),
 	)
@@ -43,25 +39,18 @@ type Service struct {
 	dig.In
 
 	App      *app.Config
-	Job      *job.Job
+	Grpc     *grpc.Grpc
 	Initials []contracts.Initial `group:"initials"`
-	CronJobs []contracts.CronJob `group:"cron_jobs"`
 }
 
 func Serve(cmd *cobra.Command, args []string) error {
-	return container.Container.Invoke(func(ctx context.Context, svc Service) error {
+	return container.Container.Invoke(func(svc Service) error {
 		log.SetFormatter(&log.JSONFormatter{})
 
 		if svc.App.IsDevMode() {
 			log.SetLevel(log.DebugLevel)
 		}
 
-		if err := svc.Job.Start(ctx); err != nil {
-			return err
-		}
-		defer svc.Job.Close()
-
-		<-ctx.Done()
-		return nil
+		return svc.Grpc.Serve()
 	})
 }
