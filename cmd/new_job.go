@@ -5,6 +5,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"strings"
 	"text/template"
 
 	"github.com/samber/lo"
@@ -18,8 +19,17 @@ func CommandNewJob(root *cobra.Command) {
 	cmd := &cobra.Command{
 		Use:   "job",
 		Short: "创建新的 job",
-		Args:  cobra.ExactArgs(1),
-		RunE:  commandNewJobE,
+		Long: `在 app/jobs 下渲染创建任务模板文件。
+
+行为：
+- 名称转换：输入名的 Snake 与 Pascal 形式分别用于文件名与导出名
+- 输出到 app/jobs/<snake>.go
+- --dry-run 仅打印渲染与写入动作；--dir 指定输出基目录（默认 .）
+
+示例：
+  atomctl new job SendDailyReport`,
+		Args: cobra.ExactArgs(1),
+		RunE: commandNewJobE,
 	}
 
 	root.AddCommand(cmd)
@@ -61,6 +71,10 @@ func commandNewJobE(cmd *cobra.Command, args []string) error {
 
 		if d.IsDir() {
 			return nil
+		}
+
+		if strings.HasPrefix(snakeName, "job_") {
+			snakeName = "job_" + snakeName
 		}
 
 		filePath := filepath.Join(basePath, snakeName+".go")

@@ -16,6 +16,15 @@ func CommandGenService(root *cobra.Command) {
 	cmd := &cobra.Command{
 		Use:      "service",
 		Short:    "generate services",
+		Long: `扫描 --path 指定目录（默认 ./app/services）下的 Go 文件，汇总服务名并渲染生成 services.gen.go。
+
+规则：
+- 跳过 *_test.go 与 *.gen.go 文件，仅处理普通 .go 文件
+- 以文件名作为服务名来源：
+  - PascalCase 作为 CamelName，用于导出类型名
+  - camelCase 作为 ServiceName，用于变量/字段名
+- 使用内置模板 services/services.go.tpl 渲染
+- 生成完成后会自动运行 gen provider 以补全注入`,
 		RunE:     commandGenServiceE,
 		PostRunE: commandGenProviderE,
 	}

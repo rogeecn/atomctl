@@ -11,11 +11,20 @@ import (
 )
 
 func CommandBuf(root *cobra.Command) {
-	cmd := &cobra.Command{
-		Use:   "buf",
-		Short: "run buf commands",
-		RunE:  commandBufE,
-	}
+    cmd := &cobra.Command{
+        Use:   "buf",
+        Short: "run buf commands",
+        Long: `在指定目录执行 buf generate。若本机未安装 buf，将自动 go install github.com/bufbuild/buf/cmd/buf@v1.48.0。
+
+Flags:
+- --dir      执行目录（默认 .）
+- --dry-run  仅打印将要执行的命令
+
+说明：
+- 运行前会检查 buf.yaml 是否存在，如不存在会给出提示但仍尝试执行
+- 成功后输出生成结果日志`,
+        RunE:  commandBufE,
+    }
 
 	cmd.Flags().String("dir", ".", "Directory to run buf from")
 	cmd.Flags().Bool("dry-run", false, "Preview buf command without executing")

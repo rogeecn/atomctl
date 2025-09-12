@@ -11,12 +11,20 @@ import (
 )
 
 func CommandSwagInit(root *cobra.Command) {
-    cmd := &cobra.Command{
-        Use:     "init",
-        Short:   "swag init",
-        Aliases: []string{"i"},
-        RunE:    commandSwagInitE,
-    }
+	cmd := &cobra.Command{
+		Use:     "init",
+		Short:   "swag init",
+		Aliases: []string{"i"},
+		Long: `生成 Swagger 文档（go/json/yaml）。
+
+参数：
+- --dir   项目根目录（默认 .）
+- --out   输出目录（默认 docs）
+- --main  主入口文件（默认 main.go）
+
+说明：基于 rogeecn/swag 的 gen 构建器，支持模板分隔符定制、依赖解析等配置。`,
+		RunE:    commandSwagInitE,
+	}
 
     cmd.Flags().String("dir", ".", "SearchDir (project root)")
     cmd.Flags().String("out", "docs", "Output dir for generated docs")

@@ -18,6 +18,19 @@ func CommandGenModel(root *cobra.Command) {
 		Use:     "model",
 		Aliases: []string{"m"},
 		Short:   "Generate models",
+		Long: `根据数据库连接配置生成模型代码，输出到 ./database，并支持基于 ./database/.transform.yaml 的类型/命名转换。
+
+配置：通过 -c/--config 指定配置文件（默认 config.toml），从 [Database] 段读取：
+  Username, Password, Database, Host, Port, Schema, SslMode, TimeZone
+
+行为：
+- 解析 go.mod 以识别项目模块名
+- 连接 PostgreSQL（gorm + postgres driver），校验连通性
+- 调用 go.ipao.vip/gen 生成模型与相关文件到 ./database
+- 根据 .transform.yaml 应用转换规则
+
+示例：
+  atomctl gen -c config.toml model`,
 		RunE:    commandGenModelE,
 	}
 

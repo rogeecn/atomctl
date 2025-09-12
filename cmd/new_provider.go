@@ -19,6 +19,16 @@ func CommandNewProvider(root *cobra.Command) {
 	cmd := &cobra.Command{
 		Use:   "provider",
 		Short: "创建新的 provider",
+		Long: `在 providers/<name> 目录下渲染创建 Provider 模板。
+
+行为：
+- 从内置模板 templates/provider 渲染相关文件
+- 使用 name 的 CamelCase 作为导出名
+- --dry-run 仅打印渲染与写入动作；--dir 指定输出基目录（默认 .）
+
+示例：
+  atomctl new provider email
+  atomctl new --dry-run --dir ./demo provider cache`,
 		Args:  cobra.ExactArgs(1),
 		RunE:  commandNewProviderE,
 	}

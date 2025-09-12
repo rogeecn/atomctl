@@ -29,6 +29,19 @@ func CommandNewProject(root *cobra.Command) {
 		Use:     "project",
 		Aliases: []string{"p"},
 		Short:   "new project",
+		Long: `基于内置模板创建新项目，或在已有 go.mod 的目录中就地初始化。
+
+行为：
+- 在空目录：需传入模块名（如 github.com/acme/app）
+- 在已有 go.mod：可省略模块名，自动解析为就地初始化
+- 模板渲染规则：支持 .tpl/.raw；或通过文件内 atomctl:mode=tpl|raw 指示
+- 隐藏文件占位：模板文件名以 - 开头会渲染为 . 前缀（-.gitignore -> .gitignore）
+- --force：可覆盖存在的文件/目录；--dry-run：仅打印渲染与写入动作
+
+示例：
+  atomctl new project github.com/acme/demo
+  atomctl new -f --dir ./playground project github.com/acme/demo
+  atomctl new project  # 在已有 go.mod 的项目中就地初始化`,
 		RunE:    commandNewProjectE,
 	}
 

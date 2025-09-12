@@ -10,11 +10,20 @@ import (
 )
 
 func CommandFmt(root *cobra.Command) {
-    cmd := &cobra.Command{
-        Use:   "fmt",
-        Short: "fmt codes",
-        RunE:  commandFmtE,
-    }
+	cmd := &cobra.Command{
+		Use:   "fmt",
+		Short: "fmt codes",
+		Long: `使用 gofumpt -extra 对代码进行格式化；若本机未安装，将自动 go install mvdan.cc/gofumpt@latest。
+
+Flags:
+- --check   仅检查不写入，输出未格式化文件列表
+- --path    指定格式化路径（默认 .）
+
+说明：
+- 正常格式化等价于：gofumpt -l -extra -w <path>
+- 检查模式等价于：gofumpt -l -extra <path>`,
+		RunE:  commandFmtE,
+	}
 
     cmd.Flags().Bool("check", false, "Check formatting without writing changes")
     cmd.Flags().String("path", ".", "Path to format (default .)")

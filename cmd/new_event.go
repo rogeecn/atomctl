@@ -20,6 +20,17 @@ func CommandNewEvent(root *cobra.Command) {
 		Use:     "event",
 		Aliases: []string{"e"},
 		Short:   "创建新的 event publish & subscriber",
+		Long: `生成事件的发布者与订阅者模板，并在 app/events/topics.go 中维护事件常量。
+
+行为：
+- 根据名称转换：驼峰 -> snake 作为 topic，Pascal 作为导出名
+- 生成 publishers/<snake>.go 与 subscribers/<snake>.go（可通过 --only 选择一侧）
+- 若 topics.go 不存在会自动创建，并追加 const Topic{Name}="<snake>"（避免重复）
+- --dry-run 仅打印渲染与写入动作；--dir 指定输出基目录（默认 .）
+
+示例：
+  atomctl new event UserCreated
+  atomctl new event UserCreated --only=publisher`,
 		Args:    cobra.ExactArgs(1),
 		RunE:    commandNewEventE,
 	}

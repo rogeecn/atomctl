@@ -6,12 +6,17 @@ import (
 )
 
 func CommandSwagFmt(root *cobra.Command) {
-    cmd := &cobra.Command{
-        Use:     "fmt",
-        Aliases: []string{"f"},
-        Short:   "swag format",
-        RunE:    commandSwagFmtE,
-    }
+	cmd := &cobra.Command{
+		Use:     "fmt",
+		Aliases: []string{"f"},
+		Short:   "swag format",
+		Long: `格式化接口注释并协助生成更规范的 Swagger 注释。
+
+参数：
+- --dir   扫描目录（默认 ./app/http）
+- --main  主入口文件（默认 main.go）`,
+		RunE:    commandSwagFmtE,
+	}
 
     cmd.Flags().String("dir", "./app/http", "SearchDir for swag format")
     cmd.Flags().String("main", "main.go", "MainFile for swag format")

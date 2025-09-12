@@ -18,10 +18,26 @@ func CommandGenProvider(root *cobra.Command) {
 		Use:     "provider",
 		Aliases: []string{"p"},
 		Short:   "Generate providers",
-		Long: `//  @provider
-//  @provider(cronjob|job|event|grpc|model):[except|only] [returnType] [group]
-//  when except add tag: inject:"false"
-//  when only add tag: inject:"true"`,
+		Long: `扫描源码中带有 @provider 注释的结构体，生成 provider.gen.go 实现依赖注入与分组注册。
+
+注释语法：
+  @provider(<mode>):[except|only] [returnType] [group]
+  - mode：grpc|event|job|cronjob|model（可为空）
+  - :only：仅注入字段 tag 为 inject:"true" 的依赖
+  - :except：注入除标注 inject:"false" 之外的非标量依赖
+  - returnType：Provide 返回类型（如 contracts.Initial）
+  - group：分组（如 atom.GroupInitial）
+
+模式特性：
+  - grpc：注入 providers/grpc.Grpc，设置 GrpcRegisterFunc
+  - event：注入 providers/event.PubSub
+  - job|cronjob：注入 providers/job.Job，并引入 github.com/riverqueue/river
+  - model：需要 Prepare 钩子
+
+行为说明：
+  - 忽略标量类型字段，自动补全 imports
+  - 以包为单位生成 provider.gen.go
+  - 可与 gen route 联动（其 PostRun 会触发本命令）`,
 		RunE: commandGenProviderE,
 	}
 

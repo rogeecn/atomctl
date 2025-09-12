@@ -19,23 +19,22 @@ func CommandGenEnum(root *cobra.Command) {
 		Use:     "enum",
 		Aliases: []string{"e"},
 		Short:   "Generate enums",
-		Long: `Generate enums from Go files that contain both ENUM(...) and swagger:enum.
+		Long: `根据包含 ENUM(...) 且带有 swagger:enum 标记的 Go 文件生成枚举辅助代码。
 
-Scans the project (recursively) for matching files and writes a corresponding
-*.gen.go per file with helpers.
+扫描工程（递归）查找匹配文件，并为每个文件生成对应的 *.gen.go。
 
-Flags:
-- -f, --flag      Generate flag.Value support (default: true)
-- -m, --marshal   Generate JSON marshal/unmarshal methods
-- -s, --sql       Generate database/sql helpers (int, null types) (default: true)
+参数（Flags）：
+- -f, --flag      生成 flag.Value 支持（默认 true）
+- -m, --marshal   生成 JSON 编解码方法
+- -s, --sql       生成 database/sql 相关辅助（整型、Null 类型等，默认 true）
 
-Behavior:
-- Always generates Names() and Values()
-- With --marshal: adds JSON encoding/decoding
-- With --flag: adds flag.Value support
-- With --sql: adds SQL driver, int, NullInt, NullString helpers
+行为说明：
+- 始终生成 Names() 与 Values()
+- 指定 --marshal：增加 JSON 编解码
+- 指定 --flag：增加 flag.Value 支持
+- 指定 --sql：增加 SQL driver、Int、NullInt、NullString 等辅助
 
-Examples:
+示例：
   atomctl gen enum -m -s
   atomctl gen enum --flag=false`,
 		RunE:     commandGenEnumE,
