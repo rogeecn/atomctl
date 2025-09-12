@@ -11,7 +11,6 @@ import (
 	"{{.ModuleName}}/app/srv"
 	_ "{{.ModuleName}}/docs"
 	"{{.ModuleName}}/providers/app"
-	"{{.ModuleName}}/providers/hashids"
 	"{{.ModuleName}}/providers/http"
 	"{{.ModuleName}}/providers/http/swagger"
 	"{{.ModuleName}}/providers/job"
@@ -29,7 +28,6 @@ func defaultProviders() container.Providers {
 		http.DefaultProvider(),
 		postgres.DefaultProvider(),
 		jwt.DefaultProvider(),
-		hashids.DefaultProvider(),
 		job.DefaultProvider(),
 	}...)
 }

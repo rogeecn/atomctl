@@ -4,6 +4,7 @@ import (
 	"mime/multipart"
 
 	"{{.ModuleName}}/app/errorx"
+	"{{.ModuleName}}/app/requests"
 	"{{.ModuleName}}/app/services"
 	"{{.ModuleName}}/providers/jwt"
 
@@ -24,6 +25,12 @@ type FooQuery struct {
 type FooHeader struct {
 	ContentType string `header:"Content-Type"` // 内容类型
 }
+type Filter struct {
+	Name string `query:"name"` // 名称
+	Age  int    `query:"age"`  // 年龄
+}
+
+type ResponseItem struct{}
 
 // Foo
 //
@@ -33,14 +40,14 @@ type FooHeader struct {
 //	@Accept			json
 //	@Produce		json
 //
-//	@Param			id			path		int											true	"ID"
-//	@Param			queryFilter	query		dto.Filter							true	"Filter"
-//	@Param			pageFilter	query		request.PageQueryFilter						true	"Pager"
-//	@Param			sortFilter	query		request.SortQueryFilter						true	"Sorter"
-//	@Success		200			{object}	request.PageDataResponse{list=DataModel}	"成功"
+//	@Param			id		path		int									true	"ID"
+//	@Param			query	query		Filter								true	"Filter"
+//	@Param			pager	query		requests.Pagination					true	"Pager"
+//	@Success		200		{object}	requests.Pager{list=ResponseItem}	"成功"
 //
 //	@Router			/v1/medias/:id [post]
 //	@Bind			query query
+//	@Bind			pager query
 //	@Bind			header header
 //	@Bind			id path
 //	@Bind			req body
@@ -49,6 +56,7 @@ type FooHeader struct {
 func (d *demo) Foo(
 	ctx fiber.Ctx,
 	id int,
+	pager *requests.Pagination,
 	query *FooQuery,
 	header *FooHeader,
 	claim *jwt.Claims,
