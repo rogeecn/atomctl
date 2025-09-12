@@ -16,9 +16,28 @@ import (
 
 func CommandGenEnum(root *cobra.Command) {
 	cmd := &cobra.Command{
-		Use:      "enum",
-		Aliases:  []string{"e"},
-		Short:    "Generate enums",
+		Use:     "enum",
+		Aliases: []string{"e"},
+		Short:   "Generate enums",
+		Long: `Generate enums from Go files that contain both ENUM(...) and swagger:enum.
+
+Scans the project (recursively) for matching files and writes a corresponding
+*.gen.go per file with helpers.
+
+Flags:
+- -f, --flag      Generate flag.Value support (default: true)
+- -m, --marshal   Generate JSON marshal/unmarshal methods
+- -s, --sql       Generate database/sql helpers (int, null types) (default: true)
+
+Behavior:
+- Always generates Names() and Values()
+- With --marshal: adds JSON encoding/decoding
+- With --flag: adds flag.Value support
+- With --sql: adds SQL driver, int, NullInt, NullString helpers
+
+Examples:
+  atomctl gen enum -m -s
+  atomctl gen enum --flag=false`,
 		RunE:     commandGenEnumE,
 		PostRunE: commandGenProviderE,
 	}
