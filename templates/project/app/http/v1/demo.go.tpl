@@ -63,11 +63,11 @@ func (d *demo) Foo(
 	file *multipart.FileHeader,
 	req *FooUploadReq,
 ) error {
-	_, err := services.Class.First(ctx)
+	_, err := services.Test.Test(ctx)
 	if err != nil {
 		// 示例：在控制器层自定义错误消息/附加数据
 		appErr := errorx.Wrap(err).
-			WithMsg("获取班级失败").
+			WithMsg("获取测试失败").
 			WithData(fiber.Map{"route": "/v1/test"}).
 			WithParams("handler", "Test.Hello")
 		return appErr
