@@ -17,5 +17,5 @@ var Jobs embed.FS
 //go:embed services
 var Services embed.FS
 
-//go:embed providers/*
+//go:embed providers
 var Providers embed.FS
