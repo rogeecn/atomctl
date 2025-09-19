@@ -40,25 +40,6 @@ var scalarTypes = []string{
 	"complex128",
 }
 
-type InjectParam struct {
-	Star         string
-	Type         string
-	Package      string
-	PackageAlias string
-}
-type Provider struct {
-	StructName       string
-	ReturnType       string
-	Mode             string
-	ProviderGroup    string
-	GrpcRegisterFunc string
-	NeedPrepareFunc  bool
-	InjectParams     map[string]InjectParam
-	Imports          map[string]string
-	PkgName          string
-	ProviderFile     string
-}
-
 func atomPackage(suffix string) string {
 	root := "go.ipao.vip/atom"
 	if suffix != "" {
@@ -115,6 +96,7 @@ func Parse(source string) []Provider {
 		provider := Provider{
 			InjectParams: make(map[string]InjectParam),
 			Imports:      make(map[string]string),
+			Mode:         ProviderModeBasic, // Default mode
 		}
 
 		decl, ok := decl.(*ast.GenDecl)
@@ -260,7 +242,7 @@ func Parse(source string) []Provider {
 		provider.ProviderFile = filepath.Join(filepath.Dir(source), "provider.gen.go")
 
 		if providerDoc.Mode == "grpc" {
-			provider.Mode = "grpc"
+			provider.Mode = ProviderModeGrpc
 
 			modePkg := gomod.GetModuleName() + "/providers/grpc"
 
@@ -281,7 +263,7 @@ func Parse(source string) []Provider {
 		}
 
 		if providerDoc.Mode == "event" {
-			provider.Mode = "event"
+			provider.Mode = ProviderModeEvent
 
 			modePkg := gomod.GetModuleName() + "/providers/event"
 
@@ -300,8 +282,22 @@ func Parse(source string) []Provider {
 			}
 		}
 
-		if providerDoc.Mode == "job" || providerDoc.Mode == "cronjob" {
-			provider.Mode = providerDoc.Mode
+		if providerDoc.Mode == "job" {
+			provider.Mode = ProviderModeJob
+
+			modePkg := gomod.GetModuleName() + "/providers/job"
+
+			provider.Imports["github.com/riverqueue/river"] = ""
+			provider.Imports[modePkg] = ""
+
+			provider.InjectParams["__job"] = InjectParam{
+				Star:         "*",
+				Type:         "Job",
+				Package:      modePkg,
+				PackageAlias: "job",
+			}
+		} else if providerDoc.Mode == "cronjob" {
+			provider.Mode = ProviderModeCronJob
 
 			modePkg := gomod.GetModuleName() + "/providers/job"
 
@@ -322,7 +318,7 @@ func Parse(source string) []Provider {
 		}
 
 		if providerDoc.Mode == "model" {
-			provider.Mode = "model"
+			provider.Mode = ProviderModeModel
 
 			provider.ProviderGroup = "atom.GroupInitial"
 			provider.ReturnType = "contracts.Initial"
@@ -334,14 +330,6 @@ func Parse(source string) []Provider {
 	}
 
 	return providers
-}
-
-// @provider(mode):[except|only] [returnType] [group]
-type ProviderDescribe struct {
-	IsOnly     bool
-	Mode       string // job
-	ReturnType string
-	Group      string
 }
 
 func (p ProviderDescribe) String() {

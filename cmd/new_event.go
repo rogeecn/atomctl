@@ -31,8 +31,8 @@ func CommandNewEvent(root *cobra.Command) {
 示例：
   atomctl new event UserCreated
   atomctl new event UserCreated --only=publisher`,
-		Args:    cobra.ExactArgs(1),
-		RunE:    commandNewEventE,
+		Args: cobra.ExactArgs(1),
+		RunE: commandNewEventE,
 	}
 
 	cmd.Flags().String("only", "", "仅生成: publisher 或 subscriber")

@@ -647,7 +647,7 @@ func parseLinePart(line string) (paramLevel int, trimmed string) {
 	if closes > 0 {
 		paramLevel -= closes
 	}
-	return
+	return paramLevel, trimmed
 }
 
 // breakCommentIntoLines takes the comment and since single line comments are already broken into lines

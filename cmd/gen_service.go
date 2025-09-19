@@ -14,8 +14,8 @@ import (
 
 func CommandGenService(root *cobra.Command) {
 	cmd := &cobra.Command{
-		Use:      "service",
-		Short:    "generate services",
+		Use:   "service",
+		Short: "generate services",
 		Long: `扫描 --path 指定目录（默认 ./app/services）下的 Go 文件，汇总服务名并渲染生成 services.gen.go。
 
 规则：

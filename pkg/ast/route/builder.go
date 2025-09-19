@@ -16,40 +16,40 @@ type RenderBuildOpts struct {
 }
 
 func buildRenderData(opts RenderBuildOpts) (RenderData, error) {
-    rd := RenderData{
-        PackageName:    opts.PackageName,
-        ProjectPackage: opts.ProjectPackage,
-        Imports:        []string{},
-        Controllers:    []string{},
-        Routes:         make(map[string][]Router),
-        RouteGroups:    []string{},
-    }
+	rd := RenderData{
+		PackageName:    opts.PackageName,
+		ProjectPackage: opts.ProjectPackage,
+		Imports:        []string{},
+		Controllers:    []string{},
+		Routes:         make(map[string][]Router),
+		RouteGroups:    []string{},
+	}
 
-    imports := []string{}
-    controllers := []string{}
-    // Track if any param uses model lookup, which requires the field package.
-    needsFieldImport := false
+	imports := []string{}
+	controllers := []string{}
+	// Track if any param uses model lookup, which requires the field package.
+	needsFieldImport := false
 
 	for _, route := range opts.Routes {
 		imports = append(imports, route.Imports...)
 		controllers = append(controllers, fmt.Sprintf("%s *%s", strcase.ToLowerCamel(route.Name), route.Name))
 
-        for _, action := range route.Actions {
-            funcName := fmt.Sprintf("Func%d", len(action.Params))
-            if action.HasData {
-                funcName = "Data" + funcName
-            }
+		for _, action := range route.Actions {
+			funcName := fmt.Sprintf("Func%d", len(action.Params))
+			if action.HasData {
+				funcName = "Data" + funcName
+			}
 
-            params := lo.FilterMap(action.Params, func(item ParamDefinition, _ int) (string, bool) {
-                tok := buildParamToken(item)
-                if tok == "" {
-                    return "", false
-                }
-                if item.Model != "" {
-                    needsFieldImport = true
-                }
-                return tok, true
-            })
+			params := lo.FilterMap(action.Params, func(item ParamDefinition, _ int) (string, bool) {
+				tok := buildParamToken(item)
+				if tok == "" {
+					return "", false
+				}
+				if item.Model != "" {
+					needsFieldImport = true
+				}
+				return tok, true
+			})
 
 			rd.Routes[route.Name] = append(rd.Routes[route.Name], Router{
 				Method:     strcase.ToCamel(action.Method),
@@ -60,18 +60,18 @@ func buildRenderData(opts RenderBuildOpts) (RenderData, error) {
 				Params:     params,
 			})
 		}
-    }
+	}
 
-    // Add field import if any model lookups are used
-    if needsFieldImport {
-        imports = append(imports, `field "go.ipao.vip/gen/field"`)
-    }
+	// Add field import if any model lookups are used
+	if needsFieldImport {
+		imports = append(imports, `field "go.ipao.vip/gen/field"`)
+	}
 
-    // de-dup and sort imports/controllers for stable output
-    rd.Imports = lo.Uniq(imports)
-    sort.Strings(rd.Imports)
-    rd.Controllers = lo.Uniq(controllers)
-    sort.Strings(rd.Controllers)
+	// de-dup and sort imports/controllers for stable output
+	rd.Imports = lo.Uniq(imports)
+	sort.Strings(rd.Imports)
+	rd.Controllers = lo.Uniq(controllers)
+	sort.Strings(rd.Controllers)
 
 	// stable order for route groups and entries
 	for k := range rd.Routes {

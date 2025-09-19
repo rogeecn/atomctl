@@ -1,14 +1,14 @@
 package cmd
 
 import (
-    "github.com/pkg/errors"
-    log "github.com/sirupsen/logrus"
-    "github.com/spf13/cobra"
-    apg "go.ipao.vip/atomctl/v2/pkg/postgres"
-    "go.ipao.vip/atomctl/v2/pkg/utils/gomod"
-    "go.ipao.vip/gen"
-    "gorm.io/driver/postgres"
-    "gorm.io/gorm"
+	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
+	"github.com/spf13/cobra"
+	apg "go.ipao.vip/atomctl/v2/pkg/postgres"
+	"go.ipao.vip/atomctl/v2/pkg/utils/gomod"
+	"go.ipao.vip/gen"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
 func CommandGenModel(root *cobra.Command) {
@@ -29,38 +29,38 @@ func CommandGenModel(root *cobra.Command) {
 
 示例：
   atomctl gen -c config.toml model`,
-		RunE:    commandGenModelE,
+		RunE: commandGenModelE,
 	}
 
 	root.AddCommand(cmd)
 }
 
 func commandGenModelE(cmd *cobra.Command, args []string) error {
-    if err := gomod.Parse("go.mod"); err != nil {
-        return errors.Wrap(err, "parse go.mod")
-    }
+	if err := gomod.Parse("go.mod"); err != nil {
+		return errors.Wrap(err, "parse go.mod")
+	}
 
-    cfgFile := cmd.Flag("config").Value.String()
-    if cfgFile == "" {
-        cfgFile = "config.toml"
-    }
+	cfgFile := cmd.Flag("config").Value.String()
+	if cfgFile == "" {
+		cfgFile = "config.toml"
+	}
 
-    sqlDB, conf, err := apg.GetDB(cfgFile)
-    if err != nil {
-        return errors.Wrap(err, "load database config")
-    }
-    defer sqlDB.Close()
+	sqlDB, conf, err := apg.GetDB(cfgFile)
+	if err != nil {
+		return errors.Wrap(err, "load database config")
+	}
+	defer sqlDB.Close()
 
-    dsn := conf.DSN()
-    log.Infof("parsed DSN: %s (schema=%s)", dsn, conf.Schema)
+	dsn := conf.DSN()
+	log.Infof("parsed DSN: %s (schema=%s)", dsn, conf.Schema)
 
-    db, err := gorm.Open(postgres.New(postgres.Config{DSN: dsn}))
-    if err != nil {
-        return errors.Wrapf(err, "open database with dsn: %s", dsn)
-    }
+	db, err := gorm.Open(postgres.New(postgres.Config{DSN: dsn}))
+	if err != nil {
+		return errors.Wrapf(err, "open database with dsn: %s", dsn)
+	}
 
 	// 默认同包同目录生成到 ./database
 	gen.GenerateWithDefault(db, "./database/.transform.yaml")
 
-    return nil
+	return nil
 }

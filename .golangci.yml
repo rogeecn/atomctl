@@ -1,0 +1,134 @@
+# GolangCI-Lint configuration for pkg/ast/provider package
+run:
+  timeout: 5m
+  modules-download-mode: readonly
+  go: '1.24'
+  build-tags:
+    - go1.24
+
+linters:
+  disable-all: true
+  enable:
+    # Default linters
+    - errcheck
+    - gosimple
+    - govet
+    - ineffassign
+    - staticcheck
+    - typecheck
+    - unused
+
+    # Additional recommended linters
+    - gofmt
+    - goimports
+    - misspell
+    - unconvert
+    - unparam
+    - nakedret
+    - prealloc
+    - gocritic
+    - bodyclose
+    - depguard
+    - dogsled
+    - dupl
+    - errname
+    - errorlint
+    - exportloopref
+    - forbidigo
+    - forcetypeassert
+    - gci
+    - gocyclo
+    - godot
+    - goerr113
+    - gomnd
+    - gomodguard
+    - goprintffuncname
+    - gosec
+    - importas
+    - makezero
+    - nolintlint
+    - paralleltest
+    - predeclared
+    - revive
+    - tenv
+    - testpackage
+    - thelper
+    - tparallel
+    - wastedassign
+    - whitespace
+
+linters-settings:
+  gofmt:
+    simplify: true
+
+  goimports:
+    local-prefixes: go.ipao.vip/atomctl/v2
+
+  gocyclo:
+    min-complexity: 15
+
+  gomnd:
+    settings:
+      mnd:
+        # The next line enables the detection of `00000000` magic numbers
+        checks: argument,case,condition,operation,return,assign
+
+  gci:
+    sections:
+      - standard
+      - default
+      - prefix(go.ipao.vip/atomctl/v2)
+
+  revive:
+    rules:
+      - name: exported
+        disabled: false
+
+  unparam:
+    check-exported: false
+
+  dupl:
+    threshold: 100
+
+  gosec:
+    excludes:
+      - G115  # Potential integer overflow when converting between integer types
+      - G404  # Use of weak random number generator (math/rand instead of crypto/rand)
+      - G501  # Blocklisted import crypto/md5: weak cryptographic primitive
+      - G502  # Blocklisted import crypto/sha1: weak cryptographic primitive
+      - G505  # Blocklisted import crypto/des: weak cryptographic primitive
+      - G506  # Blocklisted import crypto/rc4: weak cryptographic primitive
+
+issues:
+  exclude-use-default: false
+  exclude-rules:
+    - path: _test\.go
+      linters:
+        - gomnd
+        - unparam
+        - dupl
+        - gosec
+        - bodyclose
+        - forcetypeassert
+        - makezero
+    - path: tests/
+      linters:
+        - gomnd
+        - unparam
+        - dupl
+        - gosec
+        - bodyclose
+        - forcetypeassert
+        - makezero
+    - path: '.*\.pb\.go$'
+      linters:
+        - all
+    - text: "weak cryptographic primitive"
+      linters:
+        - gosec
+
+output:
+  format: colored-line-number
+  print-issued-lines: true
+  print-linter-name: true
+  uniq-by-line: true

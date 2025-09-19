@@ -22,17 +22,17 @@ Flags:
 说明：
 - 正常格式化等价于：gofumpt -l -extra -w <path>
 - 检查模式等价于：gofumpt -l -extra <path>`,
-		RunE:  commandFmtE,
+		RunE: commandFmtE,
 	}
 
-    cmd.Flags().Bool("check", false, "Check formatting without writing changes")
-    cmd.Flags().String("path", ".", "Path to format (default .)")
+	cmd.Flags().Bool("check", false, "Check formatting without writing changes")
+	cmd.Flags().String("path", ".", "Path to format (default .)")
 
 	root.AddCommand(cmd)
 }
 
 func commandFmtE(cmd *cobra.Command, args []string) error {
-    log.Info("开始格式化代码")
+	log.Info("开始格式化代码")
 	if _, err := exec.LookPath("gofumpt"); err != nil {
 		log.Info("gofumpt 不存在，正在安装...")
 		installCmd := exec.Command("go", "install", "mvdan.cc/gofumpt@latest")
@@ -46,31 +46,31 @@ func commandFmtE(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-    check, _ := cmd.Flags().GetBool("check")
-    path, _ := cmd.Flags().GetString("path")
+	check, _ := cmd.Flags().GetBool("check")
+	path, _ := cmd.Flags().GetString("path")
 
-    if check {
-        log.Info("运行 gofumpt 检查模式...")
-        out, err := exec.Command("gofumpt", "-l", "-extra", path).CombinedOutput()
-        if err != nil {
-            return fmt.Errorf("运行 gofumpt 失败: %v", err)
-        }
-        if len(out) > 0 {
-            fmt.Fprintln(os.Stdout, string(out))
-            return fmt.Errorf("发现未格式化文件，请运行: gofumpt -l -extra -w %s", path)
-        }
-        log.Info("代码格式良好")
-        return nil
-    }
+	if check {
+		log.Info("运行 gofumpt 检查模式...")
+		out, err := exec.Command("gofumpt", "-l", "-extra", path).CombinedOutput()
+		if err != nil {
+			return fmt.Errorf("运行 gofumpt 失败: %v", err)
+		}
+		if len(out) > 0 {
+			fmt.Fprintln(os.Stdout, string(out))
+			return fmt.Errorf("发现未格式化文件，请运行: gofumpt -l -extra -w %s", path)
+		}
+		log.Info("代码格式良好")
+		return nil
+	}
 
-    log.Info("运行 gofumpt...")
-    gofumptCmd := exec.Command("gofumpt", "-l", "-extra", "-w", path)
-    gofumptCmd.Stdout = os.Stdout
-    gofumptCmd.Stderr = os.Stderr
-    if err := gofumptCmd.Run(); err != nil {
-        return fmt.Errorf("运行 gofumpt 失败: %v", err)
-    }
+	log.Info("运行 gofumpt...")
+	gofumptCmd := exec.Command("gofumpt", "-l", "-extra", "-w", path)
+	gofumptCmd.Stdout = os.Stdout
+	gofumptCmd.Stderr = os.Stderr
+	if err := gofumptCmd.Run(); err != nil {
+		return fmt.Errorf("运行 gofumpt 失败: %v", err)
+	}
 
-    log.Info("格式化代码完成")
-    return nil
+	log.Info("格式化代码完成")
+	return nil
 }

@@ -15,10 +15,10 @@ import (
 )
 
 func CommandGenRoute(root *cobra.Command) {
-    cmd := &cobra.Command{
-        Use:      "route",
-        Short:    "generate routes",
-        Long: `扫描项目控制器，解析注释生成 routes.gen.go。
+	cmd := &cobra.Command{
+		Use:   "route",
+		Short: "generate routes",
+		Long: `扫描项目控制器，解析注释生成 routes.gen.go。
 
 用法与规则：
 - 扫描根目录通过 --path 指定（默认 CWD），会在 <path>/app/http 下递归搜索。
@@ -37,9 +37,9 @@ func CommandGenRoute(root *cobra.Command) {
 - local：任意类型（上下文本地值）
 
 说明：生成完成后会自动运行 gen provider 以补全依赖注入。`,
-        RunE:     commandGenRouteE,
-        PostRunE: commandGenProviderE,
-    }
+		RunE:     commandGenRouteE,
+		PostRunE: commandGenProviderE,
+	}
 
 	cmd.Flags().String("path", ".", "Base path to scan (defaults to CWD)")
 

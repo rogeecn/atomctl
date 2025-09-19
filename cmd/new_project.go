@@ -42,7 +42,7 @@ func CommandNewProject(root *cobra.Command) {
   atomctl new project github.com/acme/demo
   atomctl new -f --dir ./playground project github.com/acme/demo
   atomctl new project  # 在已有 go.mod 的项目中就地初始化`,
-		RunE:    commandNewProjectE,
+		RunE: commandNewProjectE,
 	}
 
 	root.AddCommand(cmd)
