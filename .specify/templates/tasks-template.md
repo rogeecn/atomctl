@@ -100,19 +100,39 @@ Task: "Integration test auth in tests/integration/test_auth.py"
 ## Task Generation Rules
 *Applied during main() execution*
 
-1. **From Contracts**:
+1. **SOLID Compliance**:
+   - Single Responsibility: Each task focuses on one specific component
+   - Open/Closed: Design tasks to allow extension without modification
+   - Interface Segregation: Create focused interfaces for different task types
+
+2. **KISS Compliance**:
+   - Keep task descriptions simple and direct
+   - Avoid over-complicating task dependencies
+   - Use intuitive file naming and structure
+
+3. **YAGNI Compliance**:
+   - Only create tasks for clearly needed functionality
+   - Avoid speculative tasks without direct requirements
+   - Focus on MVP implementation first
+
+4. **DRY Compliance**:
+   - Abstract common patterns into reusable task templates
+   - Avoid duplicate task definitions
+   - Consolidate similar operations where possible
+
+5. **From Contracts**:
    - Each contract file → contract test task [P]
    - Each endpoint → implementation task
-   
-2. **From Data Model**:
+
+6. **From Data Model**:
    - Each entity → model creation task [P]
    - Relationships → service layer tasks
-   
-3. **From User Stories**:
+
+7. **From User Stories**:
    - Each story → integration test [P]
    - Quickstart scenarios → validation tasks
 
-4. **Ordering**:
+8. **Ordering**:
    - Setup → Tests → Models → Services → Endpoints → Polish
    - Dependencies block parallel execution
 

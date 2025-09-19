@@ -47,7 +47,41 @@
 ## Constitution Check
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-[Gates determined based on constitution file]
+### SOLID Principles Compliance
+- [ ] **Single Responsibility**: Each component has single, clear responsibility
+- [ ] **Open/Closed**: Design allows extension without modification
+- [ ] **Liskov Substitution**: Subtypes can replace base types seamlessly
+- [ ] **Interface Segregation**: Interfaces are specific and focused
+- [ ] **Dependency Inversion**: Depend on abstractions, not concrete implementations
+
+### KISS Principle Compliance
+- [ ] Design avoids unnecessary complexity
+- [ ] CLI interface maintains consistency
+- [ ] Code generation logic is simple and direct
+- [ ] Solutions are intuitive and easy to understand
+
+### YAGNI Principle Compliance
+- [ ] Only implementing clearly needed functionality
+- [ ] No over-engineering or future-proofing without requirements
+- [ ] Each feature has explicit user需求支撑
+- [ ] No "might be useful" features without justification
+
+### DRY Principle Compliance
+- [ ] No code duplication across components
+- [ ] Common functionality is abstracted and reused
+- [ ] Template system avoids repetitive implementations
+- [ ] Shared utilities are properly abstracted
+
+### Code Quality Standards
+- [ ] **Testing Discipline**: TDD approach with Red-Green-Refactor cycle
+- [ ] **CLI Consistency**: Unified parameter formats and output standards
+- [ ] **Error Handling**: Complete error information and recovery mechanisms
+- [ ] **Performance**: Generation speed and memory usage requirements met
+
+### Complexity Tracking
+| Violation | Why Needed | Simpler Alternative Rejected Because |
+|-----------|------------|-------------------------------------|
+| [Document any deviations from constitutional principles] | [Justification for complexity] | [Why simpler approach insufficient] |
 
 ## Project Structure
 
@@ -208,4 +242,4 @@ ios/ or android/
 - [ ] Complexity deviations documented
 
 ---
-*Based on Constitution v2.1.1 - See `/memory/constitution.md`*
+*Based on Constitution v1.0.0 - See `/memory/constitution.md`*
