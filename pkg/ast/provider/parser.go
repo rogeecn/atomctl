@@ -368,10 +368,24 @@ func (p *MainParser) applyGrpcCompatibility(provider *Provider) {
 	}
 
 	// Set return type and register function
-	if provider.GrpcRegisterFunc == "" {
-		provider.GrpcRegisterFunc = provider.ReturnType
-	}
+	// Important: Save the original return type before setting it to contracts.Initial
+	originalReturnType := provider.ReturnType
 	provider.ReturnType = "contracts.Initial"
+
+	// Set gRPC register function name if not already set
+	if provider.GrpcRegisterFunc == "" {
+		if originalReturnType != "" && strings.Contains(originalReturnType, ".") {
+			// User specified a complete register function name, like userv1.RegisterUserServiceServer
+			provider.GrpcRegisterFunc = originalReturnType
+		} else {
+			// Generate default gRPC register function name
+			// Example: UserService -> RegisterUserServiceServer
+			provider.GrpcRegisterFunc = "Register" + strings.TrimPrefix(originalReturnType, "*") + "Server"
+		}
+	}
+
+	// Note: Package import handling for gRPC register functions is now done
+	// in resolveImportDependencies to ensure access to original file imports
 
 	// Add gRPC injection parameter
 	provider.InjectParams["__grpc"] = InjectParam{

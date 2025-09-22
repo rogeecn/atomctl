@@ -498,7 +498,7 @@ func (p *GoParser) parseProviderDecl(filePath string, fileNode *ast.File, decl a
 	}
 
 	// Handle special provider modes
-	p.handleProviderModes(provider, providerDoc.Mode)
+	p.handleProviderModes(provider, providerDoc.Mode, imports)
 
 	// Add source location if enabled
 	if p.config.SourceLocations {
@@ -593,19 +593,40 @@ func (p *GoParser) parseFieldType(expr ast.Expr, imports map[string]string) (sta
 }
 
 // handleProviderModes applies special handling for different provider modes
-func (p *GoParser) handleProviderModes(provider *Provider, mode string) {
+func (p *GoParser) handleProviderModes(provider *Provider, mode string, imports map[string]string) {
 	moduleName := gomod.GetModuleName()
 
 	switch provider.Mode {
 	case ProviderModeGrpc:
 		modePkg := moduleName + "/providers/grpc"
 		provider.ProviderGroup = "atom.GroupInitial"
-		provider.GrpcRegisterFunc = provider.ReturnType
+		// Save the original return type before changing it
+		originalReturnType := provider.ReturnType
+		provider.GrpcRegisterFunc = originalReturnType
 		provider.ReturnType = "contracts.Initial"
 
 		provider.Imports[atomPackage("")] = ""
 		provider.Imports[atomPackage("contracts")] = ""
 		provider.Imports[modePkg] = ""
+
+		// Extract and add gRPC service package import
+		if originalReturnType != "" && strings.Contains(originalReturnType, ".") {
+			// Extract package alias from gRPC register function name (e.g., "userv1" from "userv1.RegisterUserServiceServer")
+			if pkgAlias := getTypePkgName(originalReturnType); pkgAlias != "" {
+				// Look for this package in the original file's imports
+				if importPath, exists := imports[pkgAlias]; exists {
+					// Use the exact import path from the original file
+					provider.Imports[importPath] = pkgAlias
+				} else {
+					// Fallback: try to infer the common pattern
+					if moduleName != "" {
+						// Common pattern: {module}/pkg/proto/{service}/v1
+						servicePkg := moduleName + "/pkg/proto/" + strings.ToLower(pkgAlias)
+						provider.Imports[servicePkg] = pkgAlias
+					}
+				}
+			}
+		}
 
 		provider.InjectParams["__grpc"] = InjectParam{
 			Star:         "*",

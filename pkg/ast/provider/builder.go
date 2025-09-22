@@ -380,6 +380,18 @@ func (pb *ProviderBuilder) resolveImportDependencies(provider *Provider, context
 		}
 	}
 
+	// For gRPC mode, extract and add imports from the original file's imports
+	if provider.Mode == ProviderModeGrpc && provider.GrpcRegisterFunc != "" {
+		// Extract package alias from gRPC register function name (e.g., "userv1" from "userv1.RegisterUserServiceServer")
+		if pkgAlias := getTypePkgName(provider.GrpcRegisterFunc); pkgAlias != "" {
+			// Look for this package in the original file's imports
+			if importResolution, exists := context.ImportContext.FileImports[pkgAlias]; exists {
+				// Add the import from the original file
+				provider.Imports[importResolution.Path] = pkgAlias
+			}
+		}
+	}
+
 	// Add mode-specific imports
 	modeImports := pb.getModeSpecificImports(provider.Mode)
 	for alias, path := range modeImports {

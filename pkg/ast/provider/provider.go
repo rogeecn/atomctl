@@ -311,7 +311,23 @@ func Parse(source string) []Provider {
 			provider.Imports[modePkg] = ""
 
 			provider.ProviderGroup = "atom.GroupInitial"
-			provider.GrpcRegisterFunc = provider.ReturnType
+
+			// Handle gRPC register function correctly
+			if providerDoc.ReturnType != "" && strings.Contains(providerDoc.ReturnType, ".") {
+				// User specified a complete register function name, like userv1.RegisterUserServiceServer
+				provider.GrpcRegisterFunc = providerDoc.ReturnType
+				// Extract package information and add import
+				if pkgAlias := getTypePkgName(providerDoc.ReturnType); pkgAlias != "" {
+					if importPkg, ok := imports[pkgAlias]; ok {
+						provider.Imports[importPkg] = pkgAlias
+					}
+				}
+			} else {
+				// Generate default gRPC register function name
+				// Example: UserService -> RegisterUserServiceServer
+				provider.GrpcRegisterFunc = "Register" + strings.TrimPrefix(provider.ReturnType, "*") + "Server"
+			}
+
 			provider.ReturnType = "contracts.Initial"
 
 			provider.InjectParams["__grpc"] = InjectParam{
