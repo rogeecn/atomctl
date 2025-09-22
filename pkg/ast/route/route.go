@@ -10,14 +10,15 @@ import (
 	"github.com/pkg/errors"
 	"github.com/samber/lo"
 	log "github.com/sirupsen/logrus"
-	"go.ipao.vip/atomctl/v2/pkg/utils/gomod"
 )
 
+
 type RouteDefinition struct {
-	Path    string
-	Name    string
-	Imports []string
-	Actions []ActionDefinition
+	FilePath string
+	Path     string
+	Name     string
+	Imports  []string
+	Actions  []ActionDefinition
 }
 
 type ActionDefinition struct {
@@ -72,14 +73,227 @@ func ParseFile(file string) []RouteDefinition {
 	fset := token.NewFileSet()
 	node, err := parser.ParseFile(fset, file, nil, parser.ParseComments)
 	if err != nil {
-		log.Println("ERR: ", err)
+		log.WithError(err).Error("Failed to parse file")
 		return nil
 	}
 
+	imports := extractImports(node)
+
+	parser := &routeParser{
+		file:         file,
+		node:         node,
+		imports:      imports,
+		routes:       make(map[string]RouteDefinition),
+		actions:      make(map[string][]ActionDefinition),
+		usedImports:  make(map[string][]string),
+	}
+
+	return parser.parse()
+}
+
+type routeParser struct {
+	file         string
+	node         *ast.File
+	imports      map[string]string
+	routes       map[string]RouteDefinition
+	actions      map[string][]ActionDefinition
+	usedImports  map[string][]string
+}
+
+func (p *routeParser) parse() []RouteDefinition {
+	p.parseFunctionDeclarations()
+	return p.buildResult()
+}
+
+func (p *routeParser) parseFunctionDeclarations() {
+	for _, decl := range p.node.Decls {
+		funcDecl, ok := decl.(*ast.FuncDecl)
+		if !p.isValidFunctionDeclaration(funcDecl, ok) {
+			continue
+		}
+
+		recvType := p.extractReceiverType(funcDecl)
+		p.initializeRoute(recvType)
+
+		routeInfo := p.extractRouteInfo(funcDecl)
+		if routeInfo == nil {
+			continue
+		}
+
+		action := p.buildAction(funcDecl, routeInfo)
+		p.actions[recvType] = append(p.actions[recvType], action)
+	}
+}
+
+func (p *routeParser) isValidFunctionDeclaration(decl *ast.FuncDecl, ok bool) bool {
+	return ok &&
+	       decl.Recv != nil &&
+	       decl.Doc != nil
+}
+
+func (p *routeParser) extractReceiverType(decl *ast.FuncDecl) string {
+	return decl.Recv.List[0].Type.(*ast.StarExpr).X.(*ast.Ident).Name
+}
+
+func (p *routeParser) initializeRoute(recvType string) {
+	if _, exists := p.routes[recvType]; !exists {
+		p.routes[recvType] = RouteDefinition{
+			Name:     recvType,
+			FilePath: p.file,
+			Actions:  []ActionDefinition{},
+		}
+		p.actions[recvType] = []ActionDefinition{}
+	}
+}
+
+type routeInfo struct {
+	path       string
+	method     string
+	bindParams []ParamDefinition
+}
+
+func (p *routeParser) extractRouteInfo(decl *ast.FuncDecl) *routeInfo {
+	var info routeInfo
+	var err error
+
+	for _, comment := range decl.Doc.List {
+		line := normalizeCommentLine(comment.Text)
+
+		if strings.HasPrefix(line, "@Router") {
+			info.path, info.method, err = parseRouteComment(line)
+			if err != nil {
+				log.WithError(err).WithFields(log.Fields{
+					"file":   p.file,
+					"action": decl.Name.Name,
+				}).Error("Invalid route definition")
+				return nil
+			}
+		}
+
+		if strings.HasPrefix(line, "@Bind") {
+			info.bindParams = append(info.bindParams, parseRouteBind(line))
+		}
+	}
+
+	if info.path == "" || info.method == "" {
+		return nil
+	}
+
+	log.WithFields(log.Fields{
+		"file":   p.file,
+		"action": decl.Name.Name,
+		"path":   info.path,
+		"method": info.method,
+	}).Info("Found route")
+
+	return &info
+}
+
+func (p *routeParser) buildAction(decl *ast.FuncDecl, routeInfo *routeInfo) ActionDefinition {
+	orderBindParams := p.processFunctionParameters(decl, routeInfo.bindParams)
+
+	hasData := false
+	if decl.Type != nil && decl.Type.Results != nil {
+		hasData = len(decl.Type.Results.List) > 1
+	}
+
+	return ActionDefinition{
+		Route:   routeInfo.path,
+		Method:  strings.ToUpper(routeInfo.method),
+		Name:    decl.Name.Name,
+		HasData: hasData,
+		Params:  orderBindParams,
+	}
+}
+
+func (p *routeParser) processFunctionParameters(decl *ast.FuncDecl, bindParams []ParamDefinition) []ParamDefinition {
+	var orderBindParams []ParamDefinition
+
+	if decl.Type == nil || decl.Type.Params == nil {
+		return orderBindParams
+	}
+
+	for _, param := range decl.Type.Params.List {
+		paramType := extractParameterType(param.Type)
+
+		if isContextParameter(paramType) {
+			continue
+		}
+
+		p.trackUsedImports(decl.Recv.List[0].Type.(*ast.StarExpr).X.(*ast.Ident).Name, paramType)
+
+		for _, paramName := range param.Names {
+			for i, bindParam := range bindParams {
+				if bindParam.Name == paramName.Name {
+					bindParams[i].Type = p.normalizeParameterType(paramType, bindParam.Position)
+					orderBindParams = append(orderBindParams, bindParams[i])
+					break
+				}
+			}
+		}
+	}
+
+	return orderBindParams
+}
+
+func (p *routeParser) trackUsedImports(recvType, paramType string) {
+	pkgParts := strings.Split(strings.Trim(paramType, "*"), ".")
+	if len(pkgParts) == 2 {
+		if importPath, exists := p.imports[pkgParts[0]]; exists {
+			p.usedImports[recvType] = append(p.usedImports[recvType], importPath)
+		}
+	}
+}
+
+func (p *routeParser) normalizeParameterType(paramType string, position Position) string {
+	if position != PositionLocal {
+		return strings.TrimPrefix(paramType, "*")
+	}
+	return paramType
+}
+
+func (p *routeParser) buildResult() []RouteDefinition {
+	var items []RouteDefinition
+	for k, route := range p.routes {
+		if actions, exists := p.actions[k]; exists {
+			route.Actions = actions
+			route.Imports = p.getUniqueImports(k)
+
+			// Set the route path from the first action for backward compatibility
+			if len(actions) > 0 {
+				route.Path = actions[0].Route
+			}
+
+			items = append(items, route)
+		}
+	}
+	return items
+}
+
+func (p *routeParser) getUniqueImports(recvType string) []string {
+	if imports, exists := p.usedImports[recvType]; exists {
+		return lo.Uniq(imports)
+	}
+	return []string{}
+}
+
+func extractImports(node *ast.File) map[string]string {
 	imports := make(map[string]string)
 	for _, imp := range node.Imports {
 		pkg := strings.Trim(imp.Path.Value, "\"")
-		name := gomod.GetPackageModuleName(pkg)
+
+		// Handle empty or invalid package paths
+		if pkg == "" {
+			continue
+		}
+
+		// Use the last part of the package path as the name
+		// This avoids calling gomod.GetPackageModuleName which can cause panics
+		name := pkg
+		if lastSlash := strings.LastIndex(pkg, "/"); lastSlash >= 0 {
+			name = pkg[lastSlash+1:]
+		}
+
 		if imp.Name != nil {
 			name = imp.Name.Name
 			pkg = fmt.Sprintf(`%s %q`, name, pkg)
@@ -88,140 +302,28 @@ func ParseFile(file string) []RouteDefinition {
 		}
 		imports[name] = fmt.Sprintf("%q", pkg)
 	}
+	return imports
+}
 
-	routes := make(map[string]RouteDefinition)
-	actions := make(map[string][]ActionDefinition)
-	usedImports := make(map[string][]string)
+func normalizeCommentLine(line string) string {
+	return strings.TrimSpace(strings.TrimLeft(line, "/ \t"))
+}
 
-	// 再去遍历 struct 的方法去
-	for _, decl := range node.Decls {
-		decl, ok := decl.(*ast.FuncDecl)
-		if !ok {
-			continue
-		}
-
-		// 普通方法不要
-		if decl.Recv == nil {
-			continue
-		}
-
-		// 没有Doc不要
-		if decl.Doc == nil {
-			continue
-		}
-
-		recvType := decl.Recv.List[0].Type.(*ast.StarExpr).X.(*ast.Ident).Name
-		if _, ok := routes[recvType]; !ok {
-			routes[recvType] = RouteDefinition{
-				Name:    recvType,
-				Path:    file,
-				Actions: []ActionDefinition{},
-			}
-			actions[recvType] = []ActionDefinition{}
-		}
-
-		bindParams := []ParamDefinition{}
-
-		// Doc 中把 @Router 的定义拿出来， Route 格式为 /user/:id [get] 两部分，表示路径和请求方法
-		var path, method string
-		var err error
-		for _, l := range decl.Doc.List {
-			line := strings.TrimLeft(l.Text, "/ \t")
-			line = strings.TrimSpace(line)
-
-			// 路由需要一些切换
-			if strings.HasPrefix(line, "@Router") {
-				path, method, err = parseRouteComment(line)
-				if err != nil {
-					log.Fatal(errors.Wrapf(err, "file: %s, action: %s", file, decl.Name.Name))
-				}
-			}
-
-			if strings.HasPrefix(line, "@Bind") {
-				//@Bind name [uri|query|path|body|header|cookie] [key()] [table()] [model(<pkg>.<Type>[:<field>])]
-				bindParams = append(bindParams, parseRouteBind(line))
-			}
-		}
-
-		if path == "" || method == "" {
-			continue
-		}
-		log.WithField("file", file).
-			WithField("action", decl.Name.Name).
-			WithField("path", path).
-			WithField("method", method).
-			Info("get router")
-
-		// 拿参数列表去, 忽略 context.Context 参数
-		orderBindParams := []ParamDefinition{}
-		for _, param := range decl.Type.Params.List {
-			// paramsType, ok := param.Type.(*ast.SelectorExpr)
-
-			var typ string
-			switch param.Type.(type) {
-			case *ast.Ident:
-				typ = param.Type.(*ast.Ident).Name
-			case *ast.StarExpr:
-				paramsType := param.Type.(*ast.StarExpr)
-				switch paramsType.X.(type) {
-				case *ast.SelectorExpr:
-					X := paramsType.X.(*ast.SelectorExpr)
-					typ = fmt.Sprintf("*%s.%s", X.X.(*ast.Ident).Name, X.Sel.Name)
-				default:
-					typ = fmt.Sprintf("*%s", paramsType.X.(*ast.Ident).Name)
-				}
-			case *ast.SelectorExpr:
-				typ = fmt.Sprintf("%s.%s", param.Type.(*ast.SelectorExpr).X.(*ast.Ident).Name, param.Type.(*ast.SelectorExpr).Sel.Name)
-			}
-
-			if strings.HasSuffix(typ, "Context") || strings.HasSuffix(typ, "Ctx") {
-				continue
-			}
-			pkgName := strings.Split(strings.Trim(typ, "*"), ".")
-			if len(pkgName) == 2 {
-				usedImports[recvType] = append(usedImports[recvType], imports[pkgName[0]])
-			}
-
-			for _, name := range param.Names {
-				for i, bindParam := range bindParams {
-					if bindParam.Name == name.Name {
-
-						if bindParams[i].Position != PositionLocal {
-							typ = strings.TrimPrefix(typ, "*")
-						}
-
-						bindParams[i].Type = typ
-
-						orderBindParams = append(orderBindParams, bindParams[i])
-						break
-					}
-				}
-			}
-		}
-
-		actions[recvType] = append(actions[recvType], ActionDefinition{
-			Route:   path,
-			Method:  strings.ToUpper(method),
-			Name:    decl.Name.Name,
-			HasData: len(decl.Type.Results.List) > 1,
-			Params:  orderBindParams,
-		})
+func extractParameterType(expr ast.Expr) string {
+	switch t := expr.(type) {
+	case *ast.Ident:
+		return t.Name
+	case *ast.StarExpr:
+		return "*" + extractParameterType(t.X)
+	case *ast.SelectorExpr:
+		return fmt.Sprintf("%s.%s", extractParameterType(t.X), t.Sel.Name)
+	default:
+		return ""
 	}
+}
 
-	var items []RouteDefinition
-	for k, item := range routes {
-		a, ok := actions[k]
-		if !ok {
-			continue
-		}
-		item.Actions = a
-		item.Imports = []string{}
-		if im, ok := usedImports[k]; ok {
-			item.Imports = lo.Uniq(im)
-		}
-		items = append(items, item)
-	}
-	return items
+func isContextParameter(paramType string) bool {
+	return strings.HasSuffix(paramType, "Context") || strings.HasSuffix(paramType, "Ctx")
 }
 
 func parseRouteComment(line string) (string, string, error) {
@@ -251,20 +353,26 @@ func parseRouteBind(bind string) ParamDefinition {
 	for i, part := range parts {
 		switch part {
 		case "@Bind":
-			param.Name = parts[i+1]
-			param.Position = positionFromString(parts[i+2])
-		case "key":
-			param.Key = parts[i+1]
-		case "model":
-			// Supported formats:
-			// - model(field:field_type) -> only specify model field/column;
-			mv := parts[i+1]
-			// if mv contains no dot, treat as field name directly
-			if mv == "" {
-				param.Model = "id"
-				break
+			if i+2 < len(parts) {
+				param.Name = parts[i+1]
+				param.Position = positionFromString(parts[i+2])
 			}
-			param.Model = mv
+		case "key":
+			if i+1 < len(parts) {
+				param.Key = parts[i+1]
+			}
+		case "model":
+			if i+1 < len(parts) {
+				// Supported formats:
+				// - model(field:field_type) -> only specify model field/column;
+				mv := parts[i+1]
+				// if mv contains no dot, treat as field name directly
+				if mv == "" {
+					param.Model = "id"
+					break
+				}
+				param.Model = mv
+			}
 		}
 	}
 	return param

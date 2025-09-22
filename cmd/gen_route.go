@@ -103,7 +103,7 @@ func commandGenRouteE(cmd *cobra.Command, args []string) error {
 	}
 
 	routeGroups := lo.GroupBy(routes, func(item route.RouteDefinition) string {
-		return filepath.Dir(item.Path)
+		return filepath.Dir(item.FilePath)
 	})
 
 	for path, routes := range routeGroups {
