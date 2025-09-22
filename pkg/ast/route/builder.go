@@ -99,17 +99,12 @@ func (b *renderDataBuilder) buildParameters(params []ParamDefinition) []string {
 		if token == "" {
 			return "", false
 		}
-		if item.Model != "" {
-			b.needsFieldImport = true
-		}
 		return token, true
 	})
 }
 
 func (b *renderDataBuilder) addRequiredImports() {
-	if b.needsFieldImport {
-		b.imports = append(b.imports, `field "go.ipao.vip/gen/field"`)
-	}
+	// New Model interface doesn't require field import
 }
 
 func (b *renderDataBuilder) dedupeAndSortImports() {
@@ -219,13 +214,30 @@ func (b *paramTokenBuilder) buildPathParam() string {
 }
 
 func (b *paramTokenBuilder) buildModelLookupPath() string {
-	field, fieldType := b.parseModelField()
+	field, _ := b.parseModelField()
 
-	tpl := `func(ctx fiber.Ctx) (*%s, error) {
-		v := fiber.Params[%s](ctx, "%s")
-		return %sQuery.WithContext(ctx).Where(field.NewUnsafeFieldRaw("%s = ?", v)).First()
-	}`
-	return fmt.Sprintf(tpl, b.item.Type, fieldType, b.key, b.item.Type, field)
+	// Use the simplified Model interface without closures
+	// This provides consistency with other parameter binding methods
+	if field == "id" && b.key == "id" {
+		// Use the simplest form for default id field
+		return fmt.Sprintf(`ModelById[%s]("%s")`, b.item.Type, b.key)
+	} else if field == b.key {
+		// Field and path key are the same
+		return fmt.Sprintf(`Model[%s]("%s")`, b.item.Type, field)
+	} else {
+		// Different field and path key
+		return fmt.Sprintf(`Model[%s]("%s", "%s")`, b.item.Type, field, b.key)
+	}
+}
+
+// getModelName extracts the model name from the type, preserving package path
+func (b *paramTokenBuilder) getModelName() string {
+	// Remove the pointer star if present
+	typeName := strings.TrimPrefix(b.item.Type, "*")
+
+	// Keep the full package path for the query object
+	// e.g., "models.User" becomes "models.UserQuery"
+	return typeName
 }
 
 func (b *paramTokenBuilder) parseModelField() (string, string) {
