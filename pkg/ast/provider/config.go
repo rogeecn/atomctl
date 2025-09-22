@@ -114,10 +114,13 @@ func (c *ParserContext) ShouldIncludeFile(filePath string) bool {
 		return false
 	}
 
-	// Skip generated files if not allowed, but allow routes.gen.go since it may contain providers
-	if !c.Config.AllowGenFiles && strings.HasSuffix(filePath, ".gen.go") && !strings.HasSuffix(filePath, "routes.gen.go") {
+	// Skip generated files if not allowed, but allow routes.gen.go and services.gen.go since they may contain providers
+	if !c.Config.AllowGenFiles {
 		return false
 	}
+	// if !c.Config.AllowGenFiles && strings.HasSuffix(filePath, ".gen.go") && !strings.HasSuffix(filePath, "routes.gen.go") && !strings.HasSuffix(filePath, "services.gen.go") {
+	// 	return false
+	// }
 
 	// Check file size
 	if info, err := os.Stat(filePath); err == nil {
