@@ -37,12 +37,13 @@ import (
 //   - RunE: commandGenProviderE - 命令执行函数
 //
 // 注释语法说明：
-//   @provider(<mode>):[except|only] [returnType] [group]
-//   - mode: grpc|event|job|cronjob|model（可选）
-//   - :only: 仅注入字段 tag 为 inject:"true" 的依赖
-//   - :except: 注入除标注 inject:"false" 之外的非标量依赖
-//   - returnType: Provide 返回类型（如 contracts.Initial）
-//   - group: 分组（如 atom.GroupInitial）
+//
+//	@provider(<mode>):[except|only] [returnType] [group]
+//	- mode: grpc|event|job|cronjob|model（可选）
+//	- :only: 仅注入字段 tag 为 inject:"true" 的依赖
+//	- :except: 注入除标注 inject:"false" 之外的非标量依赖
+//	- returnType: Provide 返回类型（如 contracts.Initial）
+//	- group: 分组（如 atom.GroupInitial）
 //
 // 参数：
 //   - root: 根命令对象，用于注册子命令
@@ -149,11 +150,12 @@ func CommandGenProvider(root *cobra.Command) {
 //   - 文件生成错误：返回 provider.Render() 的错误
 //
 // 使用示例：
-//   # 在当前目录生成 Provider
-//   atomctl gen provider
 //
-//   # 在指定目录生成 Provider
-//   atomctl gen provider ./internal/services
+//	# 在当前目录生成 Provider
+//	atomctl gen provider
+//
+//	# 在指定目录生成 Provider
+//	atomctl gen provider ./internal/services
 //
 // 注意事项：
 //   - 目标目录必须包含 go.mod 文件

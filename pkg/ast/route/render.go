@@ -8,7 +8,6 @@ import (
 	"go.ipao.vip/atomctl/v2/pkg/utils/gomod"
 )
 
-
 //go:embed router.go.tpl
 var routeTpl string
 

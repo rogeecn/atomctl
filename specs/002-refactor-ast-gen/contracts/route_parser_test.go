@@ -24,11 +24,11 @@ type RouteParser interface {
 
 // RouteDefinition represents a route definition (simplified for testing)
 type RouteDefinition struct {
-	StructName  string
-	Path        string
-	Methods     []string
-	Parameters  []ParamDefinition
-	Imports     map[string]string
+	StructName string
+	Path       string
+	Methods    []string
+	Parameters []ParamDefinition
+	Imports    map[string]string
 }
 
 // ParamDefinition represents a parameter definition (simplified for testing)

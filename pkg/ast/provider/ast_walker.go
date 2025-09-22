@@ -30,7 +30,7 @@ import (
 //   - 错误处理：提供完善的错误处理机制
 //
 // 执行流程：
-//   1. 文件过滤 → 2. AST 解析 → 3. 遍历声明 → 4. 访问者通知 → 5. 结果收集
+//  1. 文件过滤 → 2. AST 解析 → 3. 遍历声明 → 4. 访问者通知 → 5. 结果收集
 //
 // 设计原则：
 //   - 单一职责：专注于 AST 遍历，不涉及具体的业务逻辑
@@ -84,12 +84,12 @@ type WalkerConfig struct {
 // └─────────────────────────────────────────────────────────────┘
 //
 // 调用时机：
-//   1. VisitFile: 开始处理文件时调用，用于初始化文件级上下文
-//   2. VisitGenDecl: 遇到通用声明时调用（type、var、const）
-//   3. VisitTypeSpec: 遇到类型规范时调用（具体的类型定义）
-//   4. VisitStructType: 遇到结构体类型时调用
-//   5. VisitStructField: 遍历结构体字段时调用
-//   6. Complete: 文件处理完成时调用，用于清理和结果收集
+//  1. VisitFile: 开始处理文件时调用，用于初始化文件级上下文
+//  2. VisitGenDecl: 遇到通用声明时调用（type、var、const）
+//  3. VisitTypeSpec: 遇到类型规范时调用（具体的类型定义）
+//  4. VisitStructType: 遇到结构体类型时调用
+//  5. VisitStructField: 遍历结构体字段时调用
+//  6. Complete: 文件处理完成时调用，用于清理和结果收集
 //
 // 错误处理：
 //   - 如果任何方法返回错误，遍历过程会立即停止
@@ -218,10 +218,11 @@ type NodeVisitor interface {
 //   - *ASTWalker: 配置好的遍历器实例，可以直接使用
 //
 // 使用示例：
-//   walker := NewASTWalker()
-//   visitor := NewProviderDiscoveryVisitor()
-//   walker.AddVisitor(visitor)
-//   err := walker.WalkFile("user_service.go")
+//
+//	walker := NewASTWalker()
+//	visitor := NewProviderDiscoveryVisitor()
+//	walker.AddVisitor(visitor)
+//	err := walker.WalkFile("user_service.go")
 //
 // 注意事项：
 //   - 必须添加至少一个访问者才能进行有效的分析
@@ -264,13 +265,14 @@ func NewASTWalker() *ASTWalker {
 //   - *ASTWalker: 使用指定配置的遍历器实例
 //
 // 使用示例：
-//   config := &WalkerConfig{
-//       IncludeTestFiles: true,
-//       IncludeGeneratedFiles: true,
-//       StrictMode: true,
-//       MaxFileSize: 5 * 1024 * 1024, // 5MB
-//   }
-//   walker := NewASTWalkerWithConfig(config)
+//
+//	config := &WalkerConfig{
+//	    IncludeTestFiles: true,
+//	    IncludeGeneratedFiles: true,
+//	    StrictMode: true,
+//	    MaxFileSize: 5 * 1024 * 1024, // 5MB
+//	}
+//	walker := NewASTWalkerWithConfig(config)
 //
 // 注意事项：
 //   - 自定义配置会覆盖所有默认设置
@@ -392,12 +394,13 @@ func (aw *ASTWalker) RemoveVisitor(visitor NodeVisitor) {
 //   - 访问者错误：返回访问者产生的错误，停止后续处理
 //
 // 使用示例：
-//   walker := NewASTWalker()
-//   walker.AddVisitor(NewProviderDiscoveryVisitor())
-//   err := walker.WalkFile("user_service.go")
-//   if err != nil {
-//       log.Fatal("Failed to walk file: ", err)
-//   }
+//
+//	walker := NewASTWalker()
+//	walker.AddVisitor(NewProviderDiscoveryVisitor())
+//	err := walker.WalkFile("user_service.go")
+//	if err != nil {
+//	    log.Fatal("Failed to walk file: ", err)
+//	}
 //
 // 注意事项：
 //   - 必须至少添加一个访问者才能进行有效分析
@@ -933,9 +936,9 @@ func (aw *ASTWalker) GetCommentParser() *CommentParser {
 //   - 代码生成：为代码生成工具提供输入数据
 //   - 项目分析：分析项目中的 Provider 定义
 type ProviderDiscoveryVisitor struct {
-	commentParser *CommentParser  // 注释解析器，用于解析 @provider 注解
+	commentParser *CommentParser // 注释解析器，用于解析 @provider 注解
 	providers     []Provider     // 发现的 Provider 列表
-	currentFile   string        // 当前处理的文件路径
+	currentFile   string         // 当前处理的文件路径
 }
 
 // NewProviderDiscoveryVisitor 创建新的 ProviderDiscoveryVisitor 实例
@@ -964,10 +967,11 @@ type ProviderDiscoveryVisitor struct {
 //   - *ProviderDiscoveryVisitor: 配置好的访问者实例
 //
 // 使用示例：
-//   commentParser := NewCommentParser()
-//   visitor := NewProviderDiscoveryVisitor(commentParser)
-//   walker := NewASTWalker()
-//   walker.AddVisitor(visitor)
+//
+//	commentParser := NewCommentParser()
+//	visitor := NewProviderDiscoveryVisitor(commentParser)
+//	walker := NewASTWalker()
+//	walker.AddVisitor(visitor)
 //
 // 注意事项：
 //   - 注释解析器必须提前初始化
@@ -1150,7 +1154,7 @@ func (pdv *ProviderDiscoveryVisitor) VisitStructType(filePath string, structType
 			// === Provider 构建 ===
 			// 创建 Provider 对象，设置基本信息
 			provider := Provider{
-				StructName:    typeSpec.Name.Name,          // 结构体名称
+				StructName:    typeSpec.Name.Name,           // 结构体名称
 				Mode:          providerComment.Mode,         // Provider 模式
 				ProviderGroup: providerComment.Group,        // Provider 分组
 				ReturnType:    providerComment.ReturnType,   // 返回类型

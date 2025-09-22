@@ -26,7 +26,7 @@ func (c *UserController) GetUser() error {
 
 		// Create a temporary file for testing
 		tmpFile := "/tmp/test_route.go"
-		err := os.WriteFile(tmpFile, []byte(code), 0644)
+		err := os.WriteFile(tmpFile, []byte(code), 0o644)
 		assert.NoError(t, err, "Should create temp file")
 		defer os.Remove(tmpFile)
 
@@ -63,7 +63,7 @@ func (c *UserController) GetUser(id string, limit int) {
 
 		// Create a temporary file for testing
 		tmpFile := "/tmp/test_params.go"
-		err := os.WriteFile(tmpFile, []byte(code), 0644)
+		err := os.WriteFile(tmpFile, []byte(code), 0o644)
 		assert.NoError(t, err, "Should create temp file")
 		defer os.Remove(tmpFile)
 
@@ -104,7 +104,7 @@ func (c *UserController) GetUser() {
 
 		// Create a temporary file for testing
 		tmpFile := "/tmp/test_invalid.go"
-		err := os.WriteFile(tmpFile, []byte(code), 0644)
+		err := os.WriteFile(tmpFile, []byte(code), 0o644)
 		assert.NoError(t, err, "Should create temp file")
 		defer os.Remove(tmpFile)
 
@@ -130,7 +130,7 @@ func (c *UserController) GetUser() {
 
 		// Create a temporary file for testing
 		tmpFile := "/tmp/test_empty.go"
-		err := os.WriteFile(tmpFile, []byte(code), 0644)
+		err := os.WriteFile(tmpFile, []byte(code), 0o644)
 		assert.NoError(t, err, "Should create temp file")
 		defer os.Remove(tmpFile)
 
@@ -196,7 +196,7 @@ func (c *HealthController) Check() error {
 `
 		// Create a temporary file for testing
 		tmpFile := "/tmp/test_compatibility.go"
-		err := os.WriteFile(tmpFile, []byte(code), 0644)
+		err := os.WriteFile(tmpFile, []byte(code), 0o644)
 		assert.NoError(t, err, "Should create temp file")
 		defer os.Remove(tmpFile)
 
@@ -251,7 +251,7 @@ func (c *ApiController) DownloadFile(filename string) error {
 }
 `
 		tmpFile := "/tmp/test_special_paths.go"
-		err := os.WriteFile(tmpFile, []byte(code), 0644)
+		err := os.WriteFile(tmpFile, []byte(code), 0o644)
 		assert.NoError(t, err, "Should create temp file")
 		defer os.Remove(tmpFile)
 
@@ -352,13 +352,13 @@ func (c *HealthController) Check() error {
 		// Create a realistic file structure
 		tmpDir := "/tmp/test_app"
 		httpDir := tmpDir + "/app/http"
-		err := os.MkdirAll(httpDir, 0755)
+		err := os.MkdirAll(httpDir, 0o755)
 		assert.NoError(t, err, "Should create directory structure")
 		defer os.RemoveAll(tmpDir)
 
 		// Write controller file
 		controllerFile := httpDir + "/user_controller.go"
-		err = os.WriteFile(controllerFile, []byte(code), 0644)
+		err = os.WriteFile(controllerFile, []byte(code), 0o644)
 		assert.NoError(t, err, "Should write controller file")
 
 		// WHEN parsing using the same method as CLI
@@ -398,7 +398,7 @@ type EmptyController struct {
 }
 `
 		tmpFile := "/tmp/test_empty.go"
-		err := os.WriteFile(tmpFile, []byte(code), 0644)
+		err := os.WriteFile(tmpFile, []byte(code), 0o644)
 		assert.NoError(t, err, "Should create temp file")
 		defer os.Remove(tmpFile)
 
@@ -419,7 +419,7 @@ package main
 type BrokenController struct {
 `
 		tmpFile := "/tmp/test_broken.go"
-		err := os.WriteFile(tmpFile, []byte(code), 0644)
+		err := os.WriteFile(tmpFile, []byte(code), 0o644)
 		assert.NoError(t, err, "Should create temp file")
 		defer os.Remove(tmpFile)
 

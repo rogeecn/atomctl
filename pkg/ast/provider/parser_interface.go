@@ -159,7 +159,7 @@ type Parser interface {
 type GoParser struct {
 	config  *ParserConfig  // 解析器配置，控制解析行为
 	context *ParserContext // 解析上下文，包含解析状态信息
-	mu      sync.RWMutex  // 读写锁，保护 config 和 context 的并发访问
+	mu      sync.RWMutex   // 读写锁，保护 config 和 context 的并发访问
 }
 
 // NewGoParser 创建一个使用默认配置的 GoParser 实例
@@ -184,8 +184,9 @@ type GoParser struct {
 //   - *GoParser: 配置好的解析器实例，可以直接使用
 //
 // 使用示例：
-//   parser := NewGoParser()
-//   providers, err := parser.ParseFile("user_service.go")
+//
+//	parser := NewGoParser()
+//	providers, err := parser.ParseFile("user_service.go")
 func NewGoParser() *GoParser {
 	// 创建默认配置
 	config := NewParserConfig()
@@ -229,12 +230,13 @@ func NewGoParser() *GoParser {
 //   - *GoParser: 使用指定配置的解析器实例
 //
 // 使用示例：
-//   config := &ParserConfig{
-//       CacheEnabled: true,
-//       StrictMode: true,
-//       SourceLocations: true,
-//   }
-//   parser := NewGoParserWithConfig(config)
+//
+//	config := &ParserConfig{
+//	    CacheEnabled: true,
+//	    StrictMode: true,
+//	    SourceLocations: true,
+//	}
+//	parser := NewGoParserWithConfig(config)
 func NewGoParserWithConfig(config *ParserConfig) *GoParser {
 	// 处理 nil 配置，保持向后兼容
 	if config == nil {
@@ -552,12 +554,13 @@ func (p *GoParser) parseStructFields(structType *ast.StructType, imports map[str
 
 		// Add injection parameter
 		for _, name := range field.Names {
-			provider.InjectParams[name.Name] = InjectParam{
+			param := InjectParam{
 				Star:         star,
 				Type:         typ,
 				Package:      pkg,
 				PackageAlias: pkgAlias,
 			}
+			provider.InjectParams[name.Name] = param
 
 			// Add to imports
 			if pkg != "" && pkgAlias != "" {
@@ -576,7 +579,15 @@ func (p *GoParser) parseFieldType(expr ast.Expr, imports map[string]string) (sta
 		typ = t.Name
 	case *ast.StarExpr:
 		star = "*"
-		return p.parseFieldType(t.X, imports)
+		_, innerPkg, innerPkgAlias, innerTyp, innerErr := p.parseFieldType(t.X, imports)
+		if innerErr != nil {
+			return "", "", "", "", innerErr
+		}
+		// Use inner package info but keep star
+		pkg = innerPkg
+		pkgAlias = innerPkgAlias
+		typ = innerTyp
+		return star, pkg, pkgAlias, typ, nil
 	case *ast.SelectorExpr:
 		if x, ok := t.X.(*ast.Ident); ok {
 			pkgAlias = x.Name

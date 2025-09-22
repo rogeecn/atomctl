@@ -28,10 +28,10 @@ import (
 // 执行流程：
 // 1. 文件过滤 → 2. AST解析 → 3. 导入处理 → 4. 注解发现 → 5. Provider构建 → 6. 验证
 type MainParser struct {
-	commentParser  *CommentParser  // 负责解析 @provider 注解
+	commentParser  *CommentParser   // 负责解析 @provider 注解
 	importResolver *ImportResolver  // 负责处理 Go 文件的导入信息
 	astWalker      *ASTWalker       // 负责遍历 AST 发现 Provider 注解
-	builder        *ProviderBuilder  // 负责从 AST 节点构建 Provider 对象
+	builder        *ProviderBuilder // 负责从 AST 节点构建 Provider 对象
 	validator      *GoValidator     // 负责验证 Provider 配置的正确性
 	config         *ParserConfig    // 负责解析器配置管理
 }
@@ -54,9 +54,9 @@ type MainParser struct {
 // 返回值：配置好的 MainParser 实例，可直接调用 ParseFile() 或 ParseDir()
 func NewParser() *MainParser {
 	return &MainParser{
-		commentParser:  NewCommentParser(),  // 初始化注释解析器
-		importResolver: NewImportResolver(), // 初始化导入解析器
-		astWalker:      NewASTWalker(),      // 初始化 AST 遍历器
+		commentParser:  NewCommentParser(),   // 初始化注释解析器
+		importResolver: NewImportResolver(),  // 初始化导入解析器
+		astWalker:      NewASTWalker(),       // 初始化 AST 遍历器
 		builder:        NewProviderBuilder(), // 初始化 Provider 构建器
 		validator:      NewGoValidator(),     // 初始化验证器
 		config:         NewParserConfig(),    // 初始化默认配置
@@ -116,7 +116,6 @@ func ParseRefactored(source string) []Provider {
 
 	// 调用详细的文件解析方法
 	providers, err := parser.ParseFile(source)
-
 	// 错误处理：记录错误并返回空结果
 	if err != nil {
 		log.Error("Parse error: ", err)
@@ -197,10 +196,10 @@ func (p *MainParser) ParseFile(source string) ([]Provider, error) {
 	// === 步骤 5：创建构建器上下文 ===
 	// 创建包含解析所需所有信息的构建器上下文
 	builderContext := &BuilderContext{
-		FilePath:       source,               // 当前文件路径
-		PackageName:    node.Name.Name,       // 包名
-		ImportContext:  importContext,        // 导入信息上下文
-		ASTFile:        node,                 // AST 节点
+		FilePath:       source,                // 当前文件路径
+		PackageName:    node.Name.Name,        // 包名
+		ImportContext:  importContext,         // 导入信息上下文
+		ASTFile:        node,                  // AST 节点
 		ProcessedTypes: make(map[string]bool), // 已处理的类型，避免重复
 		Errors:         make([]error, 0),      // 错误列表
 		Warnings:       make([]string, 0),     // 警告列表

@@ -123,7 +123,7 @@ func Parse(source string) []Provider {
 	node, err := parser.ParseFile(fset, source, nil, parser.ParseComments)
 	if err != nil {
 		log.Error("ERR: ", err)
-		return nil  // 原始版本在错误时返回 nil
+		return nil // 原始版本在错误时返回 nil
 	}
 	imports := make(map[string]string)
 	for _, imp := range node.Imports {
@@ -415,20 +415,21 @@ func (p ProviderDescribe) String() {
 // parseProvider 解析 @provider 注解的语法
 //
 // 支持的语法格式：
-//   @provider                    - 基本格式
-//   @provider(job)              - 指定模式
-//   @provider(job):except       - 排除模式
-//   @provider:except           - 排除模式（无模式）
-//   @provider:only             - 仅包含模式
-//   @provider returnType         - 指定返回类型
-//   @provider returnType group   - 指定返回类型和分组
-//   @provider(job) returnType group - 完整格式
+//
+//	@provider                    - 基本格式
+//	@provider(job)              - 指定模式
+//	@provider(job):except       - 排除模式
+//	@provider:except           - 排除模式（无模式）
+//	@provider:only             - 仅包含模式
+//	@provider returnType         - 指定返回类型
+//	@provider returnType group   - 指定返回类型和分组
+//	@provider(job) returnType group - 完整格式
 //
 // 解析规则：
-//   1. 移除 "@provider" 前缀
-//   2. 处理模式（括号内的内容）
-//   3. 处理注入模式（:except 或 :only）
-//   4. 解析返回类型和分组（剩余部分）
+//  1. 移除 "@provider" 前缀
+//  2. 处理模式（括号内的内容）
+//  3. 处理注入模式（:except 或 :only）
+//  4. 解析返回类型和分组（剩余部分）
 //
 // 参数：
 //   - doc: @provider 注解字符串
@@ -437,13 +438,14 @@ func (p ProviderDescribe) String() {
 //   - ProviderDescribe: 解析后的注解信息
 //
 // 示例：
-//   输入: "@provider(job) contracts.Initial atom.GroupInitial"
-//   输出: ProviderDescribe{
-//       Mode: "job",
-//       ReturnType: "contracts.Initial",
-//       Group: "atom.GroupInitial",
-//       IsOnly: false
-//   }
+//
+//	输入: "@provider(job) contracts.Initial atom.GroupInitial"
+//	输出: ProviderDescribe{
+//	    Mode: "job",
+//	    ReturnType: "contracts.Initial",
+//	    Group: "atom.GroupInitial",
+//	    IsOnly: false
+//	}
 func parseProvider(doc string) ProviderDescribe {
 	result := ProviderDescribe{IsOnly: false}
 

@@ -17,11 +17,11 @@ type TemplateRenderer interface {
 
 // TemplateInfo provides metadata about the template
 type TemplateInfo struct {
-	Name       string
-	Version    string
-	Functions  []string
-	Options    []string
-	Size       int
+	Name      string
+	Version   string
+	Functions []string
+	Options   []string
+	Size      int
 }
 
 // RouteRenderer implements TemplateRenderer for route generation
@@ -108,8 +108,8 @@ func (r *RouteRenderer) Render(data RenderData) ([]byte, error) {
 	}
 
 	r.logger.WithFields(log.Fields{
-		"package_name":  data.PackageName,
-		"routes_count":  len(data.Routes),
+		"package_name":   data.PackageName,
+		"routes_count":   len(data.Routes),
 		"content_length": len(result),
 	}).Debug("Template rendered successfully")
 

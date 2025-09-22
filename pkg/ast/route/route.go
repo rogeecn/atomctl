@@ -12,7 +12,6 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-
 type RouteDefinition struct {
 	FilePath string
 	Path     string
@@ -80,24 +79,24 @@ func ParseFile(file string) []RouteDefinition {
 	imports := extractImports(node)
 
 	parser := &routeParser{
-		file:         file,
-		node:         node,
-		imports:      imports,
-		routes:       make(map[string]RouteDefinition),
-		actions:      make(map[string][]ActionDefinition),
-		usedImports:  make(map[string][]string),
+		file:        file,
+		node:        node,
+		imports:     imports,
+		routes:      make(map[string]RouteDefinition),
+		actions:     make(map[string][]ActionDefinition),
+		usedImports: make(map[string][]string),
 	}
 
 	return parser.parse()
 }
 
 type routeParser struct {
-	file         string
-	node         *ast.File
-	imports      map[string]string
-	routes       map[string]RouteDefinition
-	actions      map[string][]ActionDefinition
-	usedImports  map[string][]string
+	file        string
+	node        *ast.File
+	imports     map[string]string
+	routes      map[string]RouteDefinition
+	actions     map[string][]ActionDefinition
+	usedImports map[string][]string
 }
 
 func (p *routeParser) parse() []RouteDefinition {
@@ -127,8 +126,8 @@ func (p *routeParser) parseFunctionDeclarations() {
 
 func (p *routeParser) isValidFunctionDeclaration(decl *ast.FuncDecl, ok bool) bool {
 	return ok &&
-	       decl.Recv != nil &&
-	       decl.Doc != nil
+		decl.Recv != nil &&
+		decl.Doc != nil
 }
 
 func (p *routeParser) extractReceiverType(decl *ast.FuncDecl) string {
