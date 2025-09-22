@@ -13,11 +13,10 @@ import (
 )
 
 type RouteDefinition struct {
-	FilePath string
-	Path     string
-	Name     string
-	Imports  []string
-	Actions  []ActionDefinition
+	Path    string
+	Name    string
+	Imports []string
+	Actions []ActionDefinition
 }
 
 type ActionDefinition struct {
@@ -137,9 +136,9 @@ func (p *routeParser) extractReceiverType(decl *ast.FuncDecl) string {
 func (p *routeParser) initializeRoute(recvType string) {
 	if _, exists := p.routes[recvType]; !exists {
 		p.routes[recvType] = RouteDefinition{
-			Name:     recvType,
-			FilePath: p.file,
-			Actions:  []ActionDefinition{},
+			Name:    recvType,
+			Path:    p.file,
+			Actions: []ActionDefinition{},
 		}
 		p.actions[recvType] = []ActionDefinition{}
 	}
@@ -257,12 +256,6 @@ func (p *routeParser) buildResult() []RouteDefinition {
 		if actions, exists := p.actions[k]; exists {
 			route.Actions = actions
 			route.Imports = p.getUniqueImports(k)
-
-			// Set the route path from the first action for backward compatibility
-			if len(actions) > 0 {
-				route.Path = actions[0].Route
-			}
-
 			items = append(items, route)
 		}
 	}

@@ -16,250 +16,123 @@ type RenderBuildOpts struct {
 }
 
 func buildRenderData(opts RenderBuildOpts) (RenderData, error) {
-	builder := &renderDataBuilder{
-		opts: opts,
-		data: RenderData{
-			PackageName:    opts.PackageName,
-			ProjectPackage: opts.ProjectPackage,
-			Imports:        []string{},
-			Controllers:    []string{},
-			Routes:         make(map[string][]Router),
-			RouteGroups:    []string{},
-		},
-		imports:          []string{},
-		controllers:      []string{},
-		needsFieldImport: false,
+	rd := RenderData{
+		PackageName:    opts.PackageName,
+		ProjectPackage: opts.ProjectPackage,
+		Imports:        []string{},
+		Controllers:    []string{},
+		Routes:         make(map[string][]Router),
+		RouteGroups:    []string{},
 	}
 
-	return builder.build()
-}
+	imports := []string{}
+	controllers := []string{}
 
-type renderDataBuilder struct {
-	opts             RenderBuildOpts
-	data             RenderData
-	imports          []string
-	controllers      []string
-	needsFieldImport bool
-}
+	for _, route := range opts.Routes {
+		imports = append(imports, route.Imports...)
+		controllers = append(controllers, fmt.Sprintf("%s *%s", strcase.ToLowerCamel(route.Name), route.Name))
 
-func (b *renderDataBuilder) build() (RenderData, error) {
-	b.processRoutes()
-	b.addRequiredImports()
-	b.dedupeAndSortImports()
-	b.dedupeAndSortControllers()
-	b.sortRouteGroups()
+		for _, action := range route.Actions {
+			funcName := fmt.Sprintf("Func%d", len(action.Params))
+			if action.HasData {
+				funcName = "Data" + funcName
+			}
 
-	return b.data, nil
-}
+			params := lo.FilterMap(action.Params, func(item ParamDefinition, _ int) (string, bool) {
+				tok := buildParamToken(item)
+				if tok == "" {
+					return "", false
+				}
+				return tok, true
+			})
 
-func (b *renderDataBuilder) processRoutes() {
-	for _, route := range b.opts.Routes {
-		b.collectRouteMetadata(route)
-		b.buildRouteActions(route)
-	}
-}
-
-func (b *renderDataBuilder) collectRouteMetadata(route RouteDefinition) {
-	b.imports = append(b.imports, route.Imports...)
-	b.controllers = append(b.controllers, fmt.Sprintf("%s *%s", strcase.ToLowerCamel(route.Name), route.Name))
-}
-
-func (b *renderDataBuilder) buildRouteActions(route RouteDefinition) {
-	for _, action := range route.Actions {
-		router := b.buildRouter(route, action)
-		b.data.Routes[route.Name] = append(b.data.Routes[route.Name], router)
-	}
-}
-
-func (b *renderDataBuilder) buildRouter(route RouteDefinition, action ActionDefinition) Router {
-	funcName := b.generateFunctionName(action)
-	params := b.buildParameters(action.Params)
-
-	return Router{
-		Method:     strcase.ToCamel(action.Method),
-		Route:      action.Route,
-		Controller: strcase.ToLowerCamel(route.Name),
-		Action:     action.Name,
-		Func:       funcName,
-		Params:     params,
-	}
-}
-
-func (b *renderDataBuilder) generateFunctionName(action ActionDefinition) string {
-	funcName := fmt.Sprintf("Func%d", len(action.Params))
-	if action.HasData {
-		funcName = "Data" + funcName
-	}
-	return funcName
-}
-
-func (b *renderDataBuilder) buildParameters(params []ParamDefinition) []string {
-	return lo.FilterMap(params, func(item ParamDefinition, _ int) (string, bool) {
-		token := buildParamToken(item)
-		if token == "" {
-			return "", false
+			rd.Routes[route.Name] = append(rd.Routes[route.Name], Router{
+				Method:     strcase.ToCamel(action.Method),
+				Route:      action.Route,
+				Controller: strcase.ToLowerCamel(route.Name),
+				Action:     action.Name,
+				Func:       funcName,
+				Params:     params,
+			})
 		}
-		return token, true
-	})
-}
-
-func (b *renderDataBuilder) addRequiredImports() {
-	// New Model interface doesn't require field import
-}
-
-func (b *renderDataBuilder) dedupeAndSortImports() {
-	b.data.Imports = lo.Uniq(b.imports)
-	sort.Strings(b.data.Imports)
-}
-
-func (b *renderDataBuilder) dedupeAndSortControllers() {
-	b.data.Controllers = lo.Uniq(b.controllers)
-	sort.Strings(b.data.Controllers)
-}
-
-func (b *renderDataBuilder) sortRouteGroups() {
-	// Collect route groups
-	for k := range b.data.Routes {
-		b.data.RouteGroups = append(b.data.RouteGroups, k)
 	}
-	sort.Strings(b.data.RouteGroups)
 
-	// Sort routes within each group
-	for _, groupName := range b.data.RouteGroups {
-		items := b.data.Routes[groupName]
-		b.sortRouteItems(items)
-		b.data.Routes[groupName] = items
+	// de-dup and sort imports/controllers for stable output
+	rd.Imports = lo.Uniq(imports)
+	sort.Strings(rd.Imports)
+	rd.Controllers = lo.Uniq(controllers)
+	sort.Strings(rd.Controllers)
+
+	// stable order for route groups and entries
+	for k := range rd.Routes {
+		rd.RouteGroups = append(rd.RouteGroups, k)
 	}
-}
+	sort.Strings(rd.RouteGroups)
+	for _, k := range rd.RouteGroups {
+		items := rd.Routes[k]
+		sort.Slice(items, func(i, j int) bool {
+			if items[i].Method != items[j].Method {
+				return items[i].Method < items[j].Method
+			}
+			if items[i].Route != items[j].Route {
+				return items[i].Route < items[j].Route
+			}
+			return items[i].Action < items[j].Action
+		})
+		rd.Routes[k] = items
+	}
 
-func (b *renderDataBuilder) sortRouteItems(items []Router) {
-	sort.Slice(items, func(i, j int) bool {
-		if items[i].Method != items[j].Method {
-			return items[i].Method < items[j].Method
-		}
-		if items[i].Route != items[j].Route {
-			return items[i].Route < items[j].Route
-		}
-		return items[i].Action < items[j].Action
-	})
+	return rd, nil
 }
 
 func buildParamToken(item ParamDefinition) string {
-	key := item.getKey()
-	builder := &paramTokenBuilder{item: item, key: key}
-	return builder.build()
-}
-
-func (item ParamDefinition) getKey() string {
+	key := item.Name
 	if item.Key != "" {
-		return item.Key
+		key = item.Key
 	}
-	return item.Name
-}
 
-type paramTokenBuilder struct {
-	item ParamDefinition
-	key  string
-}
-
-func (b *paramTokenBuilder) build() string {
-	switch b.item.Position {
+	switch item.Position {
 	case PositionQuery:
-		return b.buildQueryParam()
+		return fmt.Sprintf(`Query%s[%s]("%s")`, scalarSuffix(item.Type), item.Type, key)
 	case PositionHeader:
-		return b.buildHeaderParam()
+		return fmt.Sprintf(`Header[%s]("%s")`, item.Type, key)
 	case PositionFile:
-		return b.buildFileParam()
+		return fmt.Sprintf(`File[multipart.FileHeader]("%s")`, key)
 	case PositionCookie:
-		return b.buildCookieParam()
-	case PositionBody:
-		return b.buildBodyParam()
-	case PositionPath:
-		return b.buildPathParam()
-	case PositionLocal:
-		return b.buildLocalParam()
-	default:
-		return ""
-	}
-}
-
-func (b *paramTokenBuilder) buildQueryParam() string {
-	return fmt.Sprintf(`Query%s[%s]("%s")`, scalarSuffix(b.item.Type), b.item.Type, b.key)
-}
-
-func (b *paramTokenBuilder) buildHeaderParam() string {
-	return fmt.Sprintf(`Header[%s]("%s")`, b.item.Type, b.key)
-}
-
-func (b *paramTokenBuilder) buildFileParam() string {
-	return fmt.Sprintf(`File[multipart.FileHeader]("%s")`, b.key)
-}
-
-func (b *paramTokenBuilder) buildCookieParam() string {
-	if b.item.Type == "string" {
-		return fmt.Sprintf(`CookieParam("%s")`, b.key)
-	}
-	return fmt.Sprintf(`Cookie[%s]("%s")`, b.item.Type, b.key)
-}
-
-func (b *paramTokenBuilder) buildBodyParam() string {
-	return fmt.Sprintf(`Body[%s]("%s")`, b.item.Type, b.key)
-}
-
-func (b *paramTokenBuilder) buildPathParam() string {
-	if b.item.Model != "" {
-		return b.buildModelLookupPath()
-	}
-	return fmt.Sprintf(`Path%s[%s]("%s")`, scalarSuffix(b.item.Type), b.item.Type, b.key)
-}
-
-func (b *paramTokenBuilder) buildModelLookupPath() string {
-	field, _ := b.parseModelField()
-
-	// Use the simplified Model interface without closures
-	// This provides consistency with other parameter binding methods
-	if field == "id" && b.key == "id" {
-		// Use the simplest form for default id field
-		return fmt.Sprintf(`ModelById[%s]("%s")`, b.item.Type, b.key)
-	} else if field == b.key {
-		// Field and path key are the same
-		return fmt.Sprintf(`Model[%s]("%s")`, b.item.Type, field)
-	} else {
-		// Different field and path key
-		return fmt.Sprintf(`Model[%s]("%s", "%s")`, b.item.Type, field, b.key)
-	}
-}
-
-// getModelName extracts the model name from the type, preserving package path
-func (b *paramTokenBuilder) getModelName() string {
-	// Remove the pointer star if present
-	typeName := strings.TrimPrefix(b.item.Type, "*")
-
-	// Keep the full package path for the query object
-	// e.g., "models.User" becomes "models.UserQuery"
-	return typeName
-}
-
-func (b *paramTokenBuilder) parseModelField() (string, string) {
-	field := "id"
-	fieldType := "int"
-
-	if strings.Contains(b.item.Model, ":") {
-		parts := strings.SplitN(b.item.Model, ":", 2)
-		if len(parts) == 2 {
-			field = parts[0]
-			fieldType = parts[1]
+		if item.Type == "string" {
+			return fmt.Sprintf(`CookieParam("%s")`, key)
 		}
-	} else {
-		field = b.item.Model
+		return fmt.Sprintf(`Cookie[%s]("%s")`, item.Type, key)
+	case PositionBody:
+		return fmt.Sprintf(`Body[%s]("%s")`, item.Type, key)
+	case PositionPath:
+		// If a model field is specified, generate a model-lookup binder from path value.
+		if item.Model != "" {
+			field := "id"
+			fieldType := "int"
+			if strings.Contains(item.Model, ":") {
+				parts := strings.SplitN(item.Model, ":", 2)
+				if len(parts) == 2 {
+					field = parts[0]
+					fieldType = parts[1]
+				}
+			} else {
+				field = item.Model
+			}
+
+			tpl := `func(ctx fiber.Ctx) (*%s, error) {
+			v := fiber.Params[%s](ctx, "%s")
+			return %sQuery.WithContext(ctx).Where(field.NewUnsafeFieldRaw("%s = ?", v)).First()
+		}`
+			return fmt.Sprintf(tpl, item.Type, fieldType, key, item.Type, field)
+		}
+		return fmt.Sprintf(`Path%s[%s]("%s")`, scalarSuffix(item.Type), item.Type, key)
+	case PositionLocal:
+		return fmt.Sprintf(`Local[%s]("%s")`, item.Type, key)
 	}
-
-	return field, fieldType
+	return ""
 }
 
-func (b *paramTokenBuilder) buildLocalParam() string {
-	return fmt.Sprintf(`Local[%s]("%s")`, b.item.Type, b.key)
-}
 
 func scalarSuffix(t string) string {
 	switch t {
