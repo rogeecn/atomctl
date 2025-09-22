@@ -17,65 +17,240 @@ import (
 	"go.ipao.vip/atomctl/v2/pkg/utils/gomod"
 )
 
-// Parser defines the interface for parsing provider annotations
+// Parser 定义了解析器接口，为 Provider 注解解析提供统一的抽象层
+//
+// 接口设计原则：
+// ┌─────────────────────────────────────────────────────────────┐
+// │                    Parser Interface                        │
+// ├─────────────────────────────────────────────────────────────┤
+// │  核心功能：                                               │
+// │  - ParseFile: 单文件解析                                   │
+// │  - ParseDir: 目录解析                                      │
+// │  - ParseString: 字符串解析                                 │
+// │  配置管理：                                               │
+// │  - SetConfig/GetConfig: 配置设置和获取                    │
+// │  - GetContext: 获取解析上下文                             │
+// └─────────────────────────────────────────────────────────────┘
+//
+// 设计理念：
+//   - 接口隔离：只包含必要的方法，避免过度设计
+//   - 扩展性：支持不同的解析器实现
+//   - 配置化：支持运行时配置修改
+//   - 上下文感知：提供解析过程的上下文信息
 type Parser interface {
-	// ParseFile parses a single Go file and returns providers found
+	// ParseFile 解析单个 Go 文件并返回发现的 Provider 列表
+	//
+	// 参数：
+	//   - filePath: Go 源文件路径
+	//
+	// 返回值：
+	//   - []Provider: 解析到的 Provider 列表
+	//   - error: 解析过程中的错误（如文件不存在、语法错误等）
+	//
+	// 使用场景：
+	//   - 需要解析单个文件的 Provider 注解
+	//   - 精确控制要解析的文件
+	//   - 集成到构建工具中
 	ParseFile(filePath string) ([]Provider, error)
 
-	// ParseDir parses all Go files in a directory and returns providers found
+	// ParseDir 解析目录中的所有 Go 文件并返回发现的 Provider 列表
+	//
+	// 执行流程：
+	//   1. 遍历目录中的所有文件
+	//   2. 过滤出 Go 源文件（.go 后缀）
+	//   3. 跳过测试文件（_test.go）和隐藏目录
+	//   4. 对每个文件调用 ParseFile
+	//   5. 汇总所有文件的 Provider 结果
+	//
+	// 参数：
+	//   - dirPath: 要解析的目录路径
+	//
+	// 返回值：
+	//   - []Provider: 目录中所有文件的 Provider 列表
+	//   - error: 目录遍历或解析过程中的错误
+	//
+	// 使用场景：
+	//   - 批量解析整个项目的 Provider
+	//   - 代码生成工具的输入
+	//   - 项目分析工具
 	ParseDir(dirPath string) ([]Provider, error)
 
-	// ParseString parses Go code from a string and returns providers found
+	// ParseString 从字符串解析 Go 代码并返回发现的 Provider 列表
+	//
+	// 参数：
+	//   - code: Go 源代码字符串
+	//
+	// 返回值：
+	//   - []Provider: 解析到的 Provider 列表
+	//   - error: 解析过程中的错误
+	//
+	// 使用场景：
+	//   - 动态生成的代码解析
+	//   - IDE 插件的实时分析
+	//   - 单元测试中的模拟数据
 	ParseString(code string) ([]Provider, error)
 
-	// SetConfig sets the parser configuration
+	// SetConfig 设置解析器配置
+	//
+	// 支持的配置项：
+	//   - StrictMode: 严格模式，启用更严格的验证
+	//   - CacheEnabled: 启用解析结果缓存
+	//   - SourceLocations: 包含源码位置信息
+	//   - Mode: 解析模式（带注释、不带注释等）
+	//
+	// 参数：
+	//   - config: 新的解析器配置
+	//
+	// 使用场景：
+	//   - 根据不同环境调整解析行为
+	//   - 性能优化时启用缓存
+	//   - 调试时启用更详细的信息
 	SetConfig(config *ParserConfig)
 
-	// GetConfig returns the current parser configuration
+	// GetConfig 获取当前的解析器配置
+	//
+	// 返回值：
+	//   - *ParserConfig: 当前配置的副本
+	//
+	// 使用场景：
+	//   - 检查当前配置状态
+	//   - 保存和恢复配置
+	//   - 调试和诊断
 	GetConfig() *ParserConfig
 
-	// GetContext returns the current parser context
+	// GetContext 获取当前的解析器上下文
+	//
+	// 返回值：
+	//   - *ParserContext: 包含解析过程中的状态信息
+	//     - FilesProcessed: 已处理的文件数量
+	//     - FilesSkipped: 跳过的文件数量
+	//     - ProvidersFound: 发现的 Provider 数量
+	//     - Cache: 缓存的解析结果
+	//     - Imports: 导入信息映射
+	//
+	// 使用场景：
+	//   - 监控解析进度
+	//   - 性能分析
+	//   - 调试解析问题
 	GetContext() *ParserContext
 }
 
-// GoParser implements the Parser interface for Go source files
+// GoParser Parser 接口的具体实现，专门用于解析 Go 源文件中的 Provider 注解
+//
+// 架构设计：
+// ┌─────────────────────────────────────────────────────────────┐
+// │                     GoParser                                │
+// ├─────────────────────────────────────────────────────────────┤
+// │  config:    *ParserConfig    - 解析器配置                  │
+// │  context:   *ParserContext   - 解析上下文                  │
+// │  mu:        sync.RWMutex    - 读写锁，保证并发安全        │
+// └─────────────────────────────────────────────────────────────┘
+//
+// 核心特性：
+//   - 线程安全：使用读写锁保护共享状态
+//   - 缓存支持：可选的解析结果缓存
+//   - 并发处理：支持多文件并发解析
+//   - 错误恢复：单个文件解析失败不影响其他文件
+//
+// 适用场景：
+//   - 大型项目的批量 Provider 解析
+//   - 需要高性能的代码生成工具
+//   - 需要线程安全的解析环境
 type GoParser struct {
-	config  *ParserConfig
-	context *ParserContext
-	mu      sync.RWMutex
+	config  *ParserConfig  // 解析器配置，控制解析行为
+	context *ParserContext // 解析上下文，包含解析状态信息
+	mu      sync.RWMutex  // 读写锁，保护 config 和 context 的并发访问
 }
 
-// NewGoParser creates a new GoParser with default configuration
+// NewGoParser 创建一个使用默认配置的 GoParser 实例
+//
+// 初始化流程：
+// ┌─────────────────────────────────────────────────────────────┐
+// │                  NewGoParser()                              │
+// ├─────────────────────────────────────────────────────────────┤
+// │  1. 创建默认配置：NewParserConfig()                        │
+// │  2. 创建解析上下文：NewParserContext()                     │
+// │  3. 初始化文件集：token.NewFileSet()                       │
+// │  4. 构建解析器实例：&GoParser{...}                         │
+// └─────────────────────────────────────────────────────────────┘
+//
+// 默认配置特点：
+//   - 解析模式：带注释解析 (parser.ParseComments)
+//   - 缓存：默认关闭
+//   - 源码位置：默认关闭
+//   - 严格模式：默认关闭
+//
+// 返回值：
+//   - *GoParser: 配置好的解析器实例，可以直接使用
+//
+// 使用示例：
+//   parser := NewGoParser()
+//   providers, err := parser.ParseFile("user_service.go")
 func NewGoParser() *GoParser {
+	// 创建默认配置
 	config := NewParserConfig()
+
+	// 创建解析上下文
 	context := NewParserContext(config)
 
-	// Initialize file set if not provided
+	// 初始化文件集（用于记录源码位置信息）
 	if config.FileSet == nil {
 		config.FileSet = token.NewFileSet()
 		context.FileSet = config.FileSet
 	}
 
+	// 构建并返回解析器实例
 	return &GoParser{
 		config:  config,
 		context: context,
 	}
 }
 
-// NewGoParserWithConfig creates a new GoParser with custom configuration
+// NewGoParserWithConfig 使用自定义配置创建 GoParser 实例
+//
+// 设计目标：
+//   - 提供灵活的配置选项
+//   - 支持不同的使用场景（调试、生产、测试）
+//   - 保持向后兼容性
+//
+// 参数处理：
+//   - 如果 config 为 nil，自动使用默认配置
+//   - 如果 config.FileSet 为 nil，自动创建新的文件集
+//
+// 自定义配置场景：
+//   - 调试模式：启用详细日志和源码位置
+//   - 性能优化：启用缓存和并发解析
+//   - 严格验证：启用严格模式进行代码质量检查
+//
+// 参数：
+//   - config: 自定义的解析器配置（可为 nil）
+//
+// 返回值：
+//   - *GoParser: 使用指定配置的解析器实例
+//
+// 使用示例：
+//   config := &ParserConfig{
+//       CacheEnabled: true,
+//       StrictMode: true,
+//       SourceLocations: true,
+//   }
+//   parser := NewGoParserWithConfig(config)
 func NewGoParserWithConfig(config *ParserConfig) *GoParser {
+	// 处理 nil 配置，保持向后兼容
 	if config == nil {
 		return NewGoParser()
 	}
 
+	// 使用自定义配置创建解析上下文
 	context := NewParserContext(config)
 
-	// Initialize file set if not provided
+	// 初始化文件集（如果未提供）
 	if config.FileSet == nil {
 		config.FileSet = token.NewFileSet()
 		context.FileSet = config.FileSet
 	}
 
+	// 构建并返回解析器实例
 	return &GoParser{
 		config:  config,
 		context: context,

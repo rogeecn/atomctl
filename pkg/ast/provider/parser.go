@@ -12,25 +12,54 @@ import (
 	"go.ipao.vip/atomctl/v2/pkg/utils/gomod"
 )
 
-// MainParser represents the main parser that uses extracted components
+// MainParser 重构后的主解析器，采用组合模式协调各个子组件完成 Provider 解析
+//
+// 架构设计：
+// ┌─────────────────────────────────────────────────────────────┐
+// │                    MainParser (协调器)                        │
+// ├─────────────────────────────────────────────────────────────┤
+// │  commentParser  │  importResolver  │  astWalker               │
+// │  (注释解析器)   │   (导入解析器)   │  (AST遍历器)            │
+// ├─────────────────────────────────────────────────────────────┤
+// │  builder        │  validator      │  config                 │
+// │  (构建器)      │   (验证器)      │  (配置管理)             │
+// └─────────────────────────────────────────────────────────────┘
+//
+// 执行流程：
+// 1. 文件过滤 → 2. AST解析 → 3. 导入处理 → 4. 注解发现 → 5. Provider构建 → 6. 验证
 type MainParser struct {
-	commentParser  *CommentParser
-	importResolver *ImportResolver
-	astWalker      *ASTWalker
-	builder        *ProviderBuilder
-	validator      *GoValidator
-	config         *ParserConfig
+	commentParser  *CommentParser  // 负责解析 @provider 注解
+	importResolver *ImportResolver  // 负责处理 Go 文件的导入信息
+	astWalker      *ASTWalker       // 负责遍历 AST 发现 Provider 注解
+	builder        *ProviderBuilder  // 负责从 AST 节点构建 Provider 对象
+	validator      *GoValidator     // 负责验证 Provider 配置的正确性
+	config         *ParserConfig    // 负责解析器配置管理
 }
 
-// NewParser creates a new MainParser with default configuration
+// NewParser 创建一个使用默认配置的 MainParser 实例
+//
+// 初始化流程：
+// ┌─────────────────────────────────────────────────────────────┐
+// │                    NewParser()                              │
+// ├─────────────────────────────────────────────────────────────┤
+// │  创建各个子组件实例：                                        │
+// │  - CommentParser: 解析 @provider 注释                     │
+// │  - ImportResolver: 处理导入依赖                            │
+// │  - ASTWalker: 遍历 AST 发现结构体                          │
+// │  - ProviderBuilder: 构建 Provider 对象                    │
+// │  - GoValidator: 验证 Provider 配置                        │
+// │  - ParserConfig: 默认配置                                  │
+// └─────────────────────────────────────────────────────────────┘
+//
+// 返回值：配置好的 MainParser 实例，可直接调用 ParseFile() 或 ParseDir()
 func NewParser() *MainParser {
 	return &MainParser{
-		commentParser:  NewCommentParser(),
-		importResolver: NewImportResolver(),
-		astWalker:      NewASTWalker(),
-		builder:        NewProviderBuilder(),
-		validator:      NewGoValidator(),
-		config:         NewParserConfig(),
+		commentParser:  NewCommentParser(),  // 初始化注释解析器
+		importResolver: NewImportResolver(), // 初始化导入解析器
+		astWalker:      NewASTWalker(),      // 初始化 AST 遍历器
+		builder:        NewProviderBuilder(), // 初始化 Provider 构建器
+		validator:      NewGoValidator(),     // 初始化验证器
+		config:         NewParserConfig(),    // 初始化默认配置
 	}
 }
 
@@ -59,76 +88,150 @@ func NewParserWithConfig(config *ParserConfig) *MainParser {
 	}
 }
 
-// Parse parses a Go source file and returns discovered providers
-// This is the refactored version of the original Parse function
+// ParseRefactored 重构后的单文件解析函数 - 替代原有的 Parse 函数
+//
+// 执行流程：
+// ┌─────────────────────────────────────────────────────────────┐
+// │                 ParseRefactored(source)                     │
+// ├─────────────────────────────────────────────────────────────┤
+// │  1. 创建解析器实例：NewParser()                            │
+// │  2. 调用文件解析：parser.ParseFile(source)                   │
+// │  3. 错误处理：如果解析失败，记录错误并返回空切片            │
+// │  4. 返回结果：返回发现的 Provider 切片                    │
+// └─────────────────────────────────────────────────────────────┘
+//
+// 参数：
+//   - source: Go 源文件路径
+//
+// 返回值：
+//   - []Provider: 解析到的 Provider 列表（如果失败则为空）
+//
+// 设计原则：
+//   - 简化接口：提供便捷的单函数调用方式
+//   - 错误处理：内部处理错误，避免调用者需要处理复杂错误
+//   - 兼容性：保持与原有 Parse 函数相同的签名，方便迁移
 func ParseRefactored(source string) []Provider {
+	// 创建解析器实例
 	parser := NewParser()
+
+	// 调用详细的文件解析方法
 	providers, err := parser.ParseFile(source)
+
+	// 错误处理：记录错误并返回空结果
 	if err != nil {
 		log.Error("Parse error: ", err)
 		return []Provider{}
 	}
+
+	// 返回解析结果
 	return providers
 }
 
-// ParseFile parses a single Go source file and returns discovered providers
+// ParseFile 单文件解析的核心方法 - 详细解析 Go 源文件中的 Provider 注解
+//
+// 执行流程图：
+// ┌─────────────────────────────────────────────────────────────┐
+// │                 ParseFile(source)                           │
+// ├─────────────────────────────────────────────────────────────┤
+// │  1. 文件过滤：shouldProcessFile()                          │
+// │  2. AST解析：parser.ParseFile()                            │
+// │  3. 创建上下文：NewParserContext()                         │
+// │  4. 导入解析：ResolveFileImports()                         │
+// │  5. 构建上下文：BuilderContext{...}                        │
+// │  6. 注解发现：ProviderDiscoveryVisitor                     │
+// │  7. AST遍历：astWalker.WalkFile()                          │
+// │  8. Provider构建：buildProviderFromDiscovery()             │
+// │  9. 验证检查：validator.Validate()                        │
+// │ 10. 日志记录：记录警告和错误                               │
+// └─────────────────────────────────────────────────────────────┘
+//
+// 详细步骤说明：
+// 步骤 1-2：文件预处理
+//   - 检查文件是否应该被处理（跳过测试文件和生成文件）
+//   - 使用 Go 标准库解析文件为 AST
+//
+// 步骤 3-5：上下文准备
+//   - 创建解析器上下文，包含工作目录和模块名
+//   - 解析文件的所有导入信息，建立包名映射
+//   - 创建构建器上下文，包含解析所需的所有信息
+//
+// 步骤 6-7：注解发现
+//   - 创建专门的访问器来发现 @provider 注解
+//   - 遍历 AST，收集所有带有 @provider 注解的结构体
+//
+// 步骤 8-9：Provider 构建
+//   - 对每个发现的注解，构建完整的 Provider 对象
+//   - 如果启用严格模式，验证 Provider 配置的正确性
+//
+// 步骤 10：结果处理
+//   - 记录解析过程中的所有警告和错误
+//   - 返回构建成功的 Provider 列表
 func (p *MainParser) ParseFile(source string) ([]Provider, error) {
-	// Check if file should be processed
+	// === 步骤 1：文件过滤 ===
+	// 检查文件是否应该被处理，跳过测试文件和生成文件
 	if !p.shouldProcessFile(source) {
 		return []Provider{}, nil
 	}
 
-	// Parse the AST
+	// === 步骤 2：AST 解析 ===
+	// 使用 Go 标准库将源文件解析为抽象语法树
 	fset := token.NewFileSet()
 	node, err := parser.ParseFile(fset, source, nil, parser.ParseComments)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse file %s: %w", source, err)
 	}
 
-	// Create parser context
+	// === 步骤 3：创建解析器上下文 ===
+	// 创建包含工作目录和模块信息的上下文
 	context := NewParserContext(p.config)
 	context.WorkingDir = filepath.Dir(source)
 	context.ModuleName = gomod.GetModuleName()
 
-	// Resolve imports
+	// === 步骤 4：导入解析 ===
+	// 解析文件的所有导入信息，建立包名到路径的映射
 	importContext, err := p.importResolver.ResolveFileImports(node, source)
 	if err != nil {
 		return nil, fmt.Errorf("failed to resolve imports: %w", err)
 	}
 
-	// Create builder context
+	// === 步骤 5：创建构建器上下文 ===
+	// 创建包含解析所需所有信息的构建器上下文
 	builderContext := &BuilderContext{
-		FilePath:       source,
-		PackageName:    node.Name.Name,
-		ImportContext:  importContext,
-		ASTFile:        node,
-		ProcessedTypes: make(map[string]bool),
-		Errors:         make([]error, 0),
-		Warnings:       make([]string, 0),
+		FilePath:       source,               // 当前文件路径
+		PackageName:    node.Name.Name,       // 包名
+		ImportContext:  importContext,        // 导入信息上下文
+		ASTFile:        node,                 // AST 节点
+		ProcessedTypes: make(map[string]bool), // 已处理的类型，避免重复
+		Errors:         make([]error, 0),      // 错误列表
+		Warnings:       make([]string, 0),     // 警告列表
 	}
 
-	// Use AST walker to find provider annotations
+	// === 步骤 6：创建注解发现访问器 ===
+	// 创建专门的访问器来发现 @provider 注解
 	visitor := NewProviderDiscoveryVisitor(p.commentParser)
 	p.astWalker.AddVisitor(visitor)
 
-	// Walk the AST
+	// === 步骤 7：AST 遍历 ===
+	// 遍历 AST，发现所有带有 @provider 注解的结构体
 	if err := p.astWalker.WalkFile(source); err != nil {
 		return nil, fmt.Errorf("failed to walk AST: %w", err)
 	}
 
-	// Build providers from discovered annotations
+	// === 步骤 8：Provider 构建和验证 ===
+	// 初始化结果列表
 	providers := make([]Provider, 0)
 	discoveredProviders := visitor.GetProviders()
 
+	// 对每个发现的注解构建 Provider 对象
 	for _, discoveredProvider := range discoveredProviders {
-		// Find the corresponding AST node for this provider
+		// 查找对应的 AST 节点
 		provider, err := p.buildProviderFromDiscovery(discoveredProvider, node, builderContext)
 		if err != nil {
 			context.AddError(source, 0, 0, fmt.Sprintf("failed to build provider %s: %v", discoveredProvider.StructName, err), "error")
 			continue
 		}
 
-		// Validate the provider if enabled
+		// 如果启用严格模式，验证 Provider 配置
 		if p.config.StrictMode {
 			if err := p.validator.Validate(&provider); err != nil {
 				context.AddError(source, 0, 0, fmt.Sprintf("validation failed for provider %s: %v", provider.StructName, err), "error")
@@ -136,10 +239,12 @@ func (p *MainParser) ParseFile(source string) ([]Provider, error) {
 			}
 		}
 
+		// 添加到结果列表
 		providers = append(providers, provider)
 	}
 
-	// Log any warnings or errors
+	// === 步骤 9：日志记录 ===
+	// 记录解析过程中的所有警告和错误
 	for _, parseErr := range context.GetErrors("warning") {
 		log.Warnf("Warning while parsing %s: %s", source, parseErr.Message)
 	}
@@ -147,6 +252,7 @@ func (p *MainParser) ParseFile(source string) ([]Provider, error) {
 		log.Errorf("Error while parsing %s: %s", source, parseErr.Message)
 	}
 
+	// 返回构建成功的 Provider 列表
 	return providers, nil
 }
 

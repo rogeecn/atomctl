@@ -14,6 +14,23 @@ import (
 	"go.ipao.vip/atomctl/v2/pkg/utils/gomod"
 )
 
+// ================================================================================================
+// 原有的 Parse 函数 - 保持向后兼容性
+// ================================================================================================
+//
+// 注意：这是重构前的原始解析函数，现在保持向后兼容性。
+// 新代码应该使用：
+//   - ParseRefactored() - 简化的单文件解析
+//   - NewParser().ParseFile() - 完整的解析功能
+//   - NewGoParser().ParseDir() - 目录解析功能
+//
+// 原始函数的缺点：
+//   - 单体设计：所有逻辑集中在一个函数中
+//   - 难以测试：无法单独测试各个功能模块
+//   - 扩展困难：添加新功能需要修改核心函数
+//   - 错误处理简单：缺乏详细的错误信息和上下文
+// ================================================================================================
+
 func getTypePkgName(typ string) string {
 	if strings.Contains(typ, ".") {
 		return strings.Split(typ, ".")[0]
@@ -48,22 +65,65 @@ func atomPackage(suffix string) string {
 	return root
 }
 
+// Parse 原始的 Provider 解析函数 - 保持向后兼容性
+//
+// ⚠️  警告：这是一个遗留函数，建议使用重构后的版本：
+//   - 简单使用：ParseRefactored(source)
+//   - 完整功能：NewParser().ParseFile(source)
+//   - 目录解析：NewGoParser().ParseDir(dir)
+//
+// 执行流程（原始版本）：
+// ┌─────────────────────────────────────────────────────────────┐
+// │                      Parse(source)                          │
+// ├─────────────────────────────────────────────────────────────┤
+// │  1. 文件过滤：跳过测试文件和生成文件                      │
+// │  2. AST解析：使用标准库解析 Go 文件                       │
+// │  3. 导入处理：构建导入映射表                              │
+// │  4. 遍历声明：查找带有 @provider 注解的结构体               │
+// │  5. 注解解析：解析 @provider 语法                         │
+// │  6. 字段处理：处理结构体字段和注入参数                     │
+// │  7. 模式应用：根据模式应用特定逻辑                         │
+// │  8. 结果收集：收集所有有效的 Provider                     │
+// └─────────────────────────────────────────────────────────────┘
+//
+// 参数：
+//   - source: Go 源文件路径
+//
+// 返回值：
+//   - []Provider: 解析到的 Provider 列表（解析失败时为 nil）
+//
+// 缺点：
+//   - 错误处理不完善：解析失败时返回 nil，丢失错误信息
+//   - 单体设计：所有逻辑集中在一个函数中，难以维护
+//   - 缺乏扩展性：添加新功能需要修改核心函数
+//   - 性能问题：没有缓存和优化机制
+//
+// 兼容性说明：
+//   - 保持原有接口不变
+//   - 现有调用代码可以继续工作
+//   - 建议逐步迁移到新版本
 func Parse(source string) []Provider {
+	// === 步骤 1：文件过滤 ===
+	// 跳过测试文件（_test.go 后缀）
 	if strings.HasSuffix(source, "_test.go") {
 		return []Provider{}
 	}
 
+	// 跳过生成的 provider 文件（避免循环解析）
 	if strings.HasSuffix(source, "/provider.gen.go") {
 		return []Provider{}
 	}
 
+	// 初始化结果列表
 	providers := []Provider{}
 
+	// === 步骤 2：AST 解析 ===
+	// 使用 Go 标准库将源文件解析为抽象语法树
 	fset := token.NewFileSet()
 	node, err := parser.ParseFile(fset, source, nil, parser.ParseComments)
 	if err != nil {
 		log.Error("ERR: ", err)
-		return nil
+		return nil  // 原始版本在错误时返回 nil
 	}
 	imports := make(map[string]string)
 	for _, imp := range node.Imports {
@@ -336,14 +396,38 @@ func (p ProviderDescribe) String() {
 	// log.Infof("[%s] %s => ONLY: %+v, EXCEPT: %+v, Type: %s, Group: %s", source, declType.Name.Name, onlyMode, exceptMode, provider.ReturnType, provider.ProviderGroup)
 }
 
-// @provider
-// @provider(job)
-// @provider(job):except
-// @provider:except
-// @provider:only
-// @provider returnType
-// @provider returnType group
-// @provider(job) returnType group
+// parseProvider 解析 @provider 注解的语法
+//
+// 支持的语法格式：
+//   @provider                    - 基本格式
+//   @provider(job)              - 指定模式
+//   @provider(job):except       - 排除模式
+//   @provider:except           - 排除模式（无模式）
+//   @provider:only             - 仅包含模式
+//   @provider returnType         - 指定返回类型
+//   @provider returnType group   - 指定返回类型和分组
+//   @provider(job) returnType group - 完整格式
+//
+// 解析规则：
+//   1. 移除 "@provider" 前缀
+//   2. 处理模式（括号内的内容）
+//   3. 处理注入模式（:except 或 :only）
+//   4. 解析返回类型和分组（剩余部分）
+//
+// 参数：
+//   - doc: @provider 注解字符串
+//
+// 返回值：
+//   - ProviderDescribe: 解析后的注解信息
+//
+// 示例：
+//   输入: "@provider(job) contracts.Initial atom.GroupInitial"
+//   输出: ProviderDescribe{
+//       Mode: "job",
+//       ReturnType: "contracts.Initial",
+//       Group: "atom.GroupInitial",
+//       IsOnly: false
+//   }
 func parseProvider(doc string) ProviderDescribe {
 	result := ProviderDescribe{IsOnly: false}
 
