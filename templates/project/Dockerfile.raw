@@ -1,17 +1,82 @@
-FROM docker.hub.ipao.vip/alpine:3.20
+# 多阶段构建 Dockerfile
+# 阶段 1: 构建应用
+FROM golang:1.22-alpine AS builder
 
-# Set timezone
-RUN apk add --no-cache tzdata && \
-    cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
+# 安装构建依赖
+RUN apk add --no-cache git ca-certificates tzdata
+
+# 设置工作目录
+WORKDIR /app
+
+# 复制 go mod 文件
+COPY go.mod go.sum ./
+
+# 设置 Go 代理
+ENV GOPROXY=https://goproxy.cn,direct
+ENV CGO_ENABLED=0
+ENV GOOS=linux
+ENV GOARCH=amd64
+
+# 下载依赖
+RUN go mod download
+
+# 复制源代码
+COPY . .
+
+# 构建应用
+RUN go build -a -installsuffix cgo -ldflags="-w -s" -o main .
+
+# 阶段 2: 构建前端（如果有）
+# 如果有前端构建，取消下面的注释
+# FROM node:18-alpine AS frontend-builder
+# WORKDIR /app
+# COPY frontend/package*.json ./
+# RUN npm ci --only=production
+# COPY frontend/ .
+# RUN npm run build
+
+# 阶段 3: 运行时镜像
+FROM alpine:3.20 AS runtime
+
+# 安装运行时依赖
+RUN apk add --no-cache ca-certificates tzdata curl
+
+# 设置时区
+RUN cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
     echo "Asia/Shanghai" > /etc/timezone && \
     apk del tzdata
 
-COPY backend/build/app /app/app
-COPY backend/config.toml /app/config.toml
-COPY frontend/dist /app/dist
+# 创建非 root 用户
+RUN addgroup -g 1000 appgroup && \
+    adduser -u 1000 -G appgroup -s /bin/sh -D appuser
 
+# 创建必要的目录
+RUN mkdir -p /app/config /app/logs /app/uploads && \
+    chown -R appuser:appgroup /app
+
+# 设置工作目录
 WORKDIR /app
 
-ENTRYPOINT  ["/app/app"]
+# 从构建阶段复制应用
+COPY --from=builder /app/main .
+COPY --chown=appuser:appgroup config.toml ./config/
 
-CMD [ "serve" ]
+# 如果有前端构建，取消下面的注释
+# COPY --from=frontend-builder /app/dist ./dist
+
+# 创建空目录供应用使用
+RUN mkdir -p /app/logs /app/uploads && \
+    chown -R appuser:appgroup /app
+
+# 切换到非 root 用户
+USER appuser
+
+# 健康检查
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8080/health || exit 1
+
+# 暴露端口
+EXPOSE 8080
+
+# 启动应用
+CMD ["./main", "serve"]

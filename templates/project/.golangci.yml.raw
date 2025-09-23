@@ -1,0 +1,294 @@
+# golangci-lint 配置文件
+# https://golangci-lint.run/usage/configuration/
+
+# 运行时配置
+run:
+  # 默认并行处理器数量
+  default-concurrency: 4
+
+  # 超时时间
+  timeout: 5m
+
+  # 退出代码
+  issues-exit-code: 1
+
+  # 测试包含的文件
+  tests: true
+
+  # 是否跳过文件
+  skip-files:
+    - "_test\\.go$"
+    - ".*\\.gen\\.go$"
+    - ".*\\.pb\\.go$"
+
+  # 是否跳过目录
+  skip-dirs:
+    - "vendor"
+    - "node_modules"
+    - ".git"
+    - "build"
+    - "dist"
+
+# 输出配置
+output:
+  # 输出格式
+  format: colored-line-number
+
+  # 打印已使用的 linter
+  print-issued-lines: true
+
+  # 打印 linter 名称
+  print-linter-name: true
+
+  # 唯一性检查
+  uniq-by-line: true
+
+# linter 启用配置
+linters-settings:
+  # 错误检查
+  errcheck:
+    # 检查类型断言
+    check-type-assertions: true
+    # 检查赋值
+    check-blank: true
+
+  # 代码复杂度
+  gocyclo:
+    # 最小复杂度
+    min-complexity: 15
+
+  # 函数参数和返回值
+  gocognit:
+    # 最小认知复杂度
+    min-complexity: 20
+
+  # 函数长度
+  funlen:
+    # 最大行数
+    lines: 60
+    # 最大语句数
+    statements: 40
+
+  # 代码行长度
+  lll:
+    # 最大行长度
+    line-length: 120
+
+  # 导入顺序
+  importas:
+    # 别名规则
+    no-unaliased: true
+    alias:
+      - pkg: "github.com/sirupsen/logrus"
+        alias: "logrus"
+      - pkg: "github.com/stretchr/testify/assert"
+        alias: "assert"
+      - pkg: "github.com/stretchr/testify/suite"
+        alias: "suite"
+
+  # 重复导入
+  dupl:
+    # 重复代码块的最小 token 数
+    threshold: 100
+
+  # 空值检查
+  nilerr:
+    # 检查返回 nil 的函数
+    check-type-assertions: true
+    check-blank: true
+
+  # 代码格式化
+  gofmt:
+    # 格式化简化
+    simplify: true
+
+  # 导入检查
+  goimports:
+    # 本地前缀
+    local-prefixes: "{{.ModuleName}}"
+
+  # 静态检查
+  staticcheck:
+    # 检查版本
+    go_version: "1.22"
+
+  # 结构体标签
+  structtag:
+    # 检查标签
+    required: []
+    # 是否允许空标签
+    allow-omit-latest: true
+
+  # 未使用的变量
+  unused:
+    # 检查字段
+    check-exported-fields: true
+
+  # 变量命名
+  varnamelen:
+    # 最小变量名长度
+    min-name-length: 2
+    # 检查参数
+    check-parameters: true
+    # 检查返回值
+    check-return: true
+    # 检查接收器
+    check-receiver: true
+    # 检查变量
+    check-variable: true
+    # 忽略名称
+    ignore-names:
+      - "ok"
+      - "err"
+      - "T"
+      - "i"
+      - "n"
+      - "v"
+    # 忽略类型
+    ignore-type-assert-ok: true
+    ignore-map-index-ok: true
+    ignore-chan-recv-ok: true
+    ignore-decls:
+      - "T any"
+      - "w http.ResponseWriter"
+      - "r *http.Request"
+
+# 启用的 linter
+linters:
+  enable:
+    # 错误检查
+    - errcheck
+    - errorlint
+    - goerr113
+
+    # 代码复杂度
+    - gocyclo
+    - gocognit
+    - funlen
+
+    # 代码风格
+    - gofmt
+    - goimports
+    - lll
+    - misspell
+    - whitespace
+
+    # 导入检查
+    - importas
+    - dupl
+
+    # 静态检查
+    - staticcheck
+    - unused
+    - typecheck
+    - ineffassign
+    - bodyclose
+    - contextcheck
+    - nilerr
+
+    # 测试检查
+    - tparallel
+    - testpackage
+    - thelper
+
+    # 性能检查
+    - prealloc
+    - unconvert
+
+    # 安全检查
+    - gosec
+    - noctx
+    - rowserrcheck
+
+    # 代码质量
+    - revive
+    - varnamelen
+    - exportloopref
+    - forcetypeassert
+    - govet
+    - paralleltest
+    - nlreturn
+    - wastedassign
+    - wrapcheck
+
+# 禁用的 linter
+linters-disable:
+  - deadcode      # 被 unused 替代
+  - varcheck      # 被 unused 替代
+  - structcheck   # 被 unused 替代
+  - interfacer    # 已弃用
+  - maligned      # 已弃用
+  - scopelint     # 已弃用
+
+# 问题配置
+issues:
+  # 排除规则
+  exclude-rules:
+    # 排除测试文件的某些规则
+    - path: _test\.go
+      linters:
+        - funlen
+        - gocyclo
+        - dupl
+        - gochecknoglobals
+        - gochecknoinits
+
+    # 排除生成的文件
+    - path: \.gen\.go$
+      linters:
+        - lll
+        - funlen
+        - gocyclo
+
+    # 排除错误处理中的简单错误检查
+    - path: .*
+      text: "Error return value of `.*` is not checked"
+
+    # 排除特定的 golangci-lint 注释
+    - path: .*
+      text: "// nolint:.*"
+
+    # 排除 context.Context 的未使用检查
+    - path: .*
+      text: "context.Context should be the first parameter of a function"
+
+    # 排除某些性能优化建议
+    - path: .*
+      text: "predeclared"
+
+    # 排除某些重复代码检查
+    - path: .*
+      linters:
+        - dupl
+      text: "is duplicate of"
+
+  # 最大问题数
+  max-issues-per-linter: 50
+
+  # 最大相同问题数
+  max-same-issues: 3
+
+# 严重性配置
+severity:
+  # 默认严重性
+  default-severity: error
+
+  # 规则严重性
+  rules:
+    - linters:
+        - dupl
+        - gosec
+      severity: warning
+
+    - linters:
+        - misspell
+        - whitespace
+      severity: info
+
+# 性能配置
+performance:
+  # 是否使用内存缓存
+  use-memory-cache: true
+
+  # 缓存超时时间
+  cache-timeout: 5m
