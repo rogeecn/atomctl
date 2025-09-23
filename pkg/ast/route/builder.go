@@ -27,6 +27,7 @@ func buildRenderData(opts RenderBuildOpts) (RenderData, error) {
 
 	imports := []string{}
 	controllers := []string{}
+	hasModelParams := false
 
 	for _, route := range opts.Routes {
 		imports = append(imports, route.Imports...)
@@ -46,6 +47,14 @@ func buildRenderData(opts RenderBuildOpts) (RenderData, error) {
 				return tok, true
 			})
 
+			// Check if any parameter has model field specified
+			for _, param := range action.Params {
+				if param.Model != "" && param.Position == PositionPath {
+					hasModelParams = true
+					break
+				}
+			}
+
 			rd.Routes[route.Name] = append(rd.Routes[route.Name], Router{
 				Method:     strcase.ToCamel(action.Method),
 				Route:      action.Route,
@@ -55,6 +64,11 @@ func buildRenderData(opts RenderBuildOpts) (RenderData, error) {
 				Params:     params,
 			})
 		}
+	}
+
+	// Add field package import if there are model parameters
+	if hasModelParams {
+		imports = append(imports, `"go.ipao.vip/gen/field"`)
 	}
 
 	// de-dup and sort imports/controllers for stable output
