@@ -38,9 +38,9 @@ tools:
 .PHONY: init
 init: tools
 	@atomctl swag init
-	@atomctl gen route
 	@atomctl gen enum
-	@atomctl gen provider
+	@atomctl gen route
+	@atomctl gen service
 	@buf generate
 	@go mod tidy
 	@go get -u
