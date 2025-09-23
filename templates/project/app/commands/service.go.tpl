@@ -1,4 +1,4 @@
-package srv
+package commands
 
 import (
 	"go.ipao.vip/atom/container"

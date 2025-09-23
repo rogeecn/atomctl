@@ -4,6 +4,7 @@ import (
 	"go.ipao.vip/atom"
 	"go.ipao.vip/atom/container"
 	"go.ipao.vip/atom/contracts"
+	"{{.ModuleName}}/app/commands"
 	"{{.ModuleName}}/app/grpc/users"
 	"{{.ModuleName}}/providers/app"
 	"{{.ModuleName}}/providers/grpc"
@@ -15,7 +16,7 @@ import (
 )
 
 func defaultProviders() container.Providers {
-	return srv.Default(container.Providers{
+	return commands.Default(container.Providers{
 		postgres.DefaultProvider(),
 		grpc.DefaultProvider(),
 	}...)

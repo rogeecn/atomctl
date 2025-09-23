@@ -6,6 +6,7 @@ import (
 	"go.ipao.vip/atom"
 	"go.ipao.vip/atom/container"
 	"go.ipao.vip/atom/contracts"
+	"{{.ModuleName}}/app/commands"
 	"{{.ModuleName}}/app/errorx"
 	"{{.ModuleName}}/app/jobs"
 	_ "{{.ModuleName}}/docs"
@@ -23,7 +24,7 @@ import (
 )
 
 func defaultProviders() container.Providers {
-	return srv.Default(container.Providers{
+	return commands.Default(container.Providers{
 		http.DefaultProvider(),
 		postgres.DefaultProvider(),
 		jwt.DefaultProvider(),

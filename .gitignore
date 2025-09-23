@@ -26,3 +26,4 @@ tests/*
 atomctl
 AGENTS.md
 atom
+atomctl-tests

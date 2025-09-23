@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 
+	"{{.ModuleName}}/app/commands"
 	"{{.ModuleName}}/database"
 	"{{.ModuleName}}/providers/postgres"
 
@@ -19,7 +20,7 @@ import (
 )
 
 func defaultProviders() container.Providers {
-	return srv.Default(container.Providers{
+	return commands.Default(container.Providers{
 		postgres.DefaultProvider(),
 	}...)
 }
