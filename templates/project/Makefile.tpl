@@ -1,6 +1,6 @@
 buildAt=`date +%Y/%m/%d-%H:%M:%S`
-gitHash=`git rev-parse HEAD`
-version=`git rev-parse --abbrev-ref HEAD | grep -v HEAD || git describe --exact-match HEAD || git rev-parse HEAD`
+gitHash=`(git log -1 --pretty=format:%H 2>/dev/null || echo "no-commit")`
+version=`(git describe --tags --exact-match HEAD 2>/dev/null || git rev-parse --abbrev-ref HEAD 2>/dev/null | grep -v HEAD 2>/dev/null || echo "dev")`
 # 修改为项目特定的变量路径
 flags="-X '{{.ModuleName}}/pkg/utils.Version=${version}' -X '{{.ModuleName}}/pkg/utils.BuildAt=${buildAt}' -X '{{.ModuleName}}/pkg/utils.GitHash=${gitHash}'"
 release_flags="-w -s ${flags}"
