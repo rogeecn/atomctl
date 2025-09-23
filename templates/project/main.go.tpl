@@ -3,6 +3,7 @@ package main
 import (
 	"{{.ModuleName}}/app/commands/http"
 	"{{.ModuleName}}/app/commands/migrate"
+	"{{.ModuleName}}/pkg/utils"
 
 	log "github.com/sirupsen/logrus"
 	"go.ipao.vip/atom"
@@ -22,7 +23,11 @@ import (
 // @securityDefinitions.basic  BasicAuth
 // @externalDocs.description  OpenAPI
 // @externalDocs.url          https://swagger.io/resources/open-api/
+
 func main() {
+	// 打印构建信息
+	utils.PrintBuildInfo("{{.ProjectName}}")
+
 	opts := []atom.Option{
 		atom.Name("{{ .ProjectName }}"),
 		http.Command(),

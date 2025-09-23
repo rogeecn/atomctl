@@ -1,5 +1,5 @@
-name: Build TGExporter
-run-name: ${{ gitea.actor }} Build TGExporter
+name: Build Application
+run-name: ${{ gitea.actor }} Build Application
 on: [push]
 
 jobs:
