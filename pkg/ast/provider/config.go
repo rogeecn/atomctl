@@ -6,6 +6,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	log "github.com/sirupsen/logrus"
 )
 
 // ParserConfig represents the configuration for the parser
@@ -77,7 +79,7 @@ func NewParserConfig() *ParserConfig {
 		StrictMode:      false,
 		DefaultMode:     "basic",
 		AllowTestFiles:  false,
-		AllowGenFiles:   false,
+		AllowGenFiles:   true,
 		MaxFileSize:     10 * 1024 * 1024, // 10MB
 		Concurrency:     1,
 		CacheEnabled:    true,
@@ -115,12 +117,9 @@ func (c *ParserContext) ShouldIncludeFile(filePath string) bool {
 	}
 
 	// Skip generated files if not allowed, but allow routes.gen.go and services.gen.go since they may contain providers
-	if !c.Config.AllowGenFiles {
+	if !c.Config.AllowGenFiles && strings.HasSuffix(filePath, ".gen.go") {
 		return false
 	}
-	// if !c.Config.AllowGenFiles && strings.HasSuffix(filePath, ".gen.go") && !strings.HasSuffix(filePath, "routes.gen.go") && !strings.HasSuffix(filePath, "services.gen.go") {
-	// 	return false
-	// }
 
 	// Check file size
 	if info, err := os.Stat(filePath); err == nil {
@@ -132,6 +131,7 @@ func (c *ParserContext) ShouldIncludeFile(filePath string) bool {
 
 	// TODO: Implement include/exclude pattern matching
 	// For now, include all Go files that pass the basic checks
+	log.Debugf("Including file in parsing: %s", filePath)
 	return true
 }
 
