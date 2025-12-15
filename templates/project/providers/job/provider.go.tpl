@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"test/providers/postgres"
+	"{{.ModuleName}}/providers/postgres"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
