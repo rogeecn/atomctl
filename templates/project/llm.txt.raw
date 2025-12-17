@@ -1,0 +1,207 @@
+# Backend Dev Rules (HTTP API + Model)
+
+This file condenses `backend/docs/dev/http_api.md` + `backend/docs/dev/model.md` into a checklist/rule format for LLMs.
+
+---
+
+## 0) Golden rules (DO / DO NOT)
+
+- DO follow existing module layout under `backend/app/http/<module>/`.
+- DO keep controller methods thin: parse/bind → call `services.*` → return result/error.
+- DO regenerate code after changes (routes/docs/models).
+- DO NOT manually edit generated files:
+- `backend/app/http/**/routes.gen.go`
+- `backend/app/http/**/provider.gen.go`
+- `backend/docs/docs.go`
+- DO keep Swagger annotations consistent with actual Fiber route paths (including `:param`).
+
+---
+
+## 1) Add a new HTTP API endpoint
+
+### 1.1 Where code lives
+
+- Controllers: `backend/app/http/<module>/*.go`
+- Example module: `backend/app/http/super/tenant.go`, `backend/app/http/super/user.go`
+- DTOs: `backend/app/http/<module>/dto/*`
+- Routes (generated): `backend/app/http/<module>/routes.gen.go`
+- Swagger output (generated): `backend/docs/swagger.yaml`, `backend/docs/swagger.json`, `backend/docs/docs.go`
+
+### 1.2 Controller method signatures
+
+- “Return data” endpoints: return `(<T>, error)`
+- Example: `(*requests.Pager, error)` for paginated list
+- “No data” endpoints: return `error`
+
+### 1.3 Swagger annotations (minimum set)
+
+Place above the handler function:
+
+- `@Summary`
+- `@Tags`
+- `@Accept json`
+- `@Produce json`
+- `@Param` (query/path/body as needed)
+- `@Success` for 200 responses
+- `@Router <path> [get|post|patch|delete|put]`
+- `@Bind` for parameters (see below)
+
+Common `@Success` patterns:
+
+- Paginated list: `requests.Pager{items=dto.Item}`
+- Single object: `dto.Item`
+- Array: `{array} dto.Item`
+
+### 1.4 Parameter binding (@Bind)
+
+Format:
+
+`@Bind <paramName> <position> [key(<key>)] [model(<field>|<type>[:<field>])]`
+
+Positions:
+
+- `path`, `query`, `body`, `header`, `cookie`, `local`, `file`
+
+Notes:
+
+- `paramName` MUST match function parameter name (case-sensitive).
+- Default key name is `paramName`                                               ; override via `key(...)`.
+- Scalar types: `string/int/int32/int64/float32/float64/bool`.
+- Pointer types are supported (framework will handle deref for most positions).
+
+#### Model binding (path-only)
+
+Used to bind a model instance from a path value:
+
+- `model(id)` (recommended)
+- `model(id:int)` / `model(code:string)`
+- `model(pkg.Type:field)` or `model(pkg.Type)` (default field is `id`)
+
+Behavior:
+
+- Generated binder queries by field and returns first row as the parameter value.
+- Auto-imports field helper for query building.
+
+### 1.5 Generate routes + providers + swagger docs
+
+Run from `backend/`:
+
+- Generate routes: `atomctl gen route`
+- Generate providers: `atomctl gen provider`
+- Generate swagger docs: `atomctl swag init`
+
+### 1.6 Local verify
+
+- Build/run: `make run`
+- Use REST client examples: `backend/test/[module]/[controller].http` (extend it for new endpoints)
+
+### 1.7 Testing
+
+- Prefer existing test style under `backend/tests/e2e`.
+- Run: `make test`
+
+---
+
+## 2) Add / update a DB model
+
+Models live in:
+
+- `backend/database/models/*` (generated model code + optional manual extensions)
+
+### 2.1 Migration → model generation workflow
+
+1) Create migration:
+
+- `atomctl migrate create alter_table` or `atomctl migrate create create_table`
+
+2) Edit migration:
+
+- No explicit `BEGIN/COMMIT` needed (framework handles).
+- Table name should be plural (e.g. `tenants`).
+
+3) Apply migration:
+
+- `atomctl migrate up`
+
+4) Map complex field types (JSON/ARRAY/UUID/…) via transform file:
+
+- `backend/database/.transform.yaml` → `field_type.<table>`
+
+5) Generate models:
+
+- `atomctl gen model`
+
+### 2.2 Enum strategy
+
+- DO NOT use native DB ENUM.
+- Define enums in Go under `backend/pkg/consts/<table>.go`, example:
+
+```go
+// swagger:enum UserStatus
+// ENUM(pending_verify, verified, banned, )
+type UserStatus string
+```
+
+- Generate enum code: `atomctl gen enum`
+
+### 2.3 Supported field types (`gen/types/`)
+
+`backend/database/.transform.yaml` typically imports `go.ipao.vip/gen` so you can use `types.*` in `field_type`.
+
+Common types:
+
+- JSON: `types.JSON`, `types.JSONMap`, `types.JSONType[T]`, `types.JSONSlice[T]`
+- Array: `types.Array[T]`
+- UUID: `types.UUID`, `types.BinUUID`
+- Date/Time: `types.Date`, `types.Time`
+- Money/XML/URL/Binary: `types.Money`, `types.XML`, `types.URL`, `types.HexBytes`
+- Bit string: `types.BitString`
+- Network: `types.Inet`, `types.CIDR`, `types.MACAddr`
+- Ranges: `types.Int4Range`, `types.Int8Range`, `types.NumRange`, `types.TsRange`, `types.TstzRange`, `types.DateRange`
+- Geometry: `types.Point`, `types.Polygon`, `types.Box`, `types.Circle`, `types.Path`
+- Fulltext: `types.TSQuery`, `types.TSVector`
+- Nullable: `types.Null[T]` and aliases (requires DB NULL)
+
+Reference:
+
+- Detailed examples: `gen/types/README.md`
+
+### 2.4 Relationships (GORM-aligned) via `.transform.yaml`
+
+Define in `field_relate.<table>.<FieldName>`:
+
+- `relation`: `belongs_to` | `has_one` | `has_many` | `many_to_many`
+- `table`: target table
+- `pivot`: join table (many_to_many only)
+- `foreign_key`, `references`
+- `join_foreign_key`, `join_references` (many_to_many only)
+- `json`: JSON field name in API outputs
+
+Generator will convert snake_case columns to Go struct field names (e.g. `class_id` → `ClassID`).
+
+### 2.5 Extending generated models
+
+- Add manual methods/hooks by creating `backend/database/models/<table>.go`.
+- Keep generated files untouched                                             ; put custom logic only in your own file(s).
+
+---
+
+## 3) Service layer injection (when adding services)
+
+- Services are in `backend/app/services`.
+- After creating/updating a service provider, regenerate wiring:
+  - `atomctl gen service`
+  - `atomctl gen provider`
+- Service call conventions:
+  - **Service-to-service (inside `services` package)**: call directly as `CamelCaseServiceStructName.Method()` (no `services.` prefix).
+  - **From outside (controllers/handlers/etc.)**: call via the package entrypoint `services.CamelCaseServiceStructName.Method()`.
+
+---
+
+## 4) Quick command summary (run in `backend/`)
+
+- `make run` / `make build` / `make test`
+- `atomctl gen route` / `atomctl gen provider` / `atomctl swag init`
+- `atomctl migrate create ...` / `atomctl migrate up`
+- `atomctl gen model` / `atomctl gen enum` / `atomctl gen service`
+- `make init` (full refresh)

@@ -7,10 +7,12 @@ import (
 
 	"github.com/iancoleman/strcase"
 	"github.com/samber/lo"
+	"go.ipao.vip/atomctl/v2/pkg/utils/gomod"
 )
 
 type RenderBuildOpts struct {
 	PackageName    string
+	ModuleName     string
 	ProjectPackage string
 	Routes         []RouteDefinition
 }
@@ -19,6 +21,7 @@ func buildRenderData(opts RenderBuildOpts) (RenderData, error) {
 	rd := RenderData{
 		PackageName:    opts.PackageName,
 		ProjectPackage: opts.ProjectPackage,
+		ModuleName:     gomod.GetModuleName(),
 		Imports:        []string{},
 		Controllers:    []string{},
 		Routes:         make(map[string][]Router),
@@ -146,7 +149,6 @@ func buildParamToken(item ParamDefinition) string {
 	}
 	return ""
 }
-
 
 func scalarSuffix(t string) string {
 	switch t {

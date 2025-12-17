@@ -10,6 +10,8 @@ import (
 	{{.}}
 {{- end }}
 {{- end }}
+	"{{.ModuleName}}/app/middlewares"
+
 	. "go.ipao.vip/atom/fen"
 	_ "go.ipao.vip/atom"
 	_ "go.ipao.vip/atom/contracts"
@@ -23,6 +25,8 @@ import (
 // @provider contracts.HttpRoute atom.GroupRoutes
 type Routes struct {
 	log *log.Entry `inject:"false"`
+	middlewares *middlewares.Middlewares
+
 {{- if .Controllers }}
 	// Controller instances
 {{- range .Controllers }}
@@ -54,7 +58,7 @@ func (r *Routes) Register(router fiber.Router) {
 	{{- range $value }}
 	{{- if .Route }}
 	r.log.Debugf("Registering route: {{.Method}} {{.Route}} -> {{.Controller}}.{{.Action}}")
-	router.{{.Method}}("{{.Route}}", {{.Func}}(
+	router.{{.Method}}("{{.Route}}"[len(r.Path()):], {{.Func}}(
 		r.{{.Controller}}.{{.Action}},
 		{{- if .Params }}
 		{{- range .Params }}

@@ -11,8 +11,12 @@ import (
 //go:embed router.go.tpl
 var routeTpl string
 
+//go:embed manual.go.tpl
+var routeManualTpl string
+
 type RenderData struct {
 	PackageName    string
+	ModuleName     string
 	ProjectPackage string
 	Imports        []string
 	Controllers    []string
@@ -31,9 +35,11 @@ type Router struct {
 
 func Render(path string, routes []RouteDefinition) error {
 	routePath := filepath.Join(path, "routes.gen.go")
+	routeManualPath := filepath.Join(path, "routes.manual.go")
 
 	data, err := buildRenderData(RenderBuildOpts{
 		PackageName:    filepath.Base(path),
+		ModuleName:     gomod.GetModuleName(),
 		ProjectPackage: gomod.GetModuleName(),
 		Routes:         routes,
 	})
@@ -48,6 +54,16 @@ func Render(path string, routes []RouteDefinition) error {
 
 	if err := os.WriteFile(routePath, out, 0o644); err != nil {
 		return err
+	}
+	// if routes.manual.go not exists then create it
+	if _, err := os.Stat(routeManualPath); os.IsNotExist(err) {
+		manualOut, err := renderManualTemplate(data)
+		if err != nil {
+			return err
+		}
+		if err := os.WriteFile(routeManualPath, manualOut, 0o644); err != nil {
+			return err
+		}
 	}
 	return nil
 }

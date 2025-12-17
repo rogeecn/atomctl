@@ -26,9 +26,10 @@ type TemplateInfo struct {
 
 // RouteRenderer implements TemplateRenderer for route generation
 type RouteRenderer struct {
-	template *template.Template
-	info     TemplateInfo
-	logger   *log.Entry
+	template       *template.Template
+	manualTemplate *template.Template
+	info           TemplateInfo
+	logger         *log.Entry
 }
 
 // NewRouteRenderer creates a new RouteRenderer instance with proper initialization
@@ -54,6 +55,10 @@ func NewRouteRenderer() *RouteRenderer {
 		renderer.logger.WithError(err).Error("Failed to initialize template")
 		return nil
 	}
+	if err := renderer.initializeManualTemplate(); err != nil {
+		renderer.logger.WithError(err).Error("Failed to initialize manual template")
+		return nil
+	}
 
 	renderer.info.Size = len(routeTpl)
 	renderer.logger.WithFields(log.Fields{
@@ -62,6 +67,22 @@ func NewRouteRenderer() *RouteRenderer {
 	}).Info("Route renderer initialized successfully")
 
 	return renderer
+}
+
+func (r *RouteRenderer) initializeManualTemplate() error {
+	// Create template with sprig functions and custom options
+	tmpl := template.New(r.info.Name + "manual").
+		Funcs(sprig.FuncMap()).
+		Option("missingkey=error")
+
+	// Parse the template
+	parsedTmpl, err := tmpl.Parse(routeManualTpl)
+	if err != nil {
+		return WrapError(err, "failed to parse route template")
+	}
+
+	r.manualTemplate = parsedTmpl
+	return nil
 }
 
 // initializeTemplate sets up the template with proper functions and options
@@ -79,6 +100,41 @@ func (r *RouteRenderer) initializeTemplate() error {
 
 	r.template = parsedTmpl
 	return nil
+}
+
+// Render renders the template with the provided data
+func (r *RouteRenderer) RenderManual(data RenderData) ([]byte, error) {
+	// Validate input data
+	if err := r.validateRenderData(data); err != nil {
+		return nil, err
+	}
+
+	// Create buffer for rendering
+	var buf bytes.Buffer
+	buf.Grow(estimatedBufferSize(data)) // Pre-allocate buffer for better performance
+
+	// Execute template with error handling
+	if err := r.manualTemplate.Execute(&buf, data); err != nil {
+		r.logger.WithError(err).WithFields(log.Fields{
+			"package_name": data.PackageName,
+			"routes_count": len(data.Routes),
+		}).Error("Template execution failed")
+		return nil, WrapError(err, "template execution failed for package: %s", data.PackageName)
+	}
+
+	// Validate rendered content
+	result := buf.Bytes()
+	if len(result) == 0 {
+		return nil, NewRouteError(ErrTemplateFailed, "rendered content is empty for package: %s", data.PackageName)
+	}
+
+	r.logger.WithFields(log.Fields{
+		"package_name":   data.PackageName,
+		"routes_count":   len(data.Routes),
+		"content_length": len(result),
+	}).Debug("Template rendered successfully")
+
+	return result, nil
 }
 
 // Render renders the template with the provided data
@@ -152,10 +208,20 @@ func (r *RouteRenderer) validateRenderData(data RenderData) error {
 
 		for i, route := range routes {
 			if route.Method == "" {
-				return NewRouteError(ErrInvalidInput, "route method cannot be empty for controller %s, route %d", controllerName, i)
+				return NewRouteError(
+					ErrInvalidInput,
+					"route method cannot be empty for controller %s, route %d",
+					controllerName,
+					i,
+				)
 			}
 			if route.Route == "" {
-				return NewRouteError(ErrInvalidInput, "route path cannot be empty for controller %s, route %d", controllerName, i)
+				return NewRouteError(
+					ErrInvalidInput,
+					"route path cannot be empty for controller %s, route %d",
+					controllerName,
+					i,
+				)
 			}
 		}
 	}
@@ -188,4 +254,12 @@ func renderTemplate(data RenderData) ([]byte, error) {
 		return nil, NewRouteError(ErrTemplateFailed, "failed to create route renderer")
 	}
 	return renderer.Render(data)
+}
+
+func renderManualTemplate(data RenderData) ([]byte, error) {
+	renderer := NewRouteRenderer()
+	if renderer == nil {
+		return nil, NewRouteError(ErrTemplateFailed, "failed to create route renderer")
+	}
+	return renderer.RenderManual(data)
 }
