@@ -9,6 +9,7 @@ import (
 	"{{.ModuleName}}/app/commands"
 	"{{.ModuleName}}/app/errorx"
 	"{{.ModuleName}}/app/jobs"
+	"{{.ModuleName}}/app/middlewares"
 	_ "{{.ModuleName}}/docs"
 	"{{.ModuleName}}/providers/app"
 	"{{.ModuleName}}/providers/http"
@@ -40,6 +41,7 @@ func Command() atom.Option {
 		atom.Providers(
 			defaultProviders().
 				With(
+					middlewares.Provide,
 					jobs.Provide,
 				),
 		),
@@ -70,8 +72,8 @@ func Serve(cmd *cobra.Command, args []string) error {
 			Data: []byte{},
 		}))
 
-		group := svc.Http.Engine.Group("")
 		for _, route := range svc.Routes {
+			group := svc.Http.Engine.Group(route.Path(), route.Middlewares()...).Name(route.Name())
 			route.Register(group)
 		}
 
