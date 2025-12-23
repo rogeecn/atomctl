@@ -12,7 +12,6 @@ This file condenses `docs/dev/http_api.md` + `docs/dev/model.md` into a checklis
 - DO regenerate code after changes (routes/docs/models).
 - MUST: in `app/services`, prefer the generated GORM-Gen DAO (`database/models/*`) for DB access                                                                                                                                                    ; treat raw `*gorm.DB` usage as a last resort.
 - MUST: after adding/removing/renaming any files under `app/services/`, run `atomctl gen service --path ./app/services` to regenerate `app/services/services.gen.go`                                                                                ; DO NOT edit `services.gen.go` manually.
-- MUST: a single service's methods MUST live in a single file                                                                                                                                                                                       ; do NOT split one service across multiple files (e.g. `type user struct{}` in `user.go` but methods in `user_admin.go`), because `atomctl gen service` uses filenames to infer services and will generate incorrect `services.gen.go`.
 - DO add `// @provider` above every controller/service `struct` declaration.
 - DO keep HTTP middlewares in `app/middlewares/` only.
 - DO keep all `const` declarations in `pkg/consts/` only (do not declare constants elsewhere).
