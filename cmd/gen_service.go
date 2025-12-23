@@ -8,7 +8,10 @@ import (
 	"text/template"
 
 	"github.com/samber/lo"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"go.ipao.vip/atomctl/v2/pkg/ast/provider"
+	"go.ipao.vip/atomctl/v2/pkg/utils/gomod"
 	"go.ipao.vip/atomctl/v2/templates"
 )
 
@@ -19,10 +22,10 @@ func CommandGenService(root *cobra.Command) {
 		Long: `扫描 --path 指定目录（默认 ./app/services）下的 Go 文件，汇总服务名并渲染生成 services.gen.go。
 
 规则：
-- 跳过 *_test.go 与 *.gen.go 文件，仅处理普通 .go 文件
-- 以文件名作为服务名来源：
-  - PascalCase 作为 CamelName，用于导出类型名
-  - camelCase 作为 ServiceName，用于变量/字段名
+- 扫描目录中带有 @provider 注释的结构体
+- 以结构体名称作为服务名：
+  - StructName 作为 ServiceName，用于变量/字段类型
+  - PascalCase(StructName) 作为 CamelName，用于导出变量名
 - 使用内置模板 services/services.go.tpl 渲染
 - 生成完成后会自动运行 gen provider 以补全注入`,
 		RunE:     commandGenServiceE,
@@ -36,34 +39,53 @@ func CommandGenService(root *cobra.Command) {
 
 func commandGenServiceE(cmd *cobra.Command, args []string) error {
 	path := cmd.Flag("path").Value.String()
-
-	files, err := os.ReadDir(path)
+	absPath, err := filepath.Abs(path)
 	if err != nil {
 		return err
 	}
+
+	// Try to parse go.mod from CWD or target path to ensure parser context
+	wd, _ := os.Getwd()
+	if err := gomod.Parse(filepath.Join(wd, "go.mod")); err != nil {
+		// fallback to check if go.mod is in the target path
+		if err := gomod.Parse(filepath.Join(absPath, "go.mod")); err != nil {
+			// If both fail, we might still proceed, but parser might lack module info.
+			// However, for just getting struct names, it might be fine.
+			// Logging warning could be good but we stick to error if critical.
+			// provider.ParseDir might depend on it.
+		}
+	}
+
+	log := log.WithField("path", absPath)
+	log.Info("finding service providers...")
+
+	parser := provider.NewGoParser()
+	providers, err := parser.ParseDir(absPath)
+	if err != nil {
+		return err
+	}
+	log.Infof("found %d providers", len(providers))
 
 	type srv struct {
 		CamelName   string
 		ServiceName string
 	}
 
-	// get services from files
+	// get services from providers
 	var services []srv
-	for _, file := range files {
-		if file.IsDir() {
-			continue
-		}
-		name := file.Name()
+	for _, p := range providers {
+		name := filepath.Base(p.Location.File)
 		if strings.HasSuffix(name, "_test.go") || strings.HasSuffix(name, ".gen.go") ||
 			!strings.HasSuffix(name, ".go") {
+			log.Warnf("ignore file %s provider, %+v", p.Location.File, p)
 			continue
 		}
 
-		name = strings.TrimSuffix(name, ".go")
+		log.Infof("found service %s", p.StructName)
 
 		services = append(services, srv{
-			CamelName:   lo.PascalCase(name),
-			ServiceName: lo.CamelCase(name),
+			CamelName:   lo.PascalCase(p.StructName),
+			ServiceName: p.StructName,
 		})
 	}
 

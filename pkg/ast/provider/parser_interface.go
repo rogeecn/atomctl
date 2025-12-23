@@ -434,7 +434,12 @@ func (p *GoParser) parseFileContent(filePath string, node *ast.File) ([]Provider
 }
 
 // parseProviderDecl parses a provider from an AST declaration
-func (p *GoParser) parseProviderDecl(filePath string, fileNode *ast.File, decl ast.Decl, imports map[string]string) (*Provider, error) {
+func (p *GoParser) parseProviderDecl(
+	filePath string,
+	fileNode *ast.File,
+	decl ast.Decl,
+	imports map[string]string,
+) (*Provider, error) {
 	genDecl, ok := decl.(*ast.GenDecl)
 	if !ok {
 		return nil, nil
@@ -478,6 +483,9 @@ func (p *GoParser) parseProviderDecl(filePath string, fileNode *ast.File, decl a
 		Imports:       make(map[string]string),
 		PkgName:       fileNode.Name.Name,
 		ProviderFile:  filepath.Join(filepath.Dir(filePath), "provider.gen.go"),
+		Location: SourceLocation{
+			File: filePath,
+		},
 	}
 
 	// Set default return type if not specified
@@ -518,7 +526,12 @@ func (p *GoParser) parseProviderDecl(filePath string, fileNode *ast.File, decl a
 }
 
 // parseStructFields parses struct fields for injection parameters
-func (p *GoParser) parseStructFields(structType *ast.StructType, imports map[string]string, provider *Provider, onlyMode bool) error {
+func (p *GoParser) parseStructFields(
+	structType *ast.StructType,
+	imports map[string]string,
+	provider *Provider,
+	onlyMode bool,
+) error {
 	for _, field := range structType.Fields.List {
 		if field.Names == nil {
 			continue
@@ -573,7 +586,10 @@ func (p *GoParser) parseStructFields(structType *ast.StructType, imports map[str
 }
 
 // parseFieldType parses a field type and returns its components
-func (p *GoParser) parseFieldType(expr ast.Expr, imports map[string]string) (star, pkg, pkgAlias, typ string, err error) {
+func (p *GoParser) parseFieldType(
+	expr ast.Expr,
+	imports map[string]string,
+) (star, pkg, pkgAlias, typ string, err error) {
 	switch t := expr.(type) {
 	case *ast.Ident:
 		typ = t.Name

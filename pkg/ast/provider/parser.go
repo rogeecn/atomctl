@@ -226,14 +226,26 @@ func (p *MainParser) ParseFile(source string) ([]Provider, error) {
 		// 查找对应的 AST 节点
 		provider, err := p.buildProviderFromDiscovery(discoveredProvider, node, builderContext)
 		if err != nil {
-			context.AddError(source, 0, 0, fmt.Sprintf("failed to build provider %s: %v", discoveredProvider.StructName, err), "error")
+			context.AddError(
+				source,
+				0,
+				0,
+				fmt.Sprintf("failed to build provider %s: %v", discoveredProvider.StructName, err),
+				"error",
+			)
 			continue
 		}
 
 		// 如果启用严格模式，验证 Provider 配置
 		if p.config.StrictMode {
 			if err := p.validator.Validate(&provider); err != nil {
-				context.AddError(source, 0, 0, fmt.Sprintf("validation failed for provider %s: %v", provider.StructName, err), "error")
+				context.AddError(
+					source,
+					0,
+					0,
+					fmt.Sprintf("validation failed for provider %s: %v", provider.StructName, err),
+					"error",
+				)
 				continue
 			}
 		}
@@ -286,7 +298,11 @@ func (p *MainParser) shouldProcessFile(source string) bool {
 }
 
 // buildProviderFromDiscovery builds a complete Provider from a discovered provider annotation
-func (p *MainParser) buildProviderFromDiscovery(discoveredProvider Provider, node *ast.File, context *BuilderContext) (Provider, error) {
+func (p *MainParser) buildProviderFromDiscovery(
+	discoveredProvider Provider,
+	node *ast.File,
+	context *BuilderContext,
+) (Provider, error) {
 	// Find the corresponding type specification in the AST
 	var typeSpec *ast.TypeSpec
 	var genDecl *ast.GenDecl

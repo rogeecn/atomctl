@@ -103,6 +103,9 @@ func (pb *ProviderBuilder) BuildFromTypeSpec(typeSpec *ast.TypeSpec, decl *ast.G
 		Imports:       make(map[string]string),
 		PkgName:       context.PackageName,
 		ProviderFile:  context.FilePath,
+		Location: SourceLocation{
+			File: context.FilePath,
+		},
 	}
 
 	// Set return type
