@@ -1,19 +1,33 @@
 # Backend Dev Rules (HTTP API + Model)
 
-This file condenses `backend/docs/dev/http_api.md` + `backend/docs/dev/model.md` into a checklist/rule format for LLMs.
+This file condenses `docs/dev/http_api.md` + `docs/dev/model.md` into a checklist/rule format for LLMs.
 
 ---
 
 ## 0) Golden rules (DO / DO NOT)
 
-- DO follow existing module layout under `backend/app/http/<module>/`.
+- DO follow existing module layout under `app/http/<module>/`.
+- MUST: HTTP module folder name MUST be `snake_case` (e.g. `tenant_public`), not `camelCase`/`mixedCase`.
 - DO keep controller methods thin: parse/bind → call `services.*` → return result/error.
 - DO regenerate code after changes (routes/docs/models).
+- MUST: in `app/services`, prefer the generated GORM-Gen DAO (`database/models/*`) for DB access                                                                                                                                                    ; treat raw `*gorm.DB` usage as a last resort.
+- MUST: after adding/removing/renaming any files under `app/services/`, run `atomctl gen service --path ./app/services` to regenerate `app/services/services.gen.go`                                                                                ; DO NOT edit `services.gen.go` manually.
+- MUST: a single service's methods MUST live in a single file                                                                                                                                                                                       ; do NOT split one service across multiple files (e.g. `type user struct{}` in `user.go` but methods in `user_admin.go`), because `atomctl gen service` uses filenames to infer services and will generate incorrect `services.gen.go`.
+- DO add `// @provider` above every controller/service `struct` declaration.
+- DO keep HTTP middlewares in `app/middlewares/` only.
+- DO keep all `const` declarations in `pkg/consts/` only (do not declare constants elsewhere).
 - DO NOT manually edit generated files:
-- `backend/app/http/**/routes.gen.go`
-- `backend/app/http/**/provider.gen.go`
-- `backend/docs/docs.go`
+- `app/http/**/routes.gen.go`
+- `app/http/**/provider.gen.go`
+- `docs/docs.go`
+- DO NOT manually write provider declarations (only `atomctl gen provider`).
+- DO NOT manually write route declarations (only `atomctl gen route`).
 - DO keep Swagger annotations consistent with actual Fiber route paths (including `:param`).
+- MUST: route path parameter placeholders MUST be `camelCase` (e.g. `:tenantCode`), never `snake_case` (e.g. `:tenant_code`).
+- MUST: when importing another HTTP module's `dto` package, the import alias MUST be `<module>_dto` (e.g. `tenant_dto`), not `<module>dto` (e.g. `tenantdto`).
+- MUST: when creating/generating Go `struct` definitions (DTOs/requests/responses/etc.), add detailed per-field comments describing meaning, usage scenario, and validation/usage rules (do not rely on “self-explanatory” names).
+- MUST: business code comments MUST be written in Chinese (中文注释), to keep review/maintenance consistent across the team.
+- MUST: in `app/services`, add Chinese comments at key steps to explain business intent and invariants (e.g., 事务边界、幂等语义、余额冻结/扣减/回滚、权限/前置条件校验点), avoid “what the code does” boilerplate.
 
 ---
 
@@ -21,11 +35,12 @@ This file condenses `backend/docs/dev/http_api.md` + `backend/docs/dev/model.md`
 
 ### 1.1 Where code lives
 
-- Controllers: `backend/app/http/<module>/*.go`
-- Example module: `backend/app/http/super/tenant.go`, `backend/app/http/super/user.go`
-- DTOs: `backend/app/http/<module>/dto/*`
-- Routes (generated): `backend/app/http/<module>/routes.gen.go`
-- Swagger output (generated): `backend/docs/swagger.yaml`, `backend/docs/swagger.json`, `backend/docs/docs.go`
+- Controllers: `app/http/<module>/*.go`
+- Example module: `app/http/super/tenant.go`, `app/http/super/user.go`
+- DTOs: `app/http/<module>/dto/*`
+- HTTP middlewares: `app/middlewares/*`
+- Routes (generated): `app/http/<module>/routes.gen.go`
+- Swagger output (generated): `docs/swagger.yaml`, `docs/swagger.json`, `docs/docs.go`
 
 ### 1.2 Controller method signatures
 
@@ -84,7 +99,7 @@ Behavior:
 
 ### 1.5 Generate routes + providers + swagger docs
 
-Run from `backend/`:
+Run from ``:
 
 - Generate routes: `atomctl gen route`
 - Generate providers: `atomctl gen provider`
@@ -93,12 +108,21 @@ Run from `backend/`:
 ### 1.6 Local verify
 
 - Build/run: `make run`
-- Use REST client examples: `backend/test/[module]/[controller].http` (extend it for new endpoints)
+- Use REST client examples: `tests/[module]/[controller].http` (extend it for new endpoints)
 
 ### 1.7 Testing
 
-- Prefer existing test style under `backend/tests/e2e`.
+- Prefer existing test style under `tests/e2e`.
 - Run: `make test`
+
+### 1.8 Module-level route group (Path + Middlewares)
+
+If you need to define a module HTTP middleware (applies to the module route group):
+
+1) Run `atomctl gen route` first.
+2) Edit `app/http/<module>/routes.manual.go`:
+- Update `Path()` to return the current module route group prefix (must match the prefix used in `routes.gen.go`, e.g. `/super/v1`, `/t/:tenantCode/v1`).
+- Update `Middlewares()` return value: return a list like `[]any{r.middlewares.MiddlewareFunc1, r.middlewares.MiddlewareFunc2, ...}` (no `(...)`), where each item is `r.middlewares.<MiddlewareFunc>` referencing middleware definitions in `app/middlewares`.
 
 ---
 
@@ -106,7 +130,7 @@ Run from `backend/`:
 
 Models live in:
 
-- `backend/database/models/*` (generated model code + optional manual extensions)
+- `database/models/*` (generated model code + optional manual extensions)
 
 ### 2.1 Migration → model generation workflow
 
@@ -118,6 +142,7 @@ Models live in:
 
 - No explicit `BEGIN/COMMIT` needed (framework handles).
 - Table name should be plural (e.g. `tenants`).
+- MUST: when writing migration content, every field/column MUST include a brief Chinese remark, and also include commented details for that field’s usage scenario and rules/constraints (e.g., valid range/format, default behavior, special cases).
 
 3) Apply migration:
 
@@ -125,16 +150,106 @@ Models live in:
 
 4) Map complex field types (JSON/ARRAY/UUID/…) via transform file:
 
-- `backend/database/.transform.yaml` → `field_type.<table>`
+- `database/.transform.yaml` → `field_type.<table>`
 
 5) Generate models:
 
 - `atomctl gen model`
 
+---
+
+## 3) Service-layer DB access (GORM Gen)
+
+This project uses a PostgreSQL-focused GORM-Gen variant (`go.ipao.vip/gen` + generated `database/models/*`).
+Reference: `llm.gorm_gen.txt`.
+
+### 3.1 Query style (preferred)
+
+- MUST: in services, build queries via:
+- `tbl, q := models.<Table>Query.QueryContext(ctx)`
+- Use type-safe conditions (`tbl.ID.Eq(...)`, `tbl.TenantID.Eq(...)`, `tbl.DeletedAt.IsNull()`, etc).
+- DO NOT: use string SQL in `Where("...")` unless absolutely necessary.
+
+### 3.2 Transactions
+
+- MUST: use Gen transaction wrapper so all queries share the same tx connection:
+- `models.Q.Transaction(func(tx *models.Query) error { ... })`
+- Inside tx, use `tx.<Table>.QueryContext(ctx)` / `tx.<Table>.WithContext(ctx)`
+- DO NOT: use `_db.WithContext(ctx).Transaction(...)` in services unless Gen cannot express a required operation.
+
+### 3.3 Updates
+
+- Prefer `UpdateSimple(...)` with typed assign expressions when possible.
+- Otherwise use `Updates(map[string]any{...})`, but MUST:
+- include tenant boundary conditions (`tenant_id`) in the WHERE,
+- avoid updating columns by concatenating user input.
+
+### 3.4 Columns not in generated models (temporary escape hatch)
+
+If migrations add columns but `atomctl gen model` has not been re-run yet, the typed `models.<Struct>` will not contain those fields.
+In this case:
+- Use `q.UnderlyingDB()` (from Gen DO) to do a narrow query/update (single table, explicit columns).
+- Add a short Chinese comment explaining why, and that `atomctl gen model` should be run when DB is reachable.
+- Avoid spreading this pattern: keep it localized to one function.
+
+---
+
+## Async Jobs（River）
+
+本项目使用 River（`github.com/riverqueue/river`）作为异步任务系统，并通过 `atomctl new job <name> [--cron]` 生成 `app/jobs/*.go`。
+
+- MUST：任务入队（调用 `job.Add(...)` / `client.Insert(...)`）只能在 `service` / `controller` / `event` 层编写；其它位置（例如 `middlewares` / `database` / `models` / `providers` / `jobs` 的 worker 实现等）禁止写入任务，避免耦合与隐式副作用。
+- MUST：为避免 `services` 与 `jobs` 的循环依赖，JobArgs 定义固定放在 `app/jobs/args/`；Worker 放在 `app/jobs/`（Worker 可以依赖 `services`，但 args 包禁止依赖 `services`）。
+
+### Job（一次性任务）
+
+- `Kind() string`：任务类型标识（job kind）；改名会导致“新旧任务类型不一致”。
+- `InsertOpts() river.InsertOpts`：默认入队参数（队列、优先级、最大重试、唯一任务策略等）。
+- `UniqueID() string`（项目约定）：周期任务 handle 的稳定 key；通常 `return Kind()`。
+
+### Worker（执行器）
+
+- `Work(ctx, job)`：执行入口；返回 `nil` 成功；返回 `error` 失败并按 River 策略重试。
+- `river.JobSnooze(d)`：延后再跑一次，且 **不递增 attempt**；适合等待外部依赖就绪/限流等。
+- `river.JobCancel(err)`：永久取消并记录原因；适合业务上永远不可能成功的情况（参数非法/语义过期等）。
+- `NextRetry(job)`（可选）：自定义该任务类型的重试节奏。
+
+### CronJob（周期任务）
+
+- `Prepare() error`：注册周期任务前做初始化/校验（避免重活/长阻塞）。
+- `Args() []contracts.CronJobArg`：声明周期任务（间隔、是否启动即跑、入队的 JobArgs）。
+
+### 业务侧如何入队
+
+- 在业务结构体中注入 `*job.Job`（见 `providers/job`），然后调用 `obj.job.Add(jobs.XXXJob{...})` 入队。
+
+---
+
+## Events（Watermill）
+
+本项目使用 `ThreeDotsLabs/watermill` 做事件驱动，并通过框架封装在 `providers/event/` 中（支持 `Go`/`Kafka`/`Redis`/`Sql` 等 channel）。
+
+- MUST：事件发布（调用 `PubSub.Publish(...)` 等）只能在 `service` / `controller` / `event` 层编写；其它位置（例如 `middlewares` / `database` / `models` / `providers` 等）禁止发布事件，避免耦合与隐式副作用。
+- MUST：事件订阅处理（subscriber handler）保持“薄”：只做反序列化/幂等与边界校验 → 调用 `services.*` 完成业务。
+
+### 生成与结构
+
+- 新增事件：`atomctl new event <Name>`
+- 会在 `app/events/topics.go` 中新增 topic 常量（形如 `event:<snake_case>`）。
+- 会生成：
+- `app/events/publishers/<snake_case>.go`（publisher：实现 `contracts.EventPublisher`，负责 `Marshal()` + `Topic()`）
+- `app/events/subscribers/<snake_case>.go`（subscriber：实现 `contracts.EventHandler`，负责 `Topic()` + `Handler(...)`）
+- 生成后：按项目约定运行一次 `atomctl gen provider`（用于刷新 DI/provider 生成文件）。
+
+### Topic 约定
+
+- 统一在 `app/events/topics.go` 维护 topic 常量，避免散落在各处形成“字符串协议”。
+- topic 字符串建议使用稳定前缀（例如 `event:`），并使用 `snake_case` 命名。
+
 ### 2.2 Enum strategy
 
 - DO NOT use native DB ENUM.
-- Define enums in Go under `backend/pkg/consts/<table>.go`, example:
+- Define enums in Go under `pkg/consts/<table>.go`, example:
 
 ```go
 // swagger:enum UserStatus
@@ -142,15 +257,50 @@ Models live in:
 type UserStatus string
 ```
 
+- For every enum `type` defined under `pkg/consts/`, you MUST also define:
+- `Description() string`: return the Chinese label for the specific enum value (used by API/FE display).
+- `XxxItems() []requests.KV`: return the KV list for FE dropdowns (typically `Key=enum string`, `Value=Description()`). Example: `func TenantStatusItems() []requests.KV` and call it via `consts.TenantStatusItems()`.
+- Prefer `string(t)` as `Key`, and use a stable default label for unknown values (e.g. `未知` / `未知状态`).
+- MUST: `Description()` and `XxxItems()` MUST be placed immediately below the enum `type` definition (same file, directly under `type Xxx string`), to keep the enum self-contained and easy to review.
+
 - Generate enum code: `atomctl gen enum`
 
 ### 2.3 Supported field types (`gen/types/`)
 
-`backend/database/.transform.yaml` typically imports `go.ipao.vip/gen` so you can use `types.*` in `field_type`.
+`database/.transform.yaml` typically imports `go.ipao.vip/gen` so you can use `types.*` in `field_type`.
 
 Common types:
 
 - JSON: `types.JSON`, `types.JSONMap`, `types.JSONType[T]`, `types.JSONSlice[T]`
+
+### 2.4 JSONB 强类型规则（`types.JSONType[T]`）
+
+- 如果某个 `jsonb` 字段的数据结构是“确定且稳定”的，优先将 `types.JSON` 升级为 `types.JSONType[fields.TableNameFieldName]`，以获得类型约束与更清晰的读写代码。
+- `fields.TableNameFieldName` 必须定义在 `database/fields/[table_name].go` 中，格式为 `type TableNameFieldName struct { ... }` 并为每个字段写好 `json` tag。
+- 如果数据结构“不确定/随业务演进/允许任意键”，继续使用 `types.JSON`（不要强行 JSONType，以免丢字段或引入频繁迁移）。
+- 服务层读写 `types.JSONType[T]`：
+- 读取：`v := model.Field.Data()`
+- 修改：`model.Field.Edit(func(v *T) { ... })` 或 `model.Field.Set(newValue)`
+
+### 2.5 一个字段多种结构（判别联合）
+
+- 当同一个 `jsonb` 字段存在多种不同结构（同一字段承载多个 payload），不要让字段类型漂移为 `any/map`。
+- 推荐统一包裹为“判别联合”结构：`type Xxx struct { Kind string                                                                                            ; Data json.RawMessage }`，并将该字段映射为 `types.JSONType[fields.Xxx]`。
+- 写入时：
+- `Kind` 建议与业务枚举/事件类型对齐，便于 SQL/报表按 `kind` 过滤。
+- `Data` 写入对应 payload 的 JSON（payload 可以是多个不同 struct）。
+- 读取时：
+- 先 `snap := model.Snapshot.Data()`，再 `switch snap.Kind` 选择对应 payload 结构去 `json.Unmarshal(snap.Data, &payload)`。
+- 兼容历史数据（旧 JSON 没有 kind/data）时，`UnmarshalJSON` 可以将其标记为 `legacy` 并把原始 JSON 放入 `Data`，避免线上存量读取失败。
+
+---
+
+## 4) 审计与幂等（通用）
+
+- 若你为任意表新增结构化审计字段（例如 `operator_user_id`、`biz_ref_type/biz_ref_id`），服务层写入必须同步补齐（避免只写 remark/JSON 导致追溯困难）。
+- 注意：PostgreSQL 的可空列在本项目的 gen model 中可能会生成非指针类型（例如 `string/int64`），这会导致“未赋值”落库为 `''/0`：
+- 若你要为 `(biz_ref_type,biz_ref_id,...)` 建唯一索引，**不要**只写 `IS NOT NULL` 条件；
+- 应额外排除空/0（例如 `biz_ref_type <> '' AND biz_ref_id <> 0`），否则会因默认值冲突导致大量写入失败。
 - Array: `types.Array[T]`
 - UUID: `types.UUID`, `types.BinUUID`
 - Date/Time: `types.Date`, `types.Time`
@@ -181,27 +331,128 @@ Generator will convert snake_case columns to Go struct field names (e.g. `class_
 
 ### 2.5 Extending generated models
 
-- Add manual methods/hooks by creating `backend/database/models/<table>.go`.
-- Keep generated files untouched                                             ; put custom logic only in your own file(s).
+- Add manual methods/hooks by creating `database/models/<table>.go`.
+- Keep generated files untouched                                     ; put custom logic only in your own file(s).
 
 ---
 
 ## 3) Service layer injection (when adding services)
 
-- Services are in `backend/app/services`.
+- Services are in `app/services`.
+- Data access boundary:
+- MUST: only the `services` layer may query the database via `models.*Query`, `models.Q.*`, `gorm.DB`, or raw SQL.
+- DO NOT: perform any direct database query from HTTP modules (`app/http/**`) including controllers, DTO binders, or middlewares.
+- HTTP modules must call `services.*` for all read/write operations.
 - After creating/updating a service provider, regenerate wiring:
-  - `atomctl gen service`
-  - `atomctl gen provider`
+- `atomctl gen service`
+- `atomctl gen provider`
+- Injection rule: provider injected dependencies MUST be `success`. do not add business-level fallbacks for injection objects nil check.
 - Service call conventions:
-  - **Service-to-service (inside `services` package)**: call directly as `CamelCaseServiceStructName.Method()` (no `services.` prefix).
-  - **From outside (controllers/handlers/etc.)**: call via the package entrypoint `services.CamelCaseServiceStructName.Method()`.
+- **Service-to-service (inside `services` package)**: call directly as `CamelCaseServiceStructName.Method()` (no `services.` prefix).
+- **From outside (controllers/handlers/etc.)**: call via the package entrypoint `services.CamelCaseServiceStructName.Method()`.
 
 ---
 
-## 4) Quick command summary (run in `backend/`)
+## 4) Quick command summary (run in ``)
 
 - `make run` / `make build` / `make test`
 - `atomctl gen route` / `atomctl gen provider` / `atomctl swag init`
 - `atomctl migrate create ...` / `atomctl migrate up`
 - `atomctl gen model` / `atomctl gen enum` / `atomctl gen service`
 - `make init` (full refresh)
+
+---
+
+## 5) Service Layer Unit Testing Guidelines (Generic)
+
+This section is framework-agnostic and applies to any Go service layer (regardless of DI container, ORM, or web framework).
+
+### 5.1 Decide what you are testing
+
+- **Pure unit tests**: no DB/network/filesystem                                                                                                                       ; dependencies are mocked/faked; tests are fast and deterministic.
+- **DB-backed tests (recommended whenever the feature touches the database)**: exercise a real database to validate SQL, constraints, transactions, and ORM behavior.
+- Always state which tier the test belongs to and keep the scope consistent.
+
+### 5.2 Design the service for testability
+
+- Inject dependencies via constructor or fields                                                    ; depend on **interfaces**, not concrete DB clients.
+- Keep domain logic **pure** where possible: parse/validate/compute should be testable without IO.
+- Make time/UUID/randomness deterministic by injecting `Clock`/`IDGenerator` when needed.
+- If the feature requires database access, **do not mock the database**                            ; test with an **actual database** (ideally same engine/version as production) to ensure data accuracy. Use mocks/fakes only for non-DB external dependencies when appropriate (e.g., HTTP, SMS, third-party APIs).
+
+### 5.3 Test structure and conventions
+
+- Prefer `*_test.go` with table-driven tests and subtests: `t.Run("case", func(t *testing.T) { ... })`.
+- Prefer testing the public API from an external package (`package xxx_test`) unless you must access unexported helpers.
+- Avoid “focused” tests in committed code (e.g. `FocusConvey`, `FIt`, `fit`, `it.only`, or equivalent), because they silently skip other tests.
+- MUST: in service layer tests, **one test method should focus on one service method** only (e.g. `Test_Freeze` covers `Ledger.Freeze`, `Test_Unfreeze` covers `Ledger.Unfreeze`)                                                                                                                      ; do not bundle multiple service methods into a single `Test_*` method.
+- MUST: within that single `Test_<Method>` function, cover the method’s key behavior contracts and boundary conditions via subcases (`Convey` blocks or `t.Run`) so the method’s behavior can be reviewed in one place (do NOT claim to cover “all edge cases”, but cover the important ones).
+- MUST (minimum set): for each service method test, cover at least: happy path                                                                                                                                                                                                                         ; invalid params / precondition failures; insufficient resources / permission denied (if applicable); idempotency/duplicate call behavior (if applicable); and at least one typical persistence/transaction failure branch (if it is hard to simulate reliably, move that branch coverage to a DB-backed integration/e2e test).
+
+### 5.4 Isolation rules
+
+- Each test must be independent and order-agnostic.
+- For integration tests:
+- Use transaction rollback per test when possible   ; otherwise use truncate + deterministic fixtures.
+- Never depend on developer-local state             ; prefer ephemeral DB (container) or a dedicated test database/schema.
+
+### 5.5 Assertions and error checks
+
+- Always assert both **result** and **error** (and error types via `errors.Is` / `errors.As` when wrapping is used).
+- Keep assertions minimal but complete: verify behavior, not implementation details.
+- Use the standard library (`testing`) or a single assertion library consistently across the repo.
+
+### 5.6 Minimal test file template (DI-bootstrapped, DB-backed)
+
+This template matches a common pattern where tests boot a DI container and run against a real database. Replace the bootstrap (`testx.Default/Serve`, `Provide`) and cleanup (`database.Truncate`) with your project's equivalents.
+
+```go
+package services
+
+import (
+	"database/sql"
+	"testing"
+
+	"quyun/v2/app/commands/testx"
+	"quyun/v2/database"
+	"quyun/v2/database/models"
+
+	. "github.com/smartystreets/goconvey/convey"
+	"github.com/stretchr/testify/suite"
+
+	"go.ipao.vip/atom/contracts"
+	"go.uber.org/dig"
+)
+
+type XxxTestSuiteInjectParams struct {
+	dig.In
+
+	DB *sql.DB
+	Initials []contracts.Initial `group:"initials"`
+}
+
+type XxxTestSuite struct {
+	suite.Suite
+	XxxTestSuiteInjectParams
+}
+
+func Test_Xxx(t *testing.T) {
+	providers := testx.Default().With(Provide)
+
+	testx.Serve(providers, t, func(p XxxTestSuiteInjectParams) {
+		suite.Run(t, &XxxTestSuite{XxxTestSuiteInjectParams: p})
+	})
+}
+
+func (s *XxxTestSuite) Test_Method() {
+	Convey("describe behavior here", s.T(), func() {
+		ctx := s.T().Context()
+
+		database.Truncate(ctx, s.DB, models.TableNameUser)
+
+		got, err := User.FindByUsername(ctx, "alice")
+		So(err, ShouldNotBeNil)
+		So(got, ShouldBeNil)
+	})
+}
+```

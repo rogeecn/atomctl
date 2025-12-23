@@ -1,0 +1,104 @@
+# GORM Gen Library Summary (PostgreSQL Extended Version)
+
+This document summarizes the capabilities of the GORM Gen code generation tool, specifically focusing on its extended version tailored for PostgreSQL. It covers standard Gen features and the substantial PostgreSQL-specific enhancements for types and field expressions.
+
+## 1. DAO Interface Generation
+- **Concept**: Generates type-safe Data Access Object (DAO) interfaces and query code.
+- **Process**:
+    - **Configuration**: Use `gen.Config` to set output paths, package names, and modes.
+    - **PostgreSQL Enforcement**: The generator explicitly requires a PostgreSQL database connection via `g.UseDB(db)` (checks for "postgres" dialector).
+    - **Model Application**: Automatically maps database tables to Go structs using `g.GenerateAllTable()` or specific tables with `g.GenerateModel()`.
+    - **Output**: Generates DAO interfaces with CRUD methods, query structs, and model structs. Defaults to "Same Package" generation (models and queries in the same directory) for easier usage.
+- **Usage**: Interact via a global `Q` variable or initialized query instances.
+
+## 2. Creating Records
+- **Standard**: `u.WithContext(ctx).Create(&user)`
+- **Modifiers**: `Select()`, `Omit()` to control fields.
+- **Batch**: `CreateInBatches()` for bulk inserts.
+- **Upsert**: Supports `clause.OnConflict` strategies.
+- **Extended Types**: Seamlessly handles extended types (Arrays, JSONB, Ranges, etc.) during creation.
+
+## 3. Querying Data
+- **Retrieval**: `First()`, `Take()`, `Last()`, `Find()`.
+- **Conditions**: Type-safe methods (`Eq`, `Neq`, `Gt`, `Lt`, `Like`, `In`).
+- **PostgreSQL Specific Conditions**:
+    - **JSON/JSONB**: 
+        - `HasKey("key")` (operator `?`)
+        - `HasAllKeys("k1", "k2")` (operator `?&`)
+        - `KeyEq("path.to.key", value)` (extracts path and compares).
+    - **Arrays**:
+        - `Contains(val)` (operator `@>`)
+        - `ContainedBy(val)` (operator `<@`)
+        - `Overlaps(val)` (operator `&&`)
+    - **Ranges**: `Overlaps`, `Contains`, `Adjacent`, `StrictLeft`, `StrictRight`.
+    - **Network**: `Contains` (`>>`), `ContainedBy` (`<<`).
+    - **Full Text**: `Matches` (`@@`) for `TSVector` and `TSQuery`.
+    - **Geometry**: `DistanceTo` (`<->`), `ContainsPoint`, `WithinBox`.
+- **Advanced**: Subqueries, Joins, Grouping, Having.
+
+## 4. Updating Records
+- **Standard**: `Update()`, `Updates()`.
+- **JSON Updates**:
+    - Uses `JSONSet` expression for `JSONB_SET` operations.
+    - Example: `UpdateColumn("attr", types.JSONSet("attr").Set("{age}", 20))` updates a specific path inside a JSONB column without overwriting the whole document.
+- **Modifiers**: `Select`, `Omit`.
+
+## 5. Deleting Records
+- **Safety**: Requires `Where` clause for bulk deletes.
+- **Soft Delete**: Automatically handled if `gorm.DeletedAt` is present.
+- **Associations**: Can delete specific associated records.
+
+## 6. Transaction Management
+- **Automatic**: `Transaction(func() error { ... })`.
+- **Manual**: `Begin()`, `Commit()`, `Rollback()`.
+- **SavePoints**: `SavePoint()`, `RollbackTo()` supported.
+
+## 7. Association Handling
+- **Relationships**: BelongsTo, HasOne, HasMany, Many2Many.
+- **Eager Loading**: `Preload()` with conditions and nested paths.
+- **Operations**: `Append`, `Replace`, `Delete`, `Clear` on associations.
+
+## 8. PostgreSQL Specialized Extensions (Unique to this version)
+
+This version of Gen is heavily customized for PostgreSQL, providing rich type support and SQL expressions that standard GORM Gen does not offer out-of-the-box.
+
+### 8.1. Extended Type System (`go.ipao.vip/gen/types`)
+Automatically maps PostgreSQL column types to specialized Go types:
+
+- **JSON/JSONB**: `types.JSON`, `types.JSONB` (wraps `json.RawMessage`, supports GIN operators).
+- **Arrays**: `types.Array[T]` (Generic implementation for `text[]`, `int[]`, etc.).
+- **Ranges**:
+    - `types.Int4Range`, `types.Int8Range`, `types.NumRange`
+    - `types.TsRange` (Timestamp), `types.TstzRange` (TimestampTz), `types.DateRange`
+- **Network**: `types.Inet`, `types.CIDR`, `types.MACAddr`.
+- **Time**: `types.Date`, `types.Time` (Postgres specific time/date types).
+- **Geometry**: `types.Point`, `types.Box`, `types.Circle`, `types.Polygon`, `types.Path`.
+- **Full Text Search**: `types.TSVector`, `types.TSQuery`.
+- **Others**: `types.UUID`, `types.BinUUID`, `types.Money`, `types.XML`, `types.BitString`.
+- **Generics**: `types.JSONType[T]` for strong typing of JSON column content.
+
+### 8.2. Extended Field Expressions (`go.ipao.vip/gen/field`)
+Provides type-safe builders for PostgreSQL operators:
+
+- **JSONB Querying**:
+  ```go
+  // Query: attributes -> 'role' ? 'admin'
+  db.Where(u.Attributes.HasKey("role"))
+  // Query: attributes ->> 'age' > 18
+  db.Where(u.Attributes.KeyGt("age", 18))
+  ```
+- **Array Operations**:
+  ```go
+  // Query: tags @> '{urgent}'
+  db.Where(u.Tags.Contains("urgent"))
+  ```
+- **Range Overlaps**:
+  ```go
+  // Query: duration && '[2023-01-01, 2023-01-02)'
+  db.Where(u.Duration.Overlaps(searchRange))
+  ```
+
+### 8.3. Configuration & Generation
+- **YAML Config**: Supports loading configuration from a `.transform.yaml` file (handling field type overrides, ignores, and relationships).
+- **Auto Mapping**: `defaultDataTypeMap` in the generator automatically selects the correct extended type (e.g., `int4range` -> `types.Int4Range`) without manual config.
+- **Field Wrappers**: Automatically wraps generated fields with their specific expression builders (e.g., a `jsonb` column generates a `field.JSONB` struct instead of a generic `field.Field`, enabling the `.HasKey()` method).
