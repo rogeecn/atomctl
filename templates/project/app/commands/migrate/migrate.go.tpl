@@ -57,33 +57,27 @@ func Serve(cmd *cobra.Command, args []string) error {
 
 		goose.SetBaseFS(database.MigrationFS)
 		goose.SetTableName("migrations")
-		goose.AddNamedMigrationNoTxContext("0001_river_job.go", RiverUp, RiverDown)
+		goose.AddNamedMigrationNoTxContext(
+			"10000000000001_river_job.go",
+			func(ctx context.Context, db *sql.DB) error {
+				migrator, err := rivermigrate.New(riverdatabasesql.New(db), nil)
+				if err != nil {
+					return err
+				}
+
+				_, err = migrator.Migrate(ctx, rivermigrate.DirectionUp, &rivermigrate.MigrateOpts{TargetVersion: -1})
+				return err
+			},
+			func(ctx context.Context, db *sql.DB) error {
+				migrator, err := rivermigrate.New(riverdatabasesql.New(db), nil)
+				if err != nil {
+					return err
+				}
+
+				_, err = migrator.Migrate(ctx, rivermigrate.DirectionDown, &rivermigrate.MigrateOpts{TargetVersion: -1})
+				return err
+			})
 
 		return goose.RunContext(context.Background(), action, svc.DB, "migrations", args...)
 	})
-}
-
-func RiverUp(ctx context.Context, db *sql.DB) error {
-	migrator, err := rivermigrate.New(riverdatabasesql.New(db), nil)
-	if err != nil {
-		return err
-	}
-
-	// Migrate up. An empty MigrateOpts will migrate all the way up, but
-	// best practice is to specify a specific target version.
-	_, err = migrator.Migrate(ctx, rivermigrate.DirectionUp, &rivermigrate.MigrateOpts{})
-	return err
-}
-
-func RiverDown(ctx context.Context, db *sql.DB) error {
-	migrator, err := rivermigrate.New(riverdatabasesql.New(db), nil)
-	if err != nil {
-		return err
-	}
-
-	// TargetVersion -1 removes River's schema completely.
-	_, err = migrator.Migrate(ctx, rivermigrate.DirectionDown, &rivermigrate.MigrateOpts{
-		TargetVersion: -1,
-	})
-	return err
 }
