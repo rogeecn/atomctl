@@ -8,10 +8,17 @@ This file condenses `docs/dev/http_api.md` + `docs/dev/model.md` into a checklis
 
 - DO follow existing module layout under `app/http/<module>/`.
 - MUST: HTTP module folder name MUST be `snake_case` (e.g. `tenant_public`), not `camelCase`/`mixedCase`.
+- MUST: JSON tags in DTOs and all response/request structs MUST use `snake_case` (e.g., `json:"user_id"`), never `camelCase` (e.g., `json:"userId"`).
+- MUST: Paginated list endpoints MUST return `*requests.Pager` and use the shared `requests.Pagination` types defined in `app/requests/pagination.go`                                                                                                                                                                                                                                                            ; DO NOT redefine pagination or pager structs in local DTOs.
+- MUST: The JSON response for paginated data MUST follow the `requests.Pager` layout: `{ "page": 1, "limit": 10, "total": 100, "items": [...] }`.
 - DO keep controller methods thin: parse/bind → call `services.*` → return result/error.
 - DO regenerate code after changes (routes/docs/models).
-- MUST: in `app/services`, prefer the generated GORM-Gen DAO (`database/models/*`) for DB access                                                                                                                                                    ; treat raw `*gorm.DB` usage as a last resort.
-- MUST: after adding/removing/renaming any files under `app/services/`, run `atomctl gen service --path ./app/services` to regenerate `app/services/services.gen.go`                                                                                ; DO NOT edit `services.gen.go` manually.
+- MUST: in `app/services`, prefer the generated GORM-Gen DAO (`database/models/*`) for DB access                                                                                                                                                                                                                                                                                                                 ; treat raw `*gorm.DB` usage as a last resort.
+- MUST: When building queries in services, improve readability by using the assignment: `tbl, query := models.<Table>Query.QueryContext(ctx)`. Then use `tbl` for field references (e.g., `tbl.ID.Eq(...)`) and `query` for chaining methods.
+- MUST: in `services`, when an error occurs (e.g., DB error, third-party API error), NEVER return a generic `errorx.ErrXxx` alone if there is an underlying `err`. ALWAYS use `errorx.ErrXxx.WithCause(err)` to wrap the original error. This ensures the centralized Logger captures the full context (file, line, root cause) while the client receives a friendly message and a unique Error ID for tracking.
+- MUST: all chainable methods on `AppError` (`WithCause`, `WithMsg`, `WithData`, etc.) are thread-safe and return a new instance (clone). Use them freely to add context to global error variables.
+- MUST: service-layer transactions MUST use `models.Q.Transaction(func(tx *models.Query) error { ... })`                                                                                                                                                                                                                                                                                                         ; DO NOT use raw `*_db.Transaction(...)` / `db.Transaction(...)` in services unless Gen cannot express the required operation.
+- MUST: after adding/removing/renaming any files under `app/services/`, run `atomctl gen service --path ./app/services` to regenerate `app/services/services.gen.go`                                                                                                                                                                                                                                             ; DO NOT edit `services.gen.go` manually.
 - DO add `// @provider` above every controller/service `struct` declaration.
 - DO keep HTTP middlewares in `app/middlewares/` only.
 - DO keep all `const` declarations in `pkg/consts/` only (do not declare constants elsewhere).
@@ -23,6 +30,7 @@ This file condenses `docs/dev/http_api.md` + `docs/dev/model.md` into a checklis
 - DO NOT manually write route declarations (only `atomctl gen route`).
 - DO keep Swagger annotations consistent with actual Fiber route paths (including `:param`).
 - MUST: route path parameter placeholders MUST be `camelCase` (e.g. `:tenantCode`), never `snake_case` (e.g. `:tenant_code`).
+- MUST: for numeric ID path params (`int/int64` like `tenantID/userID/orderID`), prefer Fiber typed params `:tenantID<int>` to avoid conflicts with static subpaths (e.g. `/orders/statistics`) and reduce ambiguous routing.
 - MUST: when importing another HTTP module's `dto` package, the import alias MUST be `<module>_dto` (e.g. `tenant_dto`), not `<module>dto` (e.g. `tenantdto`).
 - MUST: when creating/generating Go `struct` definitions (DTOs/requests/responses/etc.), add detailed per-field comments describing meaning, usage scenario, and validation/usage rules (do not rely on “self-explanatory” names).
 - MUST: business code comments MUST be written in Chinese (中文注释), to keep review/maintenance consistent across the team.
@@ -62,7 +70,7 @@ Place above the handler function:
 
 Common `@Success` patterns:
 
-- Paginated list: `requests.Pager{items=dto.Item}`
+- Paginated list: `requests.Pager{items=[]dto.Item}`
 - Single object: `dto.Item`
 - Array: `{array} dto.Item`
 
@@ -150,6 +158,8 @@ Models live in:
 4) Map complex field types (JSON/ARRAY/UUID/…) via transform file:
 
 - `database/.transform.yaml` → `field_type.<table>`
+- MUST: For ALL enum fields (even simple `VARCHAR`), you MUST map them to their corresponding Go enum type (defined in `pkg/consts`) in `.transform.yaml`. This ensures strong typing in the generated models and avoids unsafe manual casting (e.g., `string(consts.GenderMale)`).
+- MUST: For deterministic JSONB fields (where the structure is known), define a corresponding Go struct in `database/fields/` and map the field to `types.JSONType[fields.StructName]` in `.transform.yaml`.
 
 5) Generate models:
 
@@ -174,7 +184,7 @@ Reference: `llm.gorm_gen.txt`.
 - MUST: use Gen transaction wrapper so all queries share the same tx connection:
 - `models.Q.Transaction(func(tx *models.Query) error { ... })`
 - Inside tx, use `tx.<Table>.QueryContext(ctx)` / `tx.<Table>.WithContext(ctx)`
-- DO NOT: use `_db.WithContext(ctx).Transaction(...)` in services unless Gen cannot express a required operation.
+- DO NOT: use `_db.WithContext(ctx).Transaction(...)` / `db.Transaction(...)` in services unless Gen cannot express a required operation.
 
 ### 3.3 Updates
 
@@ -240,7 +250,7 @@ In this case:
 - `app/events/subscribers/<snake_case>.go`（subscriber：实现 `contracts.EventHandler`，负责 `Topic()` + `Handler(...)`）
 - 生成后：按项目约定运行一次 `atomctl gen provider`（用于刷新 DI/provider 生成文件）。
 
-### Topic 约定
+### Topic约定
 
 - 统一在 `app/events/topics.go` 维护 topic 常量，避免散落在各处形成“字符串协议”。
 - topic 字符串建议使用稳定前缀（例如 `event:`），并使用 `snake_case` 命名。
@@ -289,7 +299,7 @@ Common types:
 - `Kind` 建议与业务枚举/事件类型对齐，便于 SQL/报表按 `kind` 过滤。
 - `Data` 写入对应 payload 的 JSON（payload 可以是多个不同 struct）。
 - 读取时：
-- 先 `snap := model.Snapshot.Data()`，再 `switch snap.Kind` 选择对应 payload 结构去 `json.Unmarshal(snap.Data, &payload)`。
+- 先 `snap := model.Snapshot.Data()`，再 `switch snap.Kind` 选择对应 payload结构去 `json.Unmarshal(snap.Data, &payload)`。
 - 兼容历史数据（旧 JSON 没有 kind/data）时，`UnmarshalJSON` 可以将其标记为 `legacy` 并把原始 JSON 放入 `Data`，避免线上存量读取失败。
 
 ---
